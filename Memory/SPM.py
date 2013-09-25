@@ -28,6 +28,10 @@ class SPM(Memory):
    def get_components(self):
       return [self.mem]
 
+   def set_component(self, i, c):
+      assert(i == 0)
+      self.mem = c
+
    def get_cost(self):
       return self.size * 8
 

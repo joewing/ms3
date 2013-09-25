@@ -1,15 +1,19 @@
 
 from Lexer import *
+from Join import Join
 from Offset import Offset
 from SPM import SPM
 from RAM import RAM
 
 class Parser:
 
+   joins = []
+
    def __init__(self, machine, f):
       self.lexer = Lexer(f)
       self.machine = machine
       self.parsers = {
+         'join':     self.parse_join,
          'offset':   self.parse_offset,
          'spm':      self.parse_spm,
          'ram':      self.parse_ram
@@ -55,10 +59,21 @@ class Parser:
       else:
          return default
 
+   def parse_join(self, args):
+      result = Join(self.machine)
+      self.joins.append(result)
+      return result
+
    def parse_offset(self, args):
       offset = self.get_argument(args, 'value', 0)
       mem = self.get_argument(args, 'memory')
-      return Offset(self.machine, mem, offset)
+      bank = self.get_argument(args, 'bank')
+      result = Offset(self.machine, bank, mem, offset)
+      if len(self.joins) == 0:
+         raise ParseError("no join for offset")
+      join = self.joins.pop()
+      join.parent = result
+      return result
 
    def parse_spm(self, args):
       mem = self.get_argument(args, 'memory')

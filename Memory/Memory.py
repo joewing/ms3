@@ -12,6 +12,10 @@ class Memory:
       """Get a list of memory sub-components (shallow)."""
       return []
 
+   def set_component(self, i, c):
+      """Update a memory component."""
+      assert(False)
+
    def count(self):
       """Count the total number of components that make up this memory."""
       counts = map(lambda m: m.count(), self.get_components())

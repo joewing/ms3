@@ -3,7 +3,7 @@ all:
 	python -O memsim.py
 
 test:
-	python test.py
+	python -O test.py
 
 clean:
 	find . -name "*.py[oc]" -exec rm {} \;

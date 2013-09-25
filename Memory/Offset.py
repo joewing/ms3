@@ -6,15 +6,18 @@ from Machine import *
 
 def random_offset(machine, nxt, rand, cost):
    offset = rand.randint(-64, 64)
-   return Offset(machine, nxt, offset)
+   join = Join(machine)
+   result = Offset(machine, join, nxt, offset)
+   join.parent = result
+   return result
 
 class Offset(Memory):
 
-   def __init__(self, machine, mem, offset=0):
+   def __init__(self, machine, bank, mem, offset=0):
+      self.machine = machine
+      self.bank = bank
       self.mem = mem
       self.offset = offset
-      self.machine = machine
-      self.bank = Join(machine, self)
 
    def __str__(self):
       result  = '(offset '
@@ -26,6 +29,14 @@ class Offset(Memory):
 
    def get_components(self):
       return [self.bank, self.mem]
+
+   def set_component(self, i, c):
+      if i == 0:
+         self.bank = c
+      elif i == 1:
+         self.mem = c
+      else:
+         assert(False)
 
    def permute(self, rand, max_cost):
       self.offset = rand.randint(-64, 64)

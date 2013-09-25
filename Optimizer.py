@@ -20,7 +20,7 @@ class Optimizer:
 
    constructors = [
       random_offset,
-#      random_spm
+      random_spm
    ]
 
    def __init__(self, machine, pl,
@@ -71,7 +71,7 @@ class Optimizer:
             c = components[i].count()
             if index <= t + c:
                updated = self.insert(components[i], index - 1 - t, max_cost)
-               components[i] = updated
+               mem.set_component(i, updated)
                found = True
             t += c
          assert(found)
@@ -84,6 +84,9 @@ class Optimizer:
       if index == 0:
          components = mem.get_components()
          if len(components) > 0:
+            for i in range(1, len(components) - 1):
+               if not isinstance(components[i], Join):
+                  return mem
             return components[0]
          else:
             return mem
@@ -117,20 +120,20 @@ class Optimizer:
          count = p.mem.count()
 
          # Select an action to perform.
-         action = self.rand.randint(0, 3)
+         action = self.rand.randint(0, 7)
          if action == 0:   # Insert
             before = str(p.mem)
             index = self.rand.randint(0, count - 1)
             temp = self.insert(p.mem, index, max_cost)
             stat = temp != None and str(temp) != before
             if stat: p.mem = temp
-         elif action == 1 and count > 1: # Remove
+         elif action <= 2 and count > 1: # Remove
             before = str(p.mem)
             index = self.rand.randint(0, count - 1)
             temp = self.remove(p.mem, index)
             stat = temp != None and str(temp) != before
             if stat: p.mem = temp
-         else:             # Permute
+         else: # Permute
             index = self.rand.randint(0, count - 1)
             stat = self.permute(p.mem, index, max_cost)
 
