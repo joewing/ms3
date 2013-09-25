@@ -183,6 +183,9 @@ class Optimizer:
             self.threshold += 1 + (self.age * self.threshold) / 2048
             self.age += 1
          self.modify()
+         new_name = self.pl.get_name()
+         if new_name in self.cache:
+            return self.generate_next(self.cache[new_name])
       return True
       
 
@@ -192,6 +195,7 @@ class Optimizer:
       """
       self.evaluations += 1
       self.update_best(time)
+      self.cache[self.pl.get_name()] = time
       result = self.generate_next(time)
       if result:
          temp  = "Iteration: " + str(self.iterations)
