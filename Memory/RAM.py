@@ -12,6 +12,12 @@ class RAM(Memory):
    def __str__(self):
       return '(ram (latency ' + str(self.latency) + '))'
 
+   def reset(self):
+      pass
+
+   def done(self):
+      return 0
+
    def process(self, access):
       addr = get_address(access)
       size = get_size(access)

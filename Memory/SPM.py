@@ -11,6 +11,18 @@ class SPM(Memory):
       self.size = word_count * machine.word_size
       self.latency = latency
 
+   def get_components(self):
+      return [self.mem]
+
+   def get_cost(self):
+      return self.word_size * self.size * 8
+
+   def reset(self):
+      self.mem.reset()
+
+   def done(self):
+      return self.mem.done()
+
    def process(self, access):
       addr = get_address(access)
       size = get_size(access)

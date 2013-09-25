@@ -4,6 +4,7 @@ from Memory.SPM import *
 from Memory.RAM import *
 from Memory.Offset import *
 from Process import *
+from Optimizer import *
 from Machine import MachineType
 from Benchmark.HashBenchmark import HashBenchmark
 
@@ -17,6 +18,10 @@ def main():
    pl = ProcessList(machine)
 #   pl.insert(proc1)
    pl.insert(proc2)
+   print str(proc2.mem)
+   o = Optimizer(pl)
+   o.modify()
+   print str(proc2.mem)
    pl.run()
    print("Time: " + str(machine.time))
 

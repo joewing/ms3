@@ -1,4 +1,5 @@
 
+import random
 from Memory import Memory
 from Machine import *
 
@@ -15,6 +16,19 @@ class Offset(Memory):
       result += '(memory ' + str(self.mem) + ')'
       result += ')'
       return result
+
+   def get_components(self):
+      return [self.mem]
+
+   def permute(self, rand, max_cost):
+      self.offset = rand.randint(-64, 64)
+      return True
+
+   def reset(self):
+      self.mem.reset()
+
+   def done(self):
+      return self.mem.done()
 
    def process(self, access):
       address = (get_address(access) + self.offset) & self.addr_mask
