@@ -9,7 +9,8 @@ class RAM(Memory):
       self.word_size = machine.word_size
       self.machine = machine
 
-   def set_port(self, port): pass
+   def __str__(self):
+      return '(ram (latency ' + str(self.latency) + '))'
 
    def process(self, access):
       addr = get_address(access)
