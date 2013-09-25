@@ -27,16 +27,18 @@ class Offset(Memory):
       result += ')'
       return result
 
-   def get_components(self):
-      return [self.bank, self.mem]
+   def get_next(self):
+      return self.mem
 
-   def set_component(self, i, c):
-      if i == 0:
-         self.bank = c
-      elif i == 1:
-         self.mem = c
-      else:
-         assert(False)
+   def set_next(self, n):
+      self.mem = n
+
+   def get_banks(self):
+      return [self.bank]
+
+   def set_bank(self, i, b):
+      assert(i == 0)
+      self.bank = b
 
    def permute(self, rand, max_cost):
       self.offset = rand.randint(-64, 64)

@@ -8,18 +8,30 @@ class Memory:
       """Create a deep copy of this memory."""
       return copy.deepcopy(self)
 
-   def get_components(self):
-      """Get a list of memory sub-components (shallow)."""
+   def get_next(self):
+      """Get the next memory component."""
+      return None
+
+   def get_banks(self):
+      """Get memory subcomponents."""
       return []
 
-   def set_component(self, i, c):
-      """Update a memory component."""
+   def set_next(self, n):
+      """Set the next memory."""
+      assert(False)
+
+   def set_bank(self, i, c):
+      """Update a memory sub-component."""
       assert(False)
 
    def count(self):
       """Count the total number of components that make up this memory."""
-      counts = map(lambda m: m.count(), self.get_components())
-      return reduce(lambda a, b: a + b, counts, 1)
+      components = filter(lambda m: m != None, self.get_banks())
+      counts = map(lambda m: m.count(), self.get_banks())
+      result = reduce(lambda a, b: a + b, counts, 1)
+      if self.get_next() != None:
+         result += self.get_next().count()
+      return result
 
    def get_cost(self):
       """Get the cost of this memory component (shallow)."""
@@ -27,9 +39,12 @@ class Memory:
 
    def get_total_cost(self):
       """Get the total cost of the memory component and its children."""
-      components = filter(lambda m: m != None, self.get_components())
+      components = filter(lambda m: m != None, self.get_banks())
       costs = map(lambda m: m.get_total_cost(), components)
-      return reduce(lambda a, b: a + b, costs, self.get_cost())
+      result = reduce(lambda a, b: a + b, costs, self.get_cost())
+      if self.get_next() != None:
+         result += self.get_next().get_total_cost()
+      return result
 
    def permute(self, rand, max_cost):
       """Permute a memory component.

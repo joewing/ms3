@@ -3,6 +3,7 @@ import random
 
 from Memory.Offset import Offset, random_offset
 from Memory.SPM import SPM, random_spm
+from Memory.Join import Join
 
 class Optimizer:
 
@@ -47,12 +48,16 @@ class Optimizer:
       if index == 0:
          mc = max_cost + mem.get_cost()
          return mem.permute(self.rand, mc)
-      components = mem.get_components()
-      t = 0
-      for i in range(len(components)):
-         c = components[i].count()
+      n = mem.get_next()
+      nc = n.count()
+      if index <= nc:
+         return self.permute(n, index - 1, max_cost)
+      banks = mem.get_banks()
+      t = nc
+      for i in range(len(banks)):
+         c = banks[i].count()
          if index <= t + c:
-            return self.permute(components[i], index - 1 - t, max_cost)
+            return self.permute(banks[i], index - 1 - t, max_cost)
          t += c
       assert(False)
 
@@ -62,44 +67,47 @@ class Optimizer:
       """
       if index == 0:
          return self.create_memory(mem, max_cost, False)
-      else:
-         components = mem.get_components()
-         new_components = []
-         t = 0
-         found = False
-         for i in range(len(components)):
-            c = components[i].count()
-            if index <= t + c:
-               updated = self.insert(components[i], index - 1 - t, max_cost)
-               mem.set_component(i, updated)
-               found = True
-            t += c
-         assert(found)
+      n = mem.get_next()
+      nc = n.count()
+      if index <= nc:
+         mem.set_next(self.insert(n, index - 1, max_cost))
          return mem
+      banks = mem.get_banks()
+      t = nc
+      found = False
+      for i in range(len(banks)):
+         c = banks[i].count()
+         if index <= t + c:
+            mem.set_bank(i, self.insert(banks[i], index - 1 - t, max_cost))
+            found = True
+         t += c
+      assert(found)
+      return mem
 
    def remove(self, mem, index):
       """ Remove a memory component at index.
           Returns the updated memory.
       """
+      n = mem.get_next()
       if index == 0:
-         components = mem.get_components()
-         if len(components) > 0:
-            for i in range(1, len(components) - 1):
-               if not isinstance(components[i], Join):
-                  return mem
-            return components[0]
-         else:
-            return mem
+         if n == None: return mem
+         banks = mem.get_banks()
+         for b in banks:
+            if not isinstance(b, Join):
+               return mem
+         return n
       else:
-         components = mem.get_components()
-         new_components = []
-         t = 0
+         nc = n.count()
+         if index <= nc:
+            mem.set_next(self.remove(n, index - 1))
+            return mem
+         banks = mem.get_banks()
+         t = nc
          found = False
-         for i in range(len(components)):
-            c = components[i].count()
+         for i in range(len(banks)):
+            c = banks[i].count()
             if index <= t + c:
-               updated = self.remove(components[i], index - 1 - t)
-               components[i] = updated
+               mem.set_bank(i, self.remove(banks[i], index - 1 - t))
                found = True
             t += c
          assert(found)

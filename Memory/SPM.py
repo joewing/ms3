@@ -25,12 +25,11 @@ class SPM(Memory):
       result += ")"
       return result
 
-   def get_components(self):
-      return [self.mem]
+   def get_next(self):
+      return self.mem
 
-   def set_component(self, i, c):
-      assert(i == 0)
-      self.mem = c
+   def set_next(self, n):
+      self.mem = n
 
    def get_cost(self):
       return self.size * 8
