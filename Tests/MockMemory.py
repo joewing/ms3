@@ -4,6 +4,8 @@ from Memory.Memory import Memory
 
 class MockMemory(Memory):
 
+   last_access = None
+
    def __init__(self, mem = None, *banks):
       self.mem = mem
       self.banks = list(banks)
@@ -28,4 +30,8 @@ class MockMemory(Memory):
    def set_bank(self, i, b):
       assert(i < len(self.banks))
       self.banks[i] = b
+
+   def process(self, access):
+      self.last_access = access
+      return 100
 

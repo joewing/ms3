@@ -151,7 +151,7 @@ class Cache(Memory):
       mask = self.machine.addr_mask
       temp = addr
       result = 0
-      for i in range(extra - 1):
+      for i in range(extra):
          result += self.do_process(write, temp, self.line_size)
          temp = (temp + self.line_size) & mask
       if size > extra * self.line_size:
