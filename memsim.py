@@ -16,8 +16,8 @@ def main():
    join = Join(machine)
    mem2 = Offset(machine, bank = join, mem = mem1, offset = 32)
    join.parent = mem2
-   proc1 = Process(mem1, MMBenchmark(machine, 16, 1))
-   proc2 = Process(mem2, HashBenchmark(machine, 6, 1000))
+   proc1 = Process(mem1, MMBenchmark(machine, 64, 1))
+   proc2 = Process(mem2, HashBenchmark(machine, 6, 10000))
    pl = ProcessList(machine)
    pl.insert(proc1)
    pl.insert(proc2)

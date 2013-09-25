@@ -1,5 +1,5 @@
 
-
+from Machine import get_size
 from Memory.Memory import Memory
 
 class MockMemory(Memory):
@@ -33,5 +33,5 @@ class MockMemory(Memory):
 
    def process(self, access):
       self.last_access = access
-      return 100
+      return 100 * get_size(access)
 
