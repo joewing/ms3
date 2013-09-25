@@ -44,9 +44,6 @@ class SPM(Memory):
             return False
       return True
 
-   def reset(self):
-      self.mem.reset()
-
    def done(self):
       return self.mem.done()
 

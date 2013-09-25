@@ -58,7 +58,10 @@ class Memory:
       """Reset the memory for a new run.
          This is called before every trace execution.
       """
-      pass
+      for b in self.get_banks():
+         b.reset()
+      if self.get_next() != None:
+         self.get_next().reset()
 
    def process(self, access):
       """Process a memory access operation.
