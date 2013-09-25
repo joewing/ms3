@@ -1,6 +1,5 @@
 
-from Benchmark import *
-from Machine import *
+from Benchmark import Benchmark
 import random
 
 class HashBenchmark(Benchmark):
@@ -11,8 +10,8 @@ class HashBenchmark(Benchmark):
       self.size = 4
 
    def run(self):
-      self.rand = random.Random(self.seed)
+      rand = random.Random(self.seed)
       for i in range(self.count):
-         addr = self.rand.randint(0, self.count - 1) * self.size
-         yield create_access(address = addr, size = self.size)
+         addr = rand.randint(0, self.count - 1) * self.size
+         yield self.read(addr, self.size)
 
