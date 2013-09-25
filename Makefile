@@ -1,10 +1,10 @@
 
 all:
-	python memsim.py
+	python -O memsim.py
 
 test:
 	python test.py
 
 clean:
-	find . -name "*.pyc" -exec rm {} \;
+	find . -name "*.py[oc]" -exec rm {} \;
 

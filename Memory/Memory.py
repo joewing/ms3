@@ -1,10 +1,21 @@
 
+import copy
+
 class Memory:
    """The abstract base class for all memory components."""
+
+   def clone(self):
+      """Create a deep copy of this memory."""
+      return copy.deepcopy(self)
 
    def get_components(self):
       """Get a list of memory sub-components (shallow)."""
       return []
+
+   def count(self):
+      """Count the total number of components that make up this memory."""
+      counts = map(lambda m: m.count(), self.get_components())
+      return reduce(lambda a, b: a + b, counts, 1)
 
    def get_cost(self):
       """Get the cost of this memory component (shallow)."""
@@ -12,7 +23,8 @@ class Memory:
 
    def get_total_cost(self):
       """Get the total cost of the memory component and its children."""
-      costs = map(lambda m: m.get_total_cost(), self.get_components())
+      components = filter(lambda m: m != None, self.get_components())
+      costs = map(lambda m: m.get_total_cost(), components)
       return reduce(lambda a, b: a + b, costs, self.get_cost())
 
    def permute(self, rand, max_cost):
