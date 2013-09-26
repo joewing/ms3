@@ -53,7 +53,7 @@ class ProcessList:
       return reduce(lambda a, b: a + ":" + b, names)
 
    def run(self, rand = None):
-      print self.get_name()
+      print(self.get_name())
       self.machine.time = 0
       for p in self.processes:
          p.reset()
@@ -70,6 +70,6 @@ class ProcessList:
          t = p.done()
          if t > self.machine.time:
             self.machine.time = t
-      print "Time: " + str(self.machine.time)
+      print("Time: " + str(self.machine.time))
       return self.machine.time
 

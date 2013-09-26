@@ -53,9 +53,9 @@ class BinaryHeap:
             break
 
    def show(self):
-      print "HEAP:"
+      print("HEAP:")
       for i in range(1, self.size + 1):
          k = self.heap[i][0]
          v = self.heap[i][1]
-         print "  " + str(k) + " -> " + str(v)
+         print("  " + str(k) + " -> " + str(v))
 

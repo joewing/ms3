@@ -150,7 +150,7 @@ class Optimizer:
             temp = self.insert(p.mem, index, max_cost)
             stat = temp != None and str(temp) != before
             if stat: p.mem = temp
-         elif action <= 2 and count > 1: # Remove
+         elif action <= 3 and count > 1: # Remove
             before = str(p.mem)
             index = self.rand.randint(0, count - 1)
             temp = self.remove(p.mem, index)
