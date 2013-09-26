@@ -13,8 +13,7 @@ class SPM(Memory):
 
    def __init__(self, machine, mem, size=0, latency=2):
       self.mem = mem
-      self.addr_mask = machine.addr_mask
-      self.word_size = machine.word_size
+      self.machine = machine
       self.size = size
       self.latency = latency
 
@@ -35,7 +34,7 @@ class SPM(Memory):
       return self.size * 8
 
    def permute(self, rand, max_cost):
-      if self.size > self.word_size and rand.randint(0, 1) == 1:
+      if self.size > self.machine.word_size and rand.randint(0, 1) == 1:
          self.size /= 2
       else:
          self.size *= 2
@@ -44,17 +43,25 @@ class SPM(Memory):
             return False
       return True
 
+   def push_transform(self, index, rand):
+      assert(index == -1)
+      rand.push_limit(self.size, self.machine.addr_mask)
+
+   def pop_transform(self, rand):
+      rand.pop_limit()
+
    def done(self):
       return self.mem.done()
 
    def process(self, access):
       addr = get_address(access)
       size = get_size(access)
-      last_addr = (addr + size) & self.addr_mask
+      last_addr = (addr + size) & self.machine.addr_mask
       if addr < self.size and last_addr <= self.size:
          # Complete hits the scrachpad
-         offset = addr % self.word_size
-         count = (size + self.word_size + offset - 1) / self.word_size
+         offset = addr % self.machine.word_size
+         count = (size + self.machine.word_size + offset - 1)
+         count /= self.machine.word_size
          return count * self.latency + get_cycles(access)
       elif addr >= self.size and last_addr > self.size:
          # Completely misses the scratchpad
@@ -62,15 +69,17 @@ class SPM(Memory):
       elif addr > self.size and last_addr < self.size:
          # First part hits, second part misses
          msize = size - last_addr + 1
-         count = (last_addr + self.word_size) / self.word_size
+         count = (last_addr + self.machine.word_size)
+         count /= self.machine.word_size
          t = count * self.latency
          updated = clone_access(access, size = msize)
          return t + self.mem.process(updated)
       else:
          # First part misses, second part hits
          hsize = self.size - addr;
-         offset = addr % self.word_size
-         count = (hsize + self.word_size + offset - 1) / self.word_size
+         offset = addr % self.machine.word_size
+         count = (hsize + self.machine.word_size + offset - 1)
+         count /= self.machine.word_size
          t = count * self.latency
          updated = clone_access(access,
                                 address = self.size,

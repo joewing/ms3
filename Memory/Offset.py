@@ -5,7 +5,10 @@ from Join import Join
 from Machine import *
 
 def random_offset(machine, nxt, rand, cost):
-   offset = rand.randint(-64, 64)
+   if rand.randbool():
+      offset = rand.randint(-machine.word_size, machine.word_size)
+   else:
+      offset = rand.random_address(machine.word_size)
    join = Join(machine)
    result = Offset(machine, join, nxt, offset)
    join.parent = result
@@ -41,8 +44,19 @@ class Offset(Memory):
       self.bank = b
 
    def permute(self, rand, max_cost):
-      self.offset = rand.randint(-64, 64)
+      word_size = self.machine.word_size
+      if rand.randbool():
+         self.offset = rand.randint(-word_size, word_size)
+      else:
+         self.offset = rand.random_address(word_size)
       return True
+
+   def push_transform(self, index, rand):
+      assert(index == 0)
+      rand.push_transform(lambda a: a + self.offset)
+
+   def pop_transform(self, rand):
+      rand.pop_transform()
 
    def done(self):
       return self.mem.done()

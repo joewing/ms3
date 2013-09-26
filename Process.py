@@ -20,9 +20,11 @@ class Process:
    def done(self):
       return self.mem.done()
 
-   def step(self):
+   def step(self, rand):
       try:
          access = next(self.generator)
+         if rand != None:
+            rand.insert_range(access)
          self.time = self.mem.process(access)
          return True
       except StopIteration:
@@ -50,7 +52,7 @@ class ProcessList:
       names = map(lambda p: str(p.mem), self.processes)
       return reduce(lambda a, b: a + ":" + b, names)
 
-   def run(self):
+   def run(self, rand = None):
       print self.get_name()
       self.machine.time = 0
       for p in self.processes:
@@ -62,7 +64,7 @@ class ProcessList:
             self.machine.time = k
          p = self.heap.value()
          self.heap.pop()
-         if p.step():
+         if p.step(rand):
             self.heap.push(self.machine.time + p.time, p)
       for p in self.processes:
          t = p.done()

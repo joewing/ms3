@@ -46,6 +46,16 @@ class Memory:
          result += self.get_next().get_total_cost()
       return result
 
+   def push_transform(self, index, rand):
+      """Push any address transforms or limits for bank index.
+         index=-1 is used for the next memory.
+      """
+      pass
+
+   def pop_transform(self, rand):
+      """Pop any address transforms or limits."""
+      pass
+
    def permute(self, rand, max_cost):
       """Permute a memory component.
          This function will permute the memory component without

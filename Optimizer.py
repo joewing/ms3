@@ -1,6 +1,5 @@
 
-import random
-
+from Distribution import Distribution
 from Memory.Cache import Cache, random_cache
 from Memory.Offset import Offset, random_offset
 from Memory.SPM import SPM, random_spm
@@ -26,7 +25,7 @@ class Optimizer:
       random_cache
    ]
 
-   def __init__(self, machine, pl,
+   def __init__(self, machine, rand, pl,
                 max_cost = 1e6,
                 iterations = 1000,
                 seed = 7,
@@ -35,7 +34,7 @@ class Optimizer:
       self.machine = machine
       self.max_cost = max_cost
       self.max_iterations = iterations
-      self.rand = random.Random(seed)
+      self.rand = rand
       self.permute_only = permute_only
 
    def create_memory(self, nxt, cost, in_bank):
@@ -53,13 +52,19 @@ class Optimizer:
       n = mem.get_next()
       nc = n.count()
       if index <= nc:
-         return self.permute(n, index - 1, max_cost)
+         mem.push_transform(-1, self.rand)
+         result = self.permute(n, index - 1, max_cost)
+         mem.pop_transform(self.rand)
+         return result
       banks = mem.get_banks()
       t = nc
       for i in range(len(banks)):
          c = banks[i].count()
          if index <= t + c:
-            return self.permute(banks[i], index - 1 - t, max_cost)
+            mem.push_transform(i, self.rand)
+            result = self.permute(banks[i], index - 1 - t, max_cost)
+            mem.pop_transform(self.rand)
+            return result
          t += c
       assert(False)
 
@@ -72,7 +77,9 @@ class Optimizer:
       n = mem.get_next()
       nc = n.count()
       if index <= nc:
+         mem.push_transform(-1, self.rand)
          mem.set_next(self.insert(n, index - 1, max_cost))
+         mem.pop_transform(self.rand)
          return mem
       banks = mem.get_banks()
       t = nc
@@ -80,7 +87,9 @@ class Optimizer:
       for i in range(len(banks)):
          c = banks[i].count()
          if index <= t + c:
+            mem.push_transform(i, self.rand)
             mem.set_bank(i, self.insert(banks[i], index - 1 - t, max_cost))
+            mem.pop_transform(self.rand)
             found = True
          t += c
       assert(found)
@@ -101,7 +110,9 @@ class Optimizer:
       else:
          nc = n.count()
          if index <= nc:
+            mem.push_transform(-1, self.rand)
             mem.set_next(self.remove(n, index - 1))
+            mem.pop_transform(self.rand)
             return mem
          banks = mem.get_banks()
          t = nc
@@ -109,7 +120,9 @@ class Optimizer:
          for i in range(len(banks)):
             c = banks[i].count()
             if index <= t + c:
+               mem.push_transform(i, self.rand)
                mem.set_bank(i, self.remove(banks[i], index - 1 - t))
+               mem.pop_transform(self.rand)
                found = True
             t += c
          assert(found)
