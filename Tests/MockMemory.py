@@ -11,8 +11,9 @@ class MockMemory(Memory):
       self.banks = list(banks)
 
    def __str__(self):
-      result = "(mock "
-      if self.mem != None: result += str(self.mem)
+      if self.mem == None:
+         return "(mock)"
+      result = "(mock " + str(self.mem)
       for c in self.banks:
          result += str(c)
       result += ")"

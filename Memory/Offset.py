@@ -52,8 +52,10 @@ class Offset(Memory):
       return True
 
    def push_transform(self, index, rand):
-      assert(index == 0)
-      rand.push_transform(lambda a: a + self.offset)
+      if index == 0:
+         rand.push_transform(lambda a: a + self.offset)
+      else:
+         rand.push_transform(lambda a: a)
 
    def pop_transform(self, rand):
       rand.pop_transform()

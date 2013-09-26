@@ -48,6 +48,7 @@ class Optimizer:
       """Permute a specific memory component.
          Returns True if successful.
       """
+      assert(index >= 0)
       if index == 0:
          mc = max_cost + mem.get_cost()
          return mem.permute(self.rand, mc)
@@ -58,13 +59,13 @@ class Optimizer:
          result = self.permute(n, index - 1, max_cost)
          mem.pop_transform(self.rand)
          return result
+      t = nc + 1
       banks = mem.get_banks()
-      t = nc
       for i in range(len(banks)):
          c = banks[i].count()
-         if index <= t + c:
+         if index < t + c:
             mem.push_transform(i, self.rand)
-            result = self.permute(banks[i], index - 1 - t, max_cost)
+            result = self.permute(banks[i], index - t, max_cost)
             mem.pop_transform(self.rand)
             return result
          t += c
@@ -74,6 +75,7 @@ class Optimizer:
       """Insert a memory component before index.
          Returns the updated memory.
       """
+      assert(index >= 0)
       if index == 0:
          return self.create_memory(mem, max_cost, False)
       n = mem.get_next()
@@ -84,51 +86,47 @@ class Optimizer:
          mem.pop_transform(self.rand)
          return mem
       banks = mem.get_banks()
-      t = nc
-      found = False
+      t = nc + 1
       for i in range(len(banks)):
          c = banks[i].count()
-         if index <= t + c:
+         if index < t + c:
             mem.push_transform(i, self.rand)
-            mem.set_bank(i, self.insert(banks[i], index - 1 - t, max_cost))
+            mem.set_bank(i, self.insert(banks[i], index - t, max_cost))
             mem.pop_transform(self.rand)
-            found = True
+            return mem
          t += c
-      assert(found)
-      return mem
+      assert(False)
 
    def remove(self, mem, index):
       """ Remove a memory component at index.
           Returns the updated memory.
       """
+      assert(index >= 0)
       n = mem.get_next()
       if index == 0:
          if n == None: return mem
-         banks = mem.get_banks()
-         for b in banks:
+         for b in mem.get_banks():
             if not isinstance(b, Join):
                return mem
          return n
-      else:
-         nc = n.count()
-         if index <= nc:
-            mem.push_transform(-1, self.rand)
-            mem.set_next(self.remove(n, index - 1))
+      nc = n.count()
+      if index <= nc:
+         mem.push_transform(-1, self.rand)
+         mem.set_next(self.remove(n, index - 1))
+         mem.pop_transform(self.rand)
+         return mem
+      t = nc + 1
+      banks = mem.get_banks()
+      for i in range(len(banks)):
+         c = banks[i].count()
+         if index < t + c:
+            mem.push_transform(i, self.rand)
+            updated = self.remove(banks[i], index - t)
+            mem.set_bank(i, updated)
             mem.pop_transform(self.rand)
             return mem
-         banks = mem.get_banks()
-         t = nc
-         found = False
-         for i in range(len(banks)):
-            c = banks[i].count()
-            if index <= t + c:
-               mem.push_transform(i, self.rand)
-               mem.set_bank(i, self.remove(banks[i], index - 1 - t))
-               mem.pop_transform(self.rand)
-               found = True
-            t += c
-         assert(found)
-         return mem
+         t += c
+      assert(False)
 
    def modify(self):
       """Modify the memory subsystem."""
@@ -174,9 +172,9 @@ class Optimizer:
          self.best_cost = cost
          self.best_value = time
          self.iterations = 0
-      print "Best Memory: " + str(self.best_name)
-      print "Best Value:  " + str(self.best_value)
-      print "Best Cost:   " + str(self.best_cost)
+      print("Best Memory: " + str(self.best_name))
+      print("Best Value:  " + str(self.best_value))
+      print("Best Cost:   " + str(self.best_cost))
 
    def generate_next(self, time):
       """Generate the next memory to try."""
@@ -221,6 +219,6 @@ class Optimizer:
          temp += ", threshold " + str(self.threshold)
          temp += ", age " + str(self.age)
          temp += ")"
-         print temp
+         print(temp)
       return result
 

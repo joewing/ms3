@@ -26,11 +26,10 @@ class Memory:
 
    def count(self):
       """Count the total number of components that make up this memory."""
-      components = filter(lambda m: m != None, self.get_banks())
       counts = map(lambda m: m.count(), self.get_banks())
       result = reduce(lambda a, b: a + b, counts, 1)
-      if self.get_next() != None:
-         result += self.get_next().count()
+      n = self.get_next()
+      if n != None: result += n.count()
       return result
 
    def get_cost(self):
