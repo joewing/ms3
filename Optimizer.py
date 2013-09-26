@@ -4,6 +4,7 @@ from Memory.Cache import Cache, random_cache
 from Memory.Offset import Offset, random_offset
 from Memory.SPM import SPM, random_spm
 from Memory.Join import Join
+from Memory.Split import Split, random_split
 
 class Optimizer:
 
@@ -22,7 +23,8 @@ class Optimizer:
    constructors = [
       random_offset,
       random_spm,
-      random_cache
+      random_cache,
+      random_split
    ]
 
    def __init__(self, machine, rand, pl,
