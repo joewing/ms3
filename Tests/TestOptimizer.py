@@ -1,6 +1,7 @@
 
 import unittest
 from MockMemory import MockMemory
+from Distribution import Distribution
 from Optimizer import Optimizer
 from Process import ProcessList, Process
 from Machine import MachineType
@@ -10,7 +11,8 @@ class TestOptimizer(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.pl = ProcessList(self.machine)
-      self.optimizer = Optimizer(self.machine, self.pl)
+      self.rand = Distribution(1)
+      self.optimizer = Optimizer(self.machine, self.rand, self.pl)
       self.optimizer.constructors = [ self.mock_constructor ]
 
    def mock_constructor(self, machine, nxt, rand, cost):
