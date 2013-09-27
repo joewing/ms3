@@ -68,7 +68,8 @@ class Offset(Memory):
       updated = clone_access(access, address = address)
       return self.bank.process(updated)
 
-   def forward(self, access):
+   def forward(self, index, access):
+      assert(index == 0)
       address = (get_address(access) - self.offset) & self.machine.addr_mask
       updated = clone_access(access, address = address)
       return self.mem.process(updated)
