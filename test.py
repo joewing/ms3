@@ -8,6 +8,7 @@ from Tests.TestOptimizer import TestOptimizer
 from Tests.TestParser import TestParser
 from Tests.TestShift import TestShift
 from Tests.TestSplit import TestSplit
+from Tests.TestSPM import TestSPM
 
 if __name__ == '__main__':
 	unittest.main()
