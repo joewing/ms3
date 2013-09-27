@@ -1,6 +1,6 @@
 
 all:
-	python memsim.py
+	python -O memsim.py
 
 test:
 	python test.py

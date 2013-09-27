@@ -147,17 +147,23 @@ class Optimizer:
          # Select an action to perform.
          action = self.rand.randint(0, 7)
          if action == 0:   # Insert
-            before = str(p.mem)
-            index = self.rand.randint(0, count - 1)
-            temp = self.insert(p.mem, index, max_cost)
-            stat = temp != None and str(temp) != before
-            if stat: p.mem = temp
-         elif action <= 3 and count > 1: # Remove
-            before = str(p.mem)
-            index = self.rand.randint(0, count - 1)
-            temp = self.remove(p.mem, index)
-            stat = temp != None and str(temp) != before
-            if stat: p.mem = temp
+            for i in range(100):
+               before = str(p.mem)
+               index = self.rand.randint(0, count - 1)
+               temp = self.insert(p.mem, index, max_cost)
+               stat = temp != None and str(temp) != before
+               if stat:
+                  p.mem = temp
+                  break
+         elif action <= 2 and count > 1: # Remove
+            for i in range(100):
+               before = str(p.mem)
+               index = self.rand.randint(0, count - 1)
+               temp = self.remove(p.mem, index)
+               stat = temp != None and str(temp) != before
+               if stat:
+                  p.mem = temp
+                  break
          else: # Permute
             index = self.rand.randint(0, count - 1)
             stat = self.permute(p.mem, index, max_cost)
