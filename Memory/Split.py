@@ -6,8 +6,8 @@ from Machine import *
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
-   bank0 = Join(machine)
-   bank1 = Join(machine)
+   bank0 = Join(machine, 0)
+   bank1 = Join(machine, 1)
    result = Split(machine, bank0, bank1, nxt, offset)
    bank0.parent = result
    bank1.parent = result
@@ -61,10 +61,21 @@ class Split(Memory):
       addr = get_address(access)
       size = get_size(access)
       write = is_write(access)
-      last = (addr + size - 1) & self.machine.addr_mask
+      mask = self.machine.addr_mask
+      last = (addr + size - 1) & mask
       result = get_cycles(access)
+      if addr > last:
+         result += self._do_process(addr, mask - addr + 1, write)
+         result += self._do_process(0, last + 1, write)
+      else:
+         result += self._do_process(addr, size, write)
+      return result
+
+   def _do_process(self, addr, size, write):
+      last = (addr + size - 1) & self.machine.addr_mask
+      result = 0
       if addr < self.offset:
-         if size <= self.offset:
+         if last <= self.offset:
             temp_size = size
          else:
             temp_size = self.offset - addr
@@ -81,6 +92,11 @@ class Split(Memory):
          result += self.bank1.process(temp)
       return result
 
-   def forward(self, access):
-      return self.mem.process(access)
+   def forward(self, index, access):
+      if index == 1:
+         addr = (get_address(access) + self.offset) & self.machine.addr_mask
+         temp = clone_access(access, address = addr)
+         return self.mem.process(access)
+      else:
+         return self.mem.process(access)
 
