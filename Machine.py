@@ -2,14 +2,14 @@
 class MachineType:
    def __init__(self, word_size=8, addr_bits=32):
       self.word_size = word_size
-      self.word_mask = (1 << word_size) - 1
       self.word_bits = log2(self.word_size)
+      self.word_mask = word_size - 1
       self.addr_bits = addr_bits
       self.addr_mask = (1 << addr_bits) - 1
       self.time = 0
 
 def log2(n):
-   r = 0
+   r = 1
    while n > 0:
       r += 1
       n >>= 2
