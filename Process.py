@@ -15,7 +15,8 @@ class Process:
    def get_cost(self):
       return self.mem.get_total_cost()
 
-   def reset(self):
+   def reset(self, offset):
+      self.benchmark.reset(offset)
       self.generator = self.benchmark.run()
       self.mem.reset()
 
@@ -57,8 +58,9 @@ class ProcessList:
    def run(self, first = False):
       print(self.get_name())
       self.machine.time = 0
-      for p in self.processes:
-         p.reset()
+      for i in range(len(self.processes)):
+         p = self.processes[i]
+         p.reset(self.machine.flip(i))
          self.heap.push(0, p)
       while not self.heap.empty():
          k = self.heap.key()

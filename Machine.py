@@ -8,6 +8,18 @@ class MachineType:
       self.addr_mask = (1 << addr_bits) - 1
       self.time = 0
 
+   def flip(self, value):
+      """Reverse the bits in an addr_bits sized value."""
+      src_mask = 1 << (self.addr_bits - 1)
+      dest_mask = 1
+      result = 0
+      for i in range(self.addr_bits):
+         if (value & src_mask) != 0:
+            result |= dest_mask
+         src_mask >>= 1
+         dest_mask <<= 1
+      return result
+
 def log2(n):
    r = 1
    while n > 0:
