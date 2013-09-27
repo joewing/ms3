@@ -1,5 +1,4 @@
 
-import random
 from Memory import Memory
 from Join import Join
 from Machine import *

@@ -4,6 +4,7 @@ from Memory.Cache import Cache, random_cache
 from Memory.Offset import Offset, random_offset
 from Memory.SPM import SPM, random_spm
 from Memory.Join import Join
+from Memory.Shift import Shift, random_shift
 from Memory.Split import Split, random_split
 
 class Optimizer:
@@ -24,6 +25,7 @@ class Optimizer:
       random_offset,
       random_spm,
       random_cache,
+      random_shift,
       random_split
    ]
 
