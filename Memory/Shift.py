@@ -1,7 +1,7 @@
 
 from Memory import Memory
 from Join import Join
-from  Machine import *
+from  Machine import clone_access, get_address
 
 def random_shift(machine, nxt, rand, cost):
    bits = machine.addr_bits - machine.word_bits - 1
@@ -47,7 +47,6 @@ class Shift(Memory):
 
    def push_transform(self, index, rand):
       if index == 0:
-         bits = self.machine.addr_bits
          rand.push_transform(lambda a: self._rotate(a, self.shift))
       else:
          rand.push_transform(lambda a: a)

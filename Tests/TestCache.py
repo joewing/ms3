@@ -2,7 +2,7 @@
 import unittest
 from Machine import MachineType, create_access
 from Memory.Cache import Cache, CachePolicy
-from MockMemory import *
+from MockMemory import MockMemory
 
 class TestCache(unittest.TestCase):
 

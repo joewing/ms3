@@ -1,6 +1,6 @@
 
 from Memory import Memory
-from Machine import *
+from Machine import get_address, get_size, clone_access
 
 def random_spm(machine, nxt, rand, cost):
    while True:
@@ -62,7 +62,7 @@ class SPM(Memory):
          offset = addr % self.machine.word_size
          count = (size + self.machine.word_size + offset - 1)
          count /= self.machine.word_size
-         return count * self.latency + get_cycles(access)
+         return count * self.latency
       elif addr >= self.size and last_addr > self.size:
          # Completely misses the scratchpad
          return self.mem.process(access)

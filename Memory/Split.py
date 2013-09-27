@@ -1,8 +1,8 @@
 
-import random
 from Memory import Memory
 from Join import Join
-from Machine import *
+from Machine import get_address, get_size, is_write, \
+                    clone_access, create_access
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
@@ -63,7 +63,7 @@ class Split(Memory):
       write = is_write(access)
       mask = self.machine.addr_mask
       last = (addr + size - 1) & mask
-      result = get_cycles(access)
+      result = 0
       if addr > last:
          result += self._do_process(addr, mask - addr + 1, write)
          result += self._do_process(0, last + 1, write)
@@ -96,7 +96,7 @@ class Split(Memory):
       if index == 1:
          addr = (get_address(access) + self.offset) & self.machine.addr_mask
          temp = clone_access(access, address = addr)
-         return self.mem.process(access)
+         return self.mem.process(temp)
       else:
          return self.mem.process(access)
 

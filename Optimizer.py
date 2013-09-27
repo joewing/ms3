@@ -1,11 +1,11 @@
 
 import random
-from Memory.Cache import Cache, random_cache
-from Memory.Offset import Offset, random_offset
-from Memory.SPM import SPM, random_spm
-from Memory.Join import Join
-from Memory.Shift import Shift, random_shift
-from Memory.Split import Split, random_split
+import Memory.Cache as Cache
+import Memory.Offset as Offset
+import Memory.SPM as SPM
+import Memory.Join as Join
+import Memory.Shift as Shift
+import Memory.Split as Split
 
 class Optimizer:
 
@@ -22,11 +22,11 @@ class Optimizer:
    last_value = 0
 
    constructors = [
-      random_offset,
-      random_spm,
-      random_cache,
-      random_shift,
-      random_split
+      Offset.random_offset,
+      SPM.random_spm,
+      Cache.random_cache,
+      Shift.random_shift,
+      Split.random_split
    ]
 
    def __init__(self, machine, pl,
@@ -108,7 +108,7 @@ class Optimizer:
       if index == 0:
          if n == None: return mem
          for b in mem.get_banks():
-            if not isinstance(b, Join):
+            if not isinstance(b, Join.Join):
                return mem
          return n
       nc = n.count()

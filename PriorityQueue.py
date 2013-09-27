@@ -28,7 +28,7 @@ class BinaryHeap:
    def empty(self):
       return self.size == 0
 
-   def swap(self, a, b):
+   def _swap(self, a, b):
       self.heap[a], self.heap[b] = self.heap[b], self.heap[a]
 
    def pop(self):
@@ -41,13 +41,13 @@ class BinaryHeap:
          if right <= self.size:
             if self.heap[left][0] < self.heap[right][0]:
                if self.heap[i][0] > self.heap[left][0]:
-                  self.swap(i, left)
+                  self._swap(i, left)
                   i = left
             elif self.heap[i][0] > self.heap[right][0]:
-               self.swap(i, right)
+               self._swap(i, right)
                i = right
          elif left <= self.size and self.heap[i][0] > self.heap[left][0]:
-            self.swap(i, left)
+            self._swap(i, left)
             i = left
          else:
             break
@@ -58,4 +58,7 @@ class BinaryHeap:
          k = self.heap[i][0]
          v = self.heap[i][1]
          print("  " + str(k) + " -> " + str(v))
+
+# Select the priority queue implementation to use.
+PriorityQueue = BinaryHeap
 

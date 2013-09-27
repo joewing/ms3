@@ -1,6 +1,6 @@
 
 import copy
-import BinaryHeap
+from PriorityQueue import PriorityQueue
 from Distribution import Distribution
 
 class Process:
@@ -35,7 +35,7 @@ class Process:
 class ProcessList:
 
    processes = []
-   heap = BinaryHeap.BinaryHeap()
+   heap = PriorityQueue()
 
    def __init__(self, machine):
       self.machine = machine

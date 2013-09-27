@@ -1,6 +1,6 @@
 
 from Memory import Memory
-from Machine import *
+from Machine import get_address, get_size, is_write, create_access
 
 class CachePolicy:
 
@@ -33,7 +33,7 @@ def random_cache(machine, nxt, rand, cost):
                   line_size = line_size,
                   associativity = associativity,
                   policy = policy,
-                  write_back = True)
+                  write_back = write_back)
    if result.get_cost() <= cost:
       return result
    else:

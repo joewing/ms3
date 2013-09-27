@@ -3,7 +3,7 @@ import unittest
 from Machine import MachineType, create_access
 from Memory.Split import Split
 from Memory.Join import Join
-from MockMemory import *
+from MockMemory import MockMemory
 
 class TestSplit(unittest.TestCase):
 

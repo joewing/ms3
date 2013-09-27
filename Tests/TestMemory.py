@@ -1,7 +1,6 @@
 
 import unittest
-from Memory import *
-from MockMemory import *
+from MockMemory import MockMemory
 
 class TestMemory(unittest.TestCase):
 

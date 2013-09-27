@@ -3,7 +3,7 @@ import unittest
 from Machine import MachineType, create_access, get_address, get_size
 from Memory.Join import Join
 from Memory.Shift import Shift
-from MockMemory import *
+from MockMemory import MockMemory
 
 class TestShift(unittest.TestCase):
 

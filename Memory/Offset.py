@@ -1,7 +1,7 @@
 
 from Memory import Memory
 from Join import Join
-from Machine import *
+from Machine import clone_access, get_address
 
 def random_offset(machine, nxt, rand, cost):
    if rand.randbool():

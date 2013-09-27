@@ -1,10 +1,10 @@
 
 from Memory import Memory
-from Machine import *
+from Machine import get_address, get_size, get_cycles
 
 class RAM(Memory):
 
-   def __init__(self, machine, latency=100):
+   def __init__(self, machine, latency = 100):
       self.latency = latency
       self.word_size = machine.word_size
       self.machine = machine

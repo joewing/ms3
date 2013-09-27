@@ -1,6 +1,6 @@
 
 import random
-from Machine import *
+from Machine import get_address, get_size
 
 class Distribution(random.Random):
 
