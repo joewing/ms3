@@ -14,7 +14,7 @@ class BinaryHeap:
       while i > 1:
          ni = i / 2
          if self.heap[i][0] < self.heap[ni][0]:
-            self.swap(i, ni)
+            self._swap(i, ni)
             i = ni
          else:
             break

@@ -1,6 +1,6 @@
 
 class MachineType:
-   def __init__(self, word_size=8, addr_bits=32):
+   def __init__(self, word_size = 8, addr_bits = 32):
       self.word_size = word_size
       self.word_bits = log2(self.word_size)
       self.word_mask = word_size - 1
