@@ -1,13 +1,15 @@
 
-import BinaryHeap
 import copy
+import BinaryHeap
+from Distribution import Distribution
 
 class Process:
 
    time = 0
 
-   def __init__(self, mem, benchmark):
+   def __init__(self, seed, mem, benchmark):
       self.mem = mem
+      self.dist = Distribution(seed)
       self.benchmark = benchmark
 
    def get_cost(self):
@@ -20,11 +22,11 @@ class Process:
    def done(self):
       return self.mem.done()
 
-   def step(self, rand):
+   def step(self, first):
       try:
          access = next(self.generator)
-         if rand != None:
-            rand.insert_range(access)
+         if first:
+            self.dist.insert_range(access)
          self.time = self.mem.process(access)
          return True
       except StopIteration:
@@ -52,7 +54,7 @@ class ProcessList:
       names = map(lambda p: str(p.mem), self.processes)
       return reduce(lambda a, b: a + ":" + b, names)
 
-   def run(self, rand = None):
+   def run(self, first = False):
       print(self.get_name())
       self.machine.time = 0
       for p in self.processes:
@@ -64,7 +66,7 @@ class ProcessList:
             self.machine.time = k
          p = self.heap.value()
          self.heap.pop()
-         if p.step(rand):
+         if p.step(first):
             self.heap.push(self.machine.time + p.time, p)
       for p in self.processes:
          t = p.done()

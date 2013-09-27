@@ -1,5 +1,5 @@
 
-from Distribution import Distribution
+import random
 from Memory.Cache import Cache, random_cache
 from Memory.Offset import Offset, random_offset
 from Memory.SPM import SPM, random_spm
@@ -29,7 +29,7 @@ class Optimizer:
       random_split
    ]
 
-   def __init__(self, machine, rand, pl,
+   def __init__(self, machine, pl,
                 max_cost = 1e6,
                 iterations = 1000,
                 seed = 7,
@@ -38,68 +38,68 @@ class Optimizer:
       self.machine = machine
       self.max_cost = max_cost
       self.max_iterations = iterations
-      self.rand = rand
+      self.rand = random.Random(seed)
       self.permute_only = permute_only
 
-   def create_memory(self, nxt, cost, in_bank):
+   def create_memory(self, dist, nxt, cost, in_bank):
       index = self.rand.randint(0, len(self.constructors) - 1)
       constructor = self.constructors[index]
-      return constructor(self.machine, nxt, self.rand, cost)
+      return constructor(self.machine, nxt, dist, cost)
 
-   def permute(self, mem, index, max_cost):
+   def permute(self, dist, mem, index, max_cost):
       """Permute a specific memory component.
          Returns True if successful.
       """
       assert(index >= 0)
       if index == 0:
          mc = max_cost + mem.get_cost()
-         return mem.permute(self.rand, mc)
+         return mem.permute(dist, mc)
       n = mem.get_next()
       nc = n.count()
       if index <= nc:
-         mem.push_transform(-1, self.rand)
-         result = self.permute(n, index - 1, max_cost)
-         mem.pop_transform(self.rand)
+         mem.push_transform(-1, dist)
+         result = self.permute(dist, n, index - 1, max_cost)
+         mem.pop_transform(dist)
          return result
       t = nc + 1
       banks = mem.get_banks()
       for i in range(len(banks)):
          c = banks[i].count()
          if index < t + c:
-            mem.push_transform(i, self.rand)
-            result = self.permute(banks[i], index - t, max_cost)
-            mem.pop_transform(self.rand)
+            mem.push_transform(i, dist)
+            result = self.permute(dist, banks[i], index - t, max_cost)
+            mem.pop_transform(dist)
             return result
          t += c
       assert(False)
 
-   def insert(self, mem, index, max_cost):
+   def insert(self, dist, mem, index, max_cost):
       """Insert a memory component before index.
          Returns the updated memory.
       """
       assert(index >= 0)
       if index == 0:
-         return self.create_memory(mem, max_cost, False)
+         return self.create_memory(dist, mem, max_cost, False)
       n = mem.get_next()
       nc = n.count()
       if index <= nc:
-         mem.push_transform(-1, self.rand)
-         mem.set_next(self.insert(n, index - 1, max_cost))
-         mem.pop_transform(self.rand)
+         mem.push_transform(-1, dist)
+         mem.set_next(self.insert(dist, n, index - 1, max_cost))
+         mem.pop_transform(dist)
          return mem
       banks = mem.get_banks()
       t = nc + 1
       for i in range(len(banks)):
          c = banks[i].count()
          if index < t + c:
-            mem.push_transform(i, self.rand)
-            mem.set_bank(i, self.insert(banks[i], index - t, max_cost))
-            mem.pop_transform(self.rand)
+            mem.push_transform(i, dist)
+            mem.set_bank(i, self.insert(dist, banks[i], index - t, max_cost))
+            mem.pop_transform(dist)
             return mem
          t += c
       assert(False)
 
-   def remove(self, mem, index):
+   def remove(self, dist, mem, index):
       """ Remove a memory component at index.
           Returns the updated memory.
       """
@@ -113,19 +113,19 @@ class Optimizer:
          return n
       nc = n.count()
       if index <= nc:
-         mem.push_transform(-1, self.rand)
-         mem.set_next(self.remove(n, index - 1))
-         mem.pop_transform(self.rand)
+         mem.push_transform(-1, dist)
+         mem.set_next(self.remove(dist, n, index - 1))
+         mem.pop_transform(dist)
          return mem
       t = nc + 1
       banks = mem.get_banks()
       for i in range(len(banks)):
          c = banks[i].count()
          if index < t + c:
-            mem.push_transform(i, self.rand)
-            updated = self.remove(banks[i], index - t)
+            mem.push_transform(i, dist)
+            updated = self.remove(dist, banks[i], index - t)
             mem.set_bank(i, updated)
-            mem.pop_transform(self.rand)
+            mem.pop_transform(dist)
             return mem
          t += c
       assert(False)
@@ -150,7 +150,7 @@ class Optimizer:
             for i in range(100):
                before = str(p.mem)
                index = self.rand.randint(0, count - 1)
-               temp = self.insert(p.mem, index, max_cost)
+               temp = self.insert(p.dist, p.mem, index, max_cost)
                stat = temp != None and str(temp) != before
                if stat:
                   p.mem = temp
@@ -159,14 +159,14 @@ class Optimizer:
             for i in range(100):
                before = str(p.mem)
                index = self.rand.randint(0, count - 1)
-               temp = self.remove(p.mem, index)
+               temp = self.remove(p.dist, p.mem, index)
                stat = temp != None and str(temp) != before
                if stat:
                   p.mem = temp
                   break
          else: # Permute
             index = self.rand.randint(0, count - 1)
-            stat = self.permute(p.mem, index, max_cost)
+            stat = self.permute(p.dist, p.mem, index, max_cost)
 
    def update_best(self, time):
       """Update and display the best memory found so far."""

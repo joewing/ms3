@@ -20,22 +20,22 @@ class TestOptimizer(unittest.TestCase):
 
    def test_insert1(self):
       main = MockMemory()
-      self.pl.insert(Process(main, None))
-      result = self.optimizer.insert(main, 0, 0)
+      self.pl.insert(Process(self.rand, main, None))
+      result = self.optimizer.insert(self.rand, main, 0, 0)
       self.assertEqual(str(result), "(mock (mock))")
 
    def test_insert2(self):
       main = MockMemory(MockMemory(), MockMemory())
-      self.pl.insert(Process(main, None))
-      result = self.optimizer.insert(main, 1, 0)
+      self.pl.insert(Process(self.rand, main, None))
+      result = self.optimizer.insert(self.rand, main, 1, 0)
       self.assertEqual(str(result), "(mock (mock (mock))(mock))")
 
    def test_remove1(self):
       main = MockMemory(MockMemory(),
                         MockMemory(MockMemory(MockMemory()), MockMemory()),
                         MockMemory(MockMemory()))
-      self.pl.insert(Process(main, None))
-      result = self.optimizer.remove(main, 3)
+      self.pl.insert(Process(self.rand, main, None))
+      result = self.optimizer.remove(self.rand, main, 3)
       self.assertEqual(str(result),
                        "(mock (mock)(mock (mock)(mock))(mock (mock)))")
 
