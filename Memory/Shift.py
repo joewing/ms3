@@ -1,7 +1,6 @@
 
 from Memory import Memory
 from Join import Join
-from  Machine import clone_access, get_address
 
 def random_shift(machine, nxt, rand, cost):
    bits = machine.addr_bits - machine.word_bits - 1
@@ -70,13 +69,11 @@ class Shift(Memory):
          shifted = ((shift_part << count2) & mask) | (shift_part >> -count)
       return (shifted << self.machine.word_bits) | word_part
 
-   def process(self, access):
-      addr = self._rotate(get_address(access), self.shift)
-      updated = clone_access(access, address = addr)
-      return self.bank.process(updated)
+   def process(self, write, addr, size):
+      addr = self._rotate(addr, self.shift)
+      return self.bank.process(write, addr, size)
 
-   def forward(self, index, access):
-      addr = self._rotate(get_address(access), -self.shift)
-      updated = clone_access(access, address = addr)
-      return self.mem.process(updated)
+   def forward(self, index, write, addr, size):
+      addr = self._rotate(addr, -self.shift)
+      return self.mem.process(write, addr, size)
 

@@ -1,6 +1,5 @@
 
 from Memory import Memory
-from Machine import get_address, get_size, clone_access
 
 def random_spm(machine, nxt, rand, cost):
    while True:
@@ -53,9 +52,7 @@ class SPM(Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, access):
-      addr = get_address(access)
-      size = get_size(access)
+   def process(self, write, addr, size):
       last_addr = (addr + size) & self.machine.addr_mask
       if addr < self.size and last_addr <= self.size:
          # Complete hits the scrachpad
@@ -65,15 +62,14 @@ class SPM(Memory):
          return count * self.latency
       elif addr >= self.size and last_addr > self.size:
          # Completely misses the scratchpad
-         return self.mem.process(access)
+         return self.mem.process(write, addr, size)
       elif addr > self.size and last_addr < self.size:
          # First part hits, second part misses
          msize = size - last_addr + 1
          count = (last_addr + self.machine.word_size)
          count /= self.machine.word_size
          t = count * self.latency
-         updated = clone_access(access, size = msize)
-         return t + self.mem.process(updated)
+         return t + self.mem.process(write, addr, msize)
       else:
          # First part misses, second part hits
          hsize = self.size - addr;
@@ -81,8 +77,5 @@ class SPM(Memory):
          count = (hsize + self.machine.word_size + offset - 1)
          count /= self.machine.word_size
          t = count * self.latency
-         updated = clone_access(access,
-                                address = self.size,
-                                size = size - hsize)
-         return t + self.mem.process(updated)
+         return t + self.mem.process(write, self.size, size - hsize)
 

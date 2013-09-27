@@ -25,10 +25,10 @@ class Process:
 
    def step(self, first):
       try:
-         access = next(self.generator)
+         write, addr, size = next(self.generator)
          if first:
-            self.dist.insert_range(access)
-         self.time = self.mem.process(access)
+            self.dist.insert_range(addr, size)
+         self.time = self.mem.process(write, addr, size)
          return True
       except StopIteration:
          return False

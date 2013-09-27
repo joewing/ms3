@@ -72,7 +72,7 @@ class Memory:
       if self.get_next() != None:
          self.get_next().reset()
 
-   def process(self, access):
+   def process(self, write, addr, size):
       """Process a memory access operation.
          This function will return the number of cycles spent
          in the memory subsystem (excluding the main memory).

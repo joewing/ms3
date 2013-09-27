@@ -1,10 +1,10 @@
 
-from Machine import get_size, is_write
 from Memory.Memory import Memory
 
 class MockMemory(Memory):
 
-   last_access = None
+   last_addr = 0
+   last_size = 0
    reads = 0
    writes = 0
 
@@ -34,14 +34,15 @@ class MockMemory(Memory):
       assert(i < len(self.banks))
       self.banks[i] = b
 
-   def process(self, access):
-      self.last_access = access
-      if is_write(access):
+   def process(self, write, addr, size):
+      self.last_addr = addr
+      self.last_size = size
+      if write:
          self.writes += 1
       else:
          self.reads += 1
-      result = 100 * get_size(access)
+      result = 100 * size
       if self.mem != None:
-         result += self.mem.process(access)
+         result += self.mem.process(write, addr, size)
       return result
 

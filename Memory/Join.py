@@ -12,6 +12,6 @@ class Join(Memory):
    def __str__(self):
       return "(join)"
 
-   def process(self, access):
-      return self.parent.forward(self.index, access)
+   def process(self, write, addr, size):
+      return self.parent.forward(self.index, write, addr, size)
 

@@ -1,8 +1,6 @@
 
 from Memory import Memory
 from Join import Join
-from Machine import get_address, get_size, is_write, \
-                    clone_access, create_access
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
@@ -57,10 +55,7 @@ class Split(Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, access):
-      addr = get_address(access)
-      size = get_size(access)
-      write = is_write(access)
+   def process(self, write, addr, size):
       mask = self.machine.addr_mask
       last = (addr + size - 1) & mask
       result = 0
@@ -79,8 +74,7 @@ class Split(Memory):
             temp_size = size
          else:
             temp_size = self.offset - addr
-         temp = create_access(write, addr, temp_size)
-         result += self.bank0.process(temp)
+         result += self.bank0.process(write, addr, temp_size)
       if last >= self.offset:
          if addr >= self.offset:
             temp_addr = addr - self.offset
@@ -88,15 +82,13 @@ class Split(Memory):
          else:
             temp_addr = 0
             temp_size = last - self.offset + 1
-         temp = create_access(write, temp_addr, temp_size)
-         result += self.bank1.process(temp)
+         result += self.bank1.process(write, temp_addr, temp_size)
       return result
 
-   def forward(self, index, access):
+   def forward(self, index, write, addr, size):
       if index == 1:
-         addr = (get_address(access) + self.offset) & self.machine.addr_mask
-         temp = clone_access(access, address = addr)
-         return self.mem.process(temp)
+         addr = (addr + self.offset) & self.machine.addr_mask
+         return self.mem.process(write, addr, size)
       else:
-         return self.mem.process(access)
+         return self.mem.process(write, addr, size)
 

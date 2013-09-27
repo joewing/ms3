@@ -1,6 +1,5 @@
 
 from Memory import Memory
-from Machine import get_address, get_size, is_write, create_access
 
 class CachePolicy:
 
@@ -143,10 +142,7 @@ class Cache(Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, access):
-      addr = get_address(access)
-      size = get_size(access)
-      write = is_write(access)
+   def process(self, write, addr, size):
       extra = size / self.line_size
       mask = self.machine.addr_mask
       temp = addr
@@ -191,8 +187,8 @@ class Cache(Memory):
                line.dirty = line.dirty or write
                return self.latency
             else:
-               access = create_access(True, line.tag, self.line_size)
-               return self.mem.process(access) + self.latency
+               t = self.mem.process(True, line_tag, self.line_size)
+               return t + self.latency
          elif self.policy == CachePolicy.MRU:
             if line.age < age:
                to_replace = line
@@ -213,8 +209,7 @@ class Cache(Memory):
          # Evict this entry if necessary.
          time = self.latency
          if to_replace.dirty:
-            access = create_access(True, to_replace.tag, self.line_size)
-            time += self.mem.process(access)
+            time += self.mem.process(True, to_replace.tag, self.line_size)
             to_replace.dirty = False
          to_replace.tag = tag
          to_replace.dirty = write
@@ -230,13 +225,11 @@ class Cache(Memory):
 
          # Read the new entry.
          if (not write) or size != self.line_size:
-            access = create_access(False, tag, self.line_size)
-            time += self.mem.process(access)
+            time += self.mem.process(False, tag, self.line_size)
 
          return time
 
       else:
          # Write on a write-through cache.
-         access = create_access(write, addr, size)
-         return self.mem.process(access) + self.latency
+         return self.mem.process(write, addr, size) + self.latency
 

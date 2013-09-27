@@ -1,7 +1,6 @@
 
 from Memory import Memory
 from Join import Join
-from Machine import clone_access, get_address
 
 def random_offset(machine, nxt, rand, cost):
    if rand.randbool():
@@ -62,15 +61,12 @@ class Offset(Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, access):
-      address = (get_address(access) + self.offset) & self.machine.addr_mask
-      updated = clone_access(access, address = address)
-      return self.bank.process(updated)
+   def process(self, write, addr, size):
+      addr = (addr + self.offset) & self.machine.addr_mask
+      return self.bank.process(write, addr, size)
 
-   def forward(self, index, access):
+   def forward(self, index, write, addr, size):
       assert(index == 0)
-      address = (get_address(access) - self.offset) & self.machine.addr_mask
-      updated = clone_access(access, address = address)
-      return self.mem.process(updated)
-      
+      addr = (addr - self.offset) & self.machine.addr_mask
+      return self.mem.process(write, addr, size) 
 

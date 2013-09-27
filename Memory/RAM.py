@@ -1,6 +1,5 @@
 
 from Memory import Memory
-from Machine import get_address, get_size, get_cycles
 
 class RAM(Memory):
 
@@ -18,13 +17,11 @@ class RAM(Memory):
    def done(self):
       return 0
 
-   def process(self, access):
-      addr = get_address(access)
-      size = get_size(access)
+   def process(self, write, addr, size):
       assert(size > 0)
       offset = addr % self.word_size
       count = (size + self.word_size + offset - 1) / self.word_size
-      t = count * self.latency + get_cycles(access)
+      t = count * self.latency
       self.machine.time += t
       return 0
 

@@ -1,6 +1,5 @@
 
 import random
-from Machine import get_address, get_size
 
 class Distribution(random.Random):
 
@@ -38,12 +37,10 @@ class Distribution(random.Random):
       size = max(a_end, b_end) - start
       return (start, size)
 
-   def insert_range(self, access):
+   def insert_range(self, addr, size):
       """Insert a new range into the set of address ranges."""
 
       # Check if this address already exists.
-      addr = get_address(access)
-      size = get_size(access)
       for i in range(len(self.ranges)):
          r = self.ranges[i]
          start, end = r
