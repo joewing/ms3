@@ -10,7 +10,7 @@ def random_spm(machine, nxt, rand, cost):
 
 class SPM(Memory):
 
-   def __init__(self, machine, mem, size=0, latency=2):
+   def __init__(self, machine, mem, size = 0, latency = 2):
       self.mem = mem
       self.machine = machine
       self.size = size
