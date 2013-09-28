@@ -1,13 +1,16 @@
 
+PYTHON=python
+COVERAGE=coverage
+
 all:
-	pypy -O memsim.py
+	$(PYTHON) -O memsim.py
 
 test:
-	pypy test.py
+	$(PYTHON) test.py
 
 coverage:
-	coverage run test.py
-	coverage report -m
+	$(COVERAGE) run test.py
+	$(COVERAGE) report -m
 
 clean:
 	find . -name "*.py[oc]" -exec rm {} \;

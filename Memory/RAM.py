@@ -3,11 +3,17 @@ from Memory import Memory
 
 class RAM(Memory):
 
-   def __init__(self, latency = 100):
+   def __init__(self, latency = 100, burst = 0):
       self.latency = latency
+      self.burst = burst
 
    def __str__(self):
-      return '(ram (latency ' + str(self.latency) + '))'
+      result  = '(ram '
+      result += '(latency ' + str(self.latency) + ')'
+      if self.burst != 0:
+         result += '(burst ' + str(self.burst) + ')'
+      result += ')'
+      return result
 
    def done(self):
       return 0
@@ -17,7 +23,10 @@ class RAM(Memory):
       word_size = self.machine.word_size
       offset = addr % word_size
       count = (size + word_size + offset - 1) / word_size
-      t = count * self.latency
+      if self.burst == 0:
+         t = count * self.latency
+      else:
+         t = self.latency + self.burst * (count - 1)
       self.machine.time += t
       return 0
 
