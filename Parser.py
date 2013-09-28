@@ -36,6 +36,13 @@ def get_argument(args, name, default = None):
          return int(value)
       elif isinstance(default, float):
          return float(value)
+      elif isinstance(default, bool):
+         if value == 'true':
+            return True
+         elif value == 'false':
+            return False
+         else:
+            raise Lexer.ParseError("invalid boolean value: '" + value + "'")
       else:
          return args[name]
    else:
