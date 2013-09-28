@@ -52,6 +52,9 @@ class Split(Memory):
       return True
 
    def simplify(self):
+      self.bank0 = self.bank0.simplify()
+      self.bank1 = self.bank1.simplify()
+      self.mem = self.mem.simplify()
       if isinstance(self.bank0, Join) and isinstance(self.bank1, Join):
          return self.mem
       return self

@@ -12,7 +12,7 @@ import TopParser
 
 _defaults = {
    '-seed'        : 7,
-   '-iterations'  : 1000,
+   '-iterations'  : 10000,
    '-model'       : 'model.txt'
 }
 

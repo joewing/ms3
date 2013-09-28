@@ -39,6 +39,8 @@ class Shift(Memory):
       self.bank = b
 
    def simplify(self):
+      self.mem = self.mem.simplify()
+      self.bank = self.bank.simplify()
       if isinstance(self.bank, Join):
          return self.mem
       if self.shift == 0:

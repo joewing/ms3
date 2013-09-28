@@ -49,6 +49,12 @@ class Memory:
 
    def simplify(self):
       """Return a simplified memory subsystem."""
+      banks = self.get_banks()
+      for i in range(len(banks)):
+         self.set_bank(i, banks[i].simplify())
+      n = self.get_next()
+      if n != None:
+         self.set_next(n.simplify())
       return self
 
    def push_transform(self, index, rand):

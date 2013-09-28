@@ -41,6 +41,8 @@ class Offset(Memory):
       self.bank = b
 
    def simplify(self):
+      self.bank = self.bank.simplify()
+      self.mem = self.mem.simplify()
       if isinstance(self.bank, Join):
          return self.mem
       if self.offset == 0:

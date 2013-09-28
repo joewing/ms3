@@ -1,9 +1,9 @@
 
 all:
-	python -O memsim.py
+	pypy -O memsim.py
 
 test:
-	python test.py
+	pypy test.py
 
 coverage:
 	coverage run test.py
