@@ -7,7 +7,7 @@ import Benchmark.MM as MM
 _benchmark_constructors = dict()
 
 def parse_benchmark(lexer):
-   return Parser.parse(lexer, _benchmark_constructors, None)
+   return Parser.parse(lexer, _benchmark_constructors)
 
 def _create_hash(state, args):
    seed = Parser.get_argument(args, 'seed', 7)

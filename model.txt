@@ -1,5 +1,5 @@
 (machine (word_size 4) (addr_bits 32))
-(ram (latency 100))
+(memory (ram (latency 100)))
 (benchmarks
    (mm (size 16))
    (hash (seed 15) (count 1024))

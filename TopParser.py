@@ -2,47 +2,37 @@
 import Lexer
 import BenchmarkParser
 import MemoryParser
+import Parser
 from Machine import MachineType
 
 def parse(lexer):
-   machine = _parse_machine(lexer)
-   memory = MemoryParser.parse_memory(lexer)
-   benchmarks = _parse_benchmarks(lexer)
-   return (machine, memory, benchmarks)
-
-def _parse_machine(lexer):
-   lexer.match(Lexer.TOKEN_OPEN)
-   name = lexer.get_value()
-   lexer.match(Lexer.TOKEN_LITERAL)
-   if name != 'machine':
-      Lexer.ParseError("error: got '" + name + "' expected 'machine'")
-   word_size = 8
-   addr_bits = 32
-   while lexer.get_type() == Lexer.TOKEN_OPEN:
+   machine = None
+   memory = None
+   benchmarks = []
+   while lexer.get_type() != Lexer.TOKEN_EOF:
       lexer.match(Lexer.TOKEN_OPEN)
       name = lexer.get_value()
       lexer.match(Lexer.TOKEN_LITERAL)
-      value = lexer.get_value()
-      lexer.match(Lexer.TOKEN_LITERAL)
-      if name == 'word_size':
-         word_size = int(value)
-      elif name == 'addr_bits':
-         addr_bits = int(value)
+      if name == 'machine':
+         machine = _parse_machine(lexer)
+      elif name == 'memory':
+         memory = MemoryParser.parse_memory(lexer)
+      elif name == 'benchmarks':
+         benchmarks = _parse_benchmarks(lexer)
       else:
-         raise Lexer.ParseError("invalid machine option: '" + name + "'") 
+         Lexer.ParseError("invalid top-level component: " + name)
       lexer.match(Lexer.TOKEN_CLOSE)
-   lexer.match(Lexer.TOKEN_CLOSE)
+   return machine, memory, benchmarks
+
+def _parse_machine(lexer):
+   args = Parser.parse_arguments(lexer)
+   word_size = Parser.get_argument(args, 'word_size', 8)
+   addr_bits = Parser.get_argument(args, 'addr_bits', 32)
    return MachineType(word_size, addr_bits)
 
 def _parse_benchmarks(lexer):
    benchmarks = []
-   lexer.match(Lexer.TOKEN_OPEN)
-   name = lexer.get_value()
-   lexer.match(Lexer.TOKEN_LITERAL)
-   if name != 'benchmarks':
-      Lexer.ParseError("error: got '" + name + "' expected 'benchmarks'")
    while lexer.get_type() == Lexer.TOKEN_OPEN:
       benchmarks.append(BenchmarkParser.parse_benchmark(lexer))
-   lexer.match(Lexer.TOKEN_CLOSE)
    return benchmarks
 
