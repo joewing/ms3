@@ -40,8 +40,7 @@ class Memory:
 
    def get_total_cost(self):
       """Get the total cost of the memory component and its children."""
-      components = filter(lambda m: m != None, self.get_banks())
-      costs = map(lambda m: m.get_total_cost(), components)
+      costs = map(lambda m: m.get_total_cost(), self.get_banks())
       result = reduce(lambda a, b: a + b, costs, self.get_cost())
       if self.get_next() != None:
          result += self.get_next().get_total_cost()
@@ -114,7 +113,7 @@ class MemoryList:
       return MemoryList(copy.deepcopy(self.memories), self.distributions)
 
    def get_cost(self):
-      costs = map(lambda m: m.get_cost(), self.memories)
+      costs = map(lambda m: m.get_total_cost(), self.memories)
       return reduce(lambda x, y: x + y, costs, 0);
 
    def get_name(self):
