@@ -10,12 +10,13 @@ class TestShift(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.main = MockMemory()
-      self.join = Join(self.machine)
+      self.join = Join()
       self.bank = MockMemory(self.join)
 
    def test_positive(self):
-      shift = Shift(self.machine, self.bank, self.main, 1)
+      shift = Shift(self.bank, self.main, 1)
       self.join.parent = shift
+      shift.reset(self.machine)
 
       t = shift.process(False, 0, 8)
       self.assertEqual(t, 1600)
@@ -84,8 +85,9 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_size, 2)
 
    def test_negative(self):
-      shift = Shift(self.machine, self.bank, self.main, -2)
+      shift = Shift(self.bank, self.main, -2)
       self.join.parent = shift
+      shift.reset(self.machine)
 
       t = shift.process(False, 0, 8)
       self.assertEqual(t, 1600)

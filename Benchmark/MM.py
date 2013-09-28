@@ -4,7 +4,7 @@ from Benchmark import Benchmark
 class MM(Benchmark):
    """Benchmark to simulate matrix-matrix multiplication."""
 
-   def __init__(self, machine, size, iterations = 1):
+   def __init__(self, size, iterations = 1):
       self.size = size
       self.iterations = iterations
 

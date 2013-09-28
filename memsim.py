@@ -1,6 +1,7 @@
 
 import sys
-import Memory.RAM
+from Memory.Memory import MemoryList
+import Distribution
 import Process
 import Optimizer
 import Machine
@@ -54,18 +55,32 @@ def parse_file(options):
       sys.exit(-1)
 
 def main():
+
    options = parse_options()
    show_options(options)
    seed = options['-seed']
    iterations = options['-iterations']
    machine, memory, benchmarks = parse_file(options)
-   processes = map(lambda b: Process.Process(seed, memory, b), benchmarks)
-   pl = Process.ProcessList(machine)
-   map(pl.insert, processes)
-   o = Optimizer.Optimizer(machine, pl, seed = seed, iterations = iterations)
-   time = pl.run(True)
-   while o.optimize(time):
-      time = pl.run()
+
+   distributions = []
+   processes = []
+   memories = []
+   for b in benchmarks:
+      dist = Distribution.Distribution(seed)
+      distributions.append(dist)
+      processes.append(Process.Process(dist, b))
+      memories.append(memory)
+
+   pl = Process.ProcessList(machine, processes)
+   ml = MemoryList(memories, distributions)
+   o = Optimizer.Optimizer(machine, ml, seed = seed, iterations = iterations)
+   time = pl.run(ml, True)
+   while True:
+      ml = o.optimize(time)
+      if ml != None:
+         time = pl.run(ml)
+      else:
+         break
 
 if __name__ == '__main__':
    main()

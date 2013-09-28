@@ -1,20 +1,20 @@
 
 import Lexer
 
-def parse(machine, lexer, constructors, state):
+def parse(lexer, constructors, state):
    lexer.match(Lexer.TOKEN_OPEN)
    name = lexer.get_value()
    if name in constructors:
       lexer.match(Lexer.TOKEN_LITERAL)
-      args = _parse_arguments(machine, lexer, constructors, state)
+      args = _parse_arguments(lexer, constructors, state)
       c = constructors[name]
-      result = c(machine, state, args)
+      result = c(state, args)
    else:
       raise Lexer.ParseError("invalid component: " + lexer.get_value())
    lexer.match(Lexer.TOKEN_CLOSE)
    return result
 
-def _parse_arguments(machine, lexer, constructors, state):
+def _parse_arguments(lexer, constructors, state):
    result = dict()
    while lexer.get_type() == Lexer.TOKEN_OPEN:
       lexer.match(Lexer.TOKEN_OPEN)
@@ -24,7 +24,7 @@ def _parse_arguments(machine, lexer, constructors, state):
          value = lexer.get_value()
          lexer.match(Lexer.TOKEN_LITERAL)
       else:
-         value = parse(machine, lexer, constructors, state)
+         value = parse(lexer, constructors, state)
       result[name] = value
       lexer.match(Lexer.TOKEN_CLOSE)
    return result

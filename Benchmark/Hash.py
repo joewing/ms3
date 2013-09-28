@@ -5,7 +5,7 @@ import random
 class Hash(Benchmark):
    """Benchmark to simulate probes into a hash table."""
 
-   def __init__(self, machine, seed, count):
+   def __init__(self, seed, count):
       self.seed = seed
       self.count = count
       self.size = 4

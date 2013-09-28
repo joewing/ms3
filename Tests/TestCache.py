@@ -11,14 +11,14 @@ class TestCache(unittest.TestCase):
       self.main = MockMemory()
 
    def test_direct(self):
-      cache = Cache(self.machine, self.main,
+      cache = Cache(self.main,
                     line_count = 4,
                     line_size = 2,
                     associativity = 1,
                     latency = 1,
                     write_back = True)
 
-      cache.reset()
+      cache.reset(self.machine)
 
       t = cache.process(False, 0, 1)
       self.assertEqual(t, 201)
@@ -42,7 +42,7 @@ class TestCache(unittest.TestCase):
       self.assertEqual(t, 201)
 
    def test_set(self):
-      cache = Cache(self.machine, self.main,
+      cache = Cache(self.main,
                     line_count = 4,
                     line_size = 2,
                     associativity = 2,
@@ -50,7 +50,7 @@ class TestCache(unittest.TestCase):
                     latency = 1,
                     write_back = True)
 
-      cache.reset()
+      cache.reset(self.machine)
 
       t = cache.process(False, 0, 1)
       self.assertEqual(t, 201)

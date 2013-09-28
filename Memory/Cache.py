@@ -27,12 +27,13 @@ def random_cache(machine, nxt, rand, cost):
    associativity = 1
    policy = CachePolicy.LRU
    write_back = True
-   result = Cache(machine, nxt,
+   result = Cache(nxt,
                   line_count = line_count,
                   line_size = line_size,
                   associativity = associativity,
                   policy = policy,
                   write_back = write_back)
+   result.reset(machine)
    if result.get_cost() <= cost:
       return result
    else:
@@ -48,14 +49,13 @@ class Cache(Memory):
    # Mapping line_index -> CacheLine
    lines = list()
 
-   def __init__(self, machine, mem,
+   def __init__(self, mem,
                 line_count = 1,
                 line_size = 8,
                 associativity = 1,
                 latency = 1,
                 policy = CachePolicy.LRU,
                 write_back = True):
-      self.machine = machine
       self.mem = mem
       self.line_count = line_count
       self.line_size = line_size
@@ -133,8 +133,8 @@ class Cache(Memory):
          param = (param + 1) % param_count
       return False
 
-   def reset(self):
-      self.mem.reset()
+   def reset(self, machine):
+      Memory.reset(self, machine)
       self.lines = list()
       for i in range(self.line_count):
          self.lines.append(CacheLine())
@@ -148,13 +148,13 @@ class Cache(Memory):
       temp = addr
       result = 0
       for i in range(extra):
-         result += self.do_process(write, temp, self.line_size)
+         result += self._do_process(write, temp, self.line_size)
          temp = (temp + self.line_size) & mask
       if size > extra * self.line_size:
-         result += self.do_process(write, temp, size - extra * self.line_size)
+         result += self._do_process(write, temp, size - extra * self.line_size)
       return result
 
-   def do_process(self, write, addr, size):
+   def _do_process(self, write, addr, size):
       tag = addr & ~(self.line_size - 1)
       set_size = self.line_count / self.associativity
       word_addr = addr / self.line_size

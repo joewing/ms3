@@ -11,12 +11,13 @@ class TestOffset(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.main = MockMemory()
-      self.join = Join(self.machine)
+      self.join = Join()
       self.bank = MockMemory(self.join)
 
    def test_positive(self):
-      offset = Offset(self.machine, self.bank, self.main, 3)
+      offset = Offset(self.bank, self.main, 3)
       self.join.parent = offset
+      offset.reset(self.machine)
 
       t = offset.process(False, 0, 8)
       self.assertEqual(t, 1600)

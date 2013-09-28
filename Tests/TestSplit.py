@@ -10,16 +10,18 @@ class TestSplit(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.main = MockMemory()
-      self.join0 = Join(self.machine, 0)
-      self.join1 = Join(self.machine, 1)
+      self.join0 = Join(0)
+      self.join1 = Join(1)
       self.bank0 = MockMemory(self.join0)
       self.bank1 = MockMemory(self.join1)
 
    def test_split256(self):
-      split = Split(self.machine, self.bank0, self.bank1,
+      split = Split(self.bank0, self.bank1,
                     self.main, offset = 256)
       self.join0.parent = split
       self.join1.parent = split
+
+      split.reset(self.machine)
 
       t = split.process(False, 0, 8)
       self.assertEqual(t, 1600)

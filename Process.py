@@ -1,24 +1,24 @@
 
-import copy
 from PriorityQueue import PriorityQueue
 from Distribution import Distribution
 
 class Process:
 
    time = 0
+   mem = None
 
-   def __init__(self, seed, mem, benchmark):
-      self.mem = mem
-      self.dist = Distribution(seed)
+   def __init__(self, dist, benchmark):
+      self.dist = dist
       self.benchmark = benchmark
 
    def get_cost(self):
       return self.mem.get_total_cost()
 
-   def reset(self, offset):
+   def reset(self, machine, mem, offset):
+      self.mem = mem
       self.benchmark.reset(offset)
       self.generator = self.benchmark.run()
-      self.mem.reset()
+      self.mem.reset(machine)
 
    def done(self):
       return self.mem.done()
@@ -35,33 +35,22 @@ class Process:
 
 class ProcessList:
 
-   processes = []
    heap = PriorityQueue()
 
-   def __init__(self, machine):
+   def __init__(self, machine, processes):
       self.machine = machine
+      self.processes = processes
 
-   def clone(self):
-      return copy.deepcopy(self)
-
-   def insert(self, p):
-      self.processes.append(p)
-
-   def get_cost(self):
-      costs = map(lambda m: m.get_cost(), self.processes)
-      return reduce(lambda x, y: x + y, costs, 0);
-
-   def get_name(self):
-      names = map(lambda p: str(p.mem), self.processes)
-      return reduce(lambda a, b: a + ":" + b, names)
-
-   def run(self, first = False):
-      print(self.get_name())
+   def reset(self, ml):
       self.machine.time = 0
       for i in range(len(self.processes)):
          p = self.processes[i]
-         p.reset(self.machine.flip(i))
+         p.reset(self.machine, ml.memories[i], self.machine.flip(i))
          self.heap.push(0, p)
+
+   def run(self, ml, first = False):
+      print(ml.get_name())
+      self.reset(ml)
       while not self.heap.empty():
          k = self.heap.key()
          if self.machine.time < k:

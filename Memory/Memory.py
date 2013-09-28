@@ -4,6 +4,8 @@ import copy
 class Memory:
    """The abstract base class for all memory components."""
 
+   machine = None
+
    def clone(self):
       """Create a deep copy of this memory."""
       return copy.deepcopy(self)
@@ -45,6 +47,10 @@ class Memory:
          result += self.get_next().get_total_cost()
       return result
 
+   def simplify(self):
+      """Return a simplified memory subsystem."""
+      return self
+
    def push_transform(self, index, rand):
       """Push any address transforms or limits for bank index.
          index=-1 is used for the next memory.
@@ -63,14 +69,15 @@ class Memory:
       """
       return False
 
-   def reset(self):
+   def reset(self, machine):
       """Reset the memory for a new run.
          This is called before every trace execution.
       """
+      self.machine = machine
       for b in self.get_banks():
-         b.reset()
+         b.reset(machine)
       if self.get_next() != None:
-         self.get_next().reset()
+         self.get_next().reset(machine)
 
    def process(self, write, addr, size):
       """Process a memory access operation.
@@ -85,4 +92,39 @@ class Memory:
          result for the memory subsystem.
       """
       return 0
+
+class MemoryList:
+
+   memories = []
+
+   def __init__(self, memories, distributions):
+      self.memories = memories
+      self.distributions = distributions
+
+   def __len__(self):
+      return len(self.memories)
+
+   def clone(self):
+      return MemoryList(copy.deepcopy(self.memories), self.distributions)
+
+   def get_cost(self):
+      costs = map(lambda m: m.get_cost(), self.memories)
+      return reduce(lambda x, y: x + y, costs, 0);
+
+   def get_name(self):
+      names = map(str, self.memories)
+      return reduce(lambda a, b: a + ":" + b, names)
+
+   def reset(self, machine):
+      for m in self.memories:
+         m.reset(machine)
+
+   def simplified(self):
+      """Return a simplified version of this memory list.
+         This does not mutate the original memory list.
+      """
+      new = self.clone()
+      for i in range(len(new.memories)):
+         new.memories[i] = new.memories[i].simplify()
+      return new
 

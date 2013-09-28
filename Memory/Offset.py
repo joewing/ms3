@@ -1,21 +1,20 @@
 
 from Memory import Memory
-from Join import Join
+from Join import Join, find_join
 
 def random_offset(machine, nxt, rand, cost):
    if rand.randbool():
       offset = rand.randint(-machine.word_size, machine.word_size)
    else:
       offset = rand.random_address(machine.word_size)
-   join = Join(machine)
-   result = Offset(machine, join, nxt, offset)
+   join = Join()
+   result = Offset(join, nxt, offset)
    join.parent = result
    return result
 
 class Offset(Memory):
 
-   def __init__(self, machine, bank, mem, offset=0):
-      self.machine = machine
+   def __init__(self, bank, mem, offset=0):
       self.bank = bank
       self.mem = mem
       self.offset = offset
@@ -40,6 +39,20 @@ class Offset(Memory):
    def set_bank(self, i, b):
       assert(i == 0)
       self.bank = b
+
+   def simplify(self):
+      if isinstance(self.bank, Join):
+         return self.mem
+      if self.offset == 0:
+         last = None
+         t = self.bank
+         while (not isinstance(t, Join)) or t.parent != self:
+            last = t
+            t = t.get_next()
+         assert(last != None) # We already checked for an empty bank.
+         last.set_next(self.mem)
+         return self.bank
+      return self
 
    def permute(self, rand, max_cost):
       word_size = self.machine.word_size

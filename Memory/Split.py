@@ -4,9 +4,9 @@ from Join import Join
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
-   bank0 = Join(machine, 0)
-   bank1 = Join(machine, 1)
-   result = Split(machine, bank0, bank1, nxt, offset)
+   bank0 = Join(0)
+   bank1 = Join(1)
+   result = Split(bank0, bank1, nxt, offset)
    bank0.parent = result
    bank1.parent = result
    if result.get_cost() <= cost:
@@ -16,8 +16,7 @@ def random_split(machine, nxt, rand, cost):
 
 class Split(Memory):
 
-   def __init__(self, machine, bank0, bank1, mem, offset=0):
-      self.machine = machine
+   def __init__(self, bank0, bank1, mem, offset=0):
       self.bank0 = bank0
       self.bank1 = bank1
       self.mem = mem
@@ -51,6 +50,11 @@ class Split(Memory):
    def permute(self, rand, max_cost):
       self.offset = rand.random_address(self.machine.word_size)
       return True
+
+   def simplify(self):
+      if isinstance(self.bank0, Join) and isinstance(self.bank1, Join):
+         return self.mem
+      return self
 
    def done(self):
       return self.mem.done()

@@ -6,8 +6,8 @@ from Machine import MachineType
 
 def parse(lexer):
    machine = _parse_machine(lexer)
-   memory = MemoryParser.parse_memory(machine, lexer)
-   benchmarks = _parse_benchmarks(machine, lexer)
+   memory = MemoryParser.parse_memory(lexer)
+   benchmarks = _parse_benchmarks(lexer)
    return (machine, memory, benchmarks)
 
 def _parse_machine(lexer):
@@ -34,7 +34,7 @@ def _parse_machine(lexer):
    lexer.match(Lexer.TOKEN_CLOSE)
    return MachineType(word_size, addr_bits)
 
-def _parse_benchmarks(machine, lexer):
+def _parse_benchmarks(lexer):
    benchmarks = []
    lexer.match(Lexer.TOKEN_OPEN)
    name = lexer.get_value()
@@ -42,7 +42,7 @@ def _parse_benchmarks(machine, lexer):
    if name != 'benchmarks':
       Lexer.ParseError("error: got '" + name + "' expected 'benchmarks'")
    while lexer.get_type() == Lexer.TOKEN_OPEN:
-      benchmarks.append(BenchmarkParser.parse_benchmark(machine, lexer))
+      benchmarks.append(BenchmarkParser.parse_benchmark(lexer))
    lexer.match(Lexer.TOKEN_CLOSE)
    return benchmarks
 

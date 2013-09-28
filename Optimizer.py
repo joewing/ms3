@@ -1,5 +1,6 @@
 
 import random
+import Distribution
 import Memory.Cache as Cache
 import Memory.Offset as Offset
 import Memory.SPM as SPM
@@ -20,6 +21,7 @@ class Optimizer:
    best_cost = 0
    last = None
    last_value = 0
+   current = None
 
    constructors = [
       Offset.random_offset,
@@ -29,22 +31,25 @@ class Optimizer:
       Split.random_split
    ]
 
-   def __init__(self, machine, pl,
+   def __init__(self, machine, ml,
                 max_cost = 1e6,
                 iterations = 1000,
                 seed = 7,
                 permute_only = False):
-      self.pl = pl
+      self.current = ml
       self.machine = machine
       self.max_cost = max_cost
       self.max_iterations = iterations
       self.rand = random.Random(seed)
       self.permute_only = permute_only
+      self.current.reset(machine)
 
    def create_memory(self, dist, nxt, cost, in_bank):
       index = self.rand.randint(0, len(self.constructors) - 1)
       constructor = self.constructors[index]
-      return constructor(self.machine, nxt, dist, cost)
+      result = constructor(self.machine, nxt, dist, cost)
+      result.reset(self.machine)
+      return result
 
    def permute(self, dist, mem, index, max_cost):
       """Permute a specific memory component.
@@ -134,44 +139,45 @@ class Optimizer:
       """Modify the memory subsystem."""
 
       # Loop until we successfully modify the memory subsystem.
-      total_cost = self.pl.get_cost()
+      total_cost = self.current.get_cost()
       max_cost = self.max_cost - total_cost
       stat = False
       while not stat:
 
-         # Select a process to modify.
-         pindex = self.rand.randint(0, len(self.pl.processes) - 1)
-         p = self.pl.processes[pindex]
-         count = p.mem.count()
+         # Select a memory to modify.
+         mindex = self.rand.randint(0, len(self.current) - 1)
+         mem = self.current.memories[mindex]
+         dist = self.current.distributions[mindex]
+         count = mem.count()
 
          # Select an action to perform.
          action = self.rand.randint(0, 7)
          if action == 0:   # Insert
             for i in range(100):
-               before = str(p.mem)
+               before = str(mem)
                index = self.rand.randint(0, count - 1)
-               temp = self.insert(p.dist, p.mem, index, max_cost)
+               temp = self.insert(dist, mem, index, max_cost)
                stat = temp != None and str(temp) != before
                if stat:
-                  p.mem = temp
+                  self.current.memories[mindex] = temp
                   break
          elif action <= 2 and count > 1: # Remove
             for i in range(100):
-               before = str(p.mem)
+               before = str(mem)
                index = self.rand.randint(0, count - 1)
-               temp = self.remove(p.dist, p.mem, index)
+               temp = self.remove(dist, mem, index)
                stat = temp != None and str(temp) != before
                if stat:
-                  p.mem = temp
+                  self.current.memories[mindex] = temp
                   break
          else: # Permute
             index = self.rand.randint(0, count - 1)
-            stat = self.permute(p.dist, p.mem, index, max_cost)
+            stat = self.permute(dist, mem, index, max_cost)
 
    def update_best(self, time):
       """Update and display the best memory found so far."""
-      cost = self.pl.get_cost()
-      name = self.pl.get_name()
+      cost = self.current.get_cost()
+      name = self.current.get_name()
       if self.best_value == -1 or time < self.best_value or \
          (time == self.best_value and cost < self.best_cost) or \
          (time == self.best_value and cost == self.best_cost and \
@@ -189,38 +195,43 @@ class Optimizer:
       self.iterations += 1
       self.steps += 1
       if self.iterations > self.max_iterations:
-         return False
+         return None
       if self.last == None:
-         self.last = self.pl.clone()
+         self.last = self.current.clone()
       else:
          diff = time - self.last_value
          if diff <= self.threshold:
             # Keep the current memory.
             self.last_value = time
-            self.last = self.pl.clone()
+            self.last = self.current.clone()
             self.threshold -= (self.threshold + 1023) / 1024
             self.age = 0
          else:
             # Revert to the last memory.
-            self.pl.mem = self.last.clone()
+            self.current = self.last.clone()
             self.threshold += 1 + (self.age * self.threshold) / 2048
             self.age += 1
          self.modify()
-         new_name = self.pl.get_name()
-         if new_name in self.cache:
-            return self.generate_next(self.cache[new_name])
-      return True
+         simplified = self.current.simplified()
+         simplified_name = simplified.get_name()
+         if simplified_name in self.cache:
+            return self.generate_next(self.cache[simplified_name])
+      return self.current
       
 
    def optimize(self, time):
       """This function is to be called after each evaluation.
-         It returns True if the trace should be re-evaluated, False otherwise.
+         It returns the next memory list to evaluate, None when complete.
       """
       self.evaluations += 1
       self.update_best(time)
-      self.cache[self.pl.get_name()] = time
+
+      # Cache the simplified memory.
+      simplified = self.current.simplified()
+      self.cache[simplified.get_name()] = time
+
       result = self.generate_next(time)
-      if result:
+      if result != None:
          temp  = "Iteration: " + str(self.iterations)
          temp += " (evaluation " + str(self.evaluations + 1)
          temp += ", steps " + str(self.steps + 1)
@@ -228,5 +239,7 @@ class Optimizer:
          temp += ", age " + str(self.age)
          temp += ")"
          print(temp)
-      return result
+         return result.simplified()
+      else:
+         return None
 

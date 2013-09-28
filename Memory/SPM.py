@@ -4,15 +4,14 @@ from Memory import Memory
 def random_spm(machine, nxt, rand, cost):
    while True:
       size = machine.word_size << rand.randint(0, 8)
-      spm = SPM(machine, nxt, size)
+      spm = SPM(nxt, size)
       if spm.get_cost() <= cost:
          return spm
 
 class SPM(Memory):
 
-   def __init__(self, machine, mem, size = 0, latency = 2):
+   def __init__(self, mem, size = 0, latency = 2):
       self.mem = mem
-      self.machine = machine
       self.size = size
       self.latency = latency
 

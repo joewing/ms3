@@ -11,7 +11,8 @@ class TestSPM(unittest.TestCase):
       self.main = MockMemory()
 
    def test_spm1(self):
-      spm = SPM(self.machine, self.main, size = 1024, latency = 1)
+      spm = SPM(self.main, size = 1024, latency = 1)
+      spm.reset(self.machine)
 
       t = spm.process(False, 0, 1)
       self.assertEqual(t, 1)
