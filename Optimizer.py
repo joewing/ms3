@@ -32,7 +32,7 @@ class Optimizer:
    ]
 
    def __init__(self, machine, ml,
-                max_cost = 1e6,
+                max_cost = 100000,
                 iterations = 1000,
                 seed = 7,
                 permute_only = False):

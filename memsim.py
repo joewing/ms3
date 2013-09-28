@@ -11,6 +11,7 @@ import Lexer
 import TopParser
 
 _defaults = {
+   '-max_cost'    : 100000,
    '-seed'        : 7,
    '-iterations'  : 10000,
    '-model'       : 'model.txt'
@@ -58,6 +59,7 @@ def main():
 
    options = parse_options()
    show_options(options)
+   max_cost = options['-max_cost']
    seed = options['-seed']
    iterations = options['-iterations']
    machine, memory, benchmarks = parse_file(options)
@@ -73,7 +75,10 @@ def main():
 
    pl = Process.ProcessList(machine, processes)
    ml = MemoryList(memories, distributions)
-   o = Optimizer.Optimizer(machine, ml, seed = seed, iterations = iterations)
+   o = Optimizer.Optimizer(machine, ml,
+                           max_cost = max_cost,
+                           seed = seed,
+                           iterations = iterations)
    time = pl.run(ml, True)
    while True:
       ml = o.optimize(time)
