@@ -187,7 +187,7 @@ class Cache(Memory):
                line.dirty = line.dirty or write
                return self.latency
             else:
-               t = self.mem.process(True, line_tag, self.line_size)
+               t = self.mem.process(True, tag, self.line_size)
                return t + self.latency
          elif self.policy == CachePolicy.MRU:
             if line.age < age:
