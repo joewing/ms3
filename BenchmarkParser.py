@@ -2,6 +2,7 @@
 import Lexer
 import Parser
 import Benchmark.Hash as Hash
+import Benchmark.Heap as Heap
 import Benchmark.MM as MM
 
 _benchmark_constructors = dict()
@@ -14,6 +15,12 @@ def _create_hash(state, args):
    count = Parser.get_argument(args, 'count', 65536)
    return Hash.Hash(seed, count)
 _benchmark_constructors['hash'] = _create_hash
+
+def _create_heap(state, args):
+   seed = Parser.get_argument(args, 'seed', 7)
+   size = Parser.get_argument(args, 'size', 1024)
+   return Heap.Heap(seed, size)
+_benchmark_constructors['heap'] = _create_heap
 
 def _create_mm(state, args):
    size = Parser.get_argument(args, 'size', 64)
