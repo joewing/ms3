@@ -43,6 +43,7 @@ def _create_ram(joins, args):
 _memory_constructors['ram'] = _create_ram
 
 def _create_dram(joins, args):
+   multiplier = Parser.get_argument(args, 'multiplier', 1)
    cas_cycles = Parser.get_argument(args, 'cas_cycles', 5)
    rcd_cycles = Parser.get_argument(args, 'rcd_cycles', 5)
    rp_cycles = Parser.get_argument(args, 'rp_cycles', 5)
@@ -52,7 +53,8 @@ def _create_dram(joins, args):
    width = Parser.get_argument(args, 'width', 2)
    burst_size = Parser.get_argument(args, 'burst_size', 1)
    open_page_mode = Parser.get_argument(args, 'open_page_mode', True)
-   return DRAM.DRAM(cas_cycles = cas_cycles,
+   return DRAM.DRAM(multiplier = multiplier,
+                    cas_cycles = cas_cycles,
                     rcd_cycles = rcd_cycles,
                     rp_cycles = rp_cycles,
                     wb_cycles = wb_cycles,

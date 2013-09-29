@@ -9,6 +9,7 @@ class DRAMBank:
 class DRAM(Memory):
 
    def __init__(self,
+                multiplier,
                 cas_cycles,
                 rcd_cycles,
                 rp_cycles,
@@ -18,6 +19,7 @@ class DRAM(Memory):
                 width,
                 burst_size,
                 open_page_mode):
+      self.multiplier = multiplier
       self.cas_cycles = cas_cycles
       self.rcd_cycles = rcd_cycles
       self.rp_cycles = rp_cycles
@@ -32,6 +34,7 @@ class DRAM(Memory):
 
    def __str__(self):
       result  = '(dram '
+      result += '(multiplier ' + str(self.multiplier) + ')'
       result += '(cas_cycles ' + str(self.cas_cycles) + ')'
       result += '(rcd_cycles ' + str(self.rcd_cycles) + ')'
       result += '(rp_cycles ' + str(self.rp_cycles) + ')'
@@ -58,7 +61,7 @@ class DRAM(Memory):
       assert(size > 0)
       bsize = self.burst_size * self.width
       last = addr + size - 1
-      while addr < last:
+      while addr <= last:
          temp = addr - (addr % bsize) + bsize
          self._do_process(write, addr, temp >= last)
          addr = temp
@@ -80,25 +83,25 @@ class DRAM(Memory):
       page_index = addr // self.page_size
       if not self.open_page_mode:
          # Closed page mode.
-         cycles += self.cas_cycles   # Open
-         cycles += self.rcd_cycles
-         cycles += self.burst_size   # Access
-         extra += self.rp_cycles    # Close
+         cycles += self.cas_cycles * self.multiplier
+         cycles += self.rcd_cycles * self.multiplier
+         cycles += self.burst_size * self.multiplier
+         extra += self.rp_cycles * self.multiplier
          if write:
-            extra += self.wb_cycles
+            extra += self.wb_cycles * self.multiplier
       elif bank.page == page_index:
          # Page hit.
-         cycles += self.cas_cycles
-         cycles += self.burst_size
+         cycles += self.cas_cycles * self.multiplier
+         cycles += self.burst_size * self.multiplier
          bank.dirty = bank.dirty or write
       else:
          # Page miss.
-         cycles += self.rp_cycles
-         cycles += self.rcd_cycles
-         cycles += self.cas_cycles
-         cycles += self.burst_size
+         cycles += self.rp_cycles * self.multiplier
+         cycles += self.rcd_cycles * self.multiplier
+         cycles += self.cas_cycles * self.multiplier
+         cycles += self.burst_size * self.multiplier
          if bank.dirty:
-            cycles += self.wb_cycles
+            cycles += self.wb_cycles * self.multiplier
          bank.dirty = write
       self.machine.time += cycles
       bank.pending = self.machine.time + extra
