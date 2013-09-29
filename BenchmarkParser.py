@@ -4,6 +4,7 @@ import Parser
 import Benchmark.Hash as Hash
 import Benchmark.Heap as Heap
 import Benchmark.MM as MM
+import Benchmark.QSort as QSort
 
 _benchmark_constructors = dict()
 
@@ -27,4 +28,10 @@ def _create_mm(state, args):
    iterations = Parser.get_argument(args, 'iterations', 1)
    return MM.MM(size, iterations)
 _benchmark_constructors['mm'] = _create_mm
+
+def _create_qsort(state, args):
+   seed = Parser.get_argument(args, 'seed', 7)
+   size = Parser.get_argument(args, 'size', 1024)
+   return QSort.QSort(seed, size)
+_benchmark_constructors['qsort'] = _create_qsort
 
