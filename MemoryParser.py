@@ -5,6 +5,7 @@ import Memory.Join as Join
 import Memory.Offset as Offset
 import Memory.SPM as SPM
 import Memory.RAM as RAM
+import Memory.DRAM as DRAM
 
 _memory_constructors = dict()
 
@@ -40,4 +41,25 @@ def _create_ram(joins, args):
    latency = Parser.get_argument(args, 'latency', 100)
    return RAM.RAM(latency)
 _memory_constructors['ram'] = _create_ram
+
+def _create_dram(joins, args):
+   cas_cycles = Parser.get_argument(args, 'cas_cycles', 5)
+   rcd_cycles = Parser.get_argument(args, 'rcd_cycles', 5)
+   rp_cycles = Parser.get_argument(args, 'rp_cycles', 5)
+   wb_cycles = Parser.get_argument(args, 'wb_cycles', 0)
+   page_size = Parser.get_argument(args, 'page_size', 1024)
+   page_count = Parser.get_argument(args, 'page_count', 16384)
+   width = Parser.get_argument(args, 'width', 2)
+   burst_size = Parser.get_argument(args, 'burst_size', 1)
+   open_page_mode = Parser.get_argument(args, 'open_page_mode', True)
+   return DRAM.DRAM(cas_cycles = cas_cycles,
+                    rcd_cycles = rcd_cycles,
+                    rp_cycles = rp_cycles,
+                    wb_cycles = wb_cycles,
+                    page_size = page_size,
+                    page_count = page_count,
+                    width = width,
+                    burst_size = burst_size,
+                    open_page_mode = open_page_mode)
+_memory_constructors['dram'] = _create_dram
 

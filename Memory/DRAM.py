@@ -1,6 +1,11 @@
 
 from Memory import Memory
 
+class DRAMBank:
+   page     = -1
+   dirty    = False
+   pending  = 0
+
 class DRAM(Memory):
 
    def __init__(self,
@@ -22,6 +27,8 @@ class DRAM(Memory):
       self.width = width
       self.burst_size = burst_size
       self.open_page_mode = open_page_mode
+      self.pending = 0
+      self.banks = list()
 
    def __str__(self):
       result  = '(dram '
@@ -39,4 +46,61 @@ class DRAM(Memory):
          result += '(open_page_mode false)'
       result += ')'
       return result
+
+   def reset(self, machine):
+      Memory.reset(self, machine)
+      self.banks = list()
+      bank_size = self.page_size * self.page_count
+      bank_count = (machine.addr_mask + bank_size) // bank_size
+      self.banks.extend(map(lambda i: DRAMBank(), range(bank_count)))
+
+   def process(self, write, addr, size):
+      assert(size > 0)
+      bsize = self.burst_size * self.width
+      last = addr + size - 1
+      while addr < last:
+         temp = addr - (addr % bsize) + bsize
+         self._do_process(write, addr, temp >= last)
+         addr = temp
+      return 0
+
+   def _do_process(self, write, addr, is_last):
+
+      # Get the bank.
+      bank_size = self.page_size * self.page_count
+      bank_index = addr // bank_size
+      bank = self.banks[bank_index]
+
+      # Make sure this bank is ready for another request.
+      if self.machine.time < bank.pending:
+         self.machine.time = bank.pending
+
+      extra = 0
+      cycles = 0
+      page_index = addr // self.page_size
+      if not self.open_page_mode:
+         # Closed page mode.
+         cycles += self.cas_cycles   # Open
+         cycles += self.rcd_cycles
+         cycles += self.burst_size   # Access
+         extra += self.rp_cycles    # Close
+         if write:
+            extra += self.wb_cycles
+      elif bank.page == page_index:
+         # Page hit.
+         cycles += self.cas_cycles
+         cycles += self.burst_size
+         bank.dirty = bank.dirty or write
+      else:
+         # Page miss.
+         cycles += self.rp_cycles
+         cycles += self.rcd_cycles
+         cycles += self.cas_cycles
+         cycles += self.burst_size
+         if bank.dirty:
+            cycles += self.wb_cycles
+         bank.dirty = write
+      self.machine.time += cycles
+      bank.pending = self.machine.time + extra
+      bank.page = page_index
 

@@ -15,9 +15,6 @@ class RAM(Memory):
       result += ')'
       return result
 
-   def done(self):
-      return 0
-
    def process(self, write, addr, size):
       assert(size > 0)
       word_size = self.machine.word_size

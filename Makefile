@@ -1,5 +1,5 @@
 
-PYTHON=python
+PYTHON=pypy
 COVERAGE=coverage
 
 all:
