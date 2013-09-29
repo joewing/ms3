@@ -63,7 +63,7 @@ class DRAM(Memory):
       last = addr + size - 1
       while addr <= last:
          temp = addr - (addr % bsize) + bsize
-         self._do_process(write, addr, temp >= last)
+         self._do_process(write, addr & self.machine.addr_mask, temp >= last)
          addr = temp
       return 0
 
