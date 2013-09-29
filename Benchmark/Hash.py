@@ -12,6 +12,6 @@ class Hash(Benchmark):
    def run(self):
       rand = random.Random(self.seed)
       for i in range(self.count):
-         addr = rand.randint(0, self.count - 1) * 4
-         yield self.read(addr, 4)
+         addr = rand.randint(0, self.count - 1)
+         yield self.read(addr)
 
