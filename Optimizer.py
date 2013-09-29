@@ -48,8 +48,11 @@ class Optimizer:
       index = self.rand.randint(0, len(self.constructors) - 1)
       constructor = self.constructors[index]
       result = constructor(self.machine, nxt, dist, cost)
-      result.reset(self.machine)
-      return result
+      if result != None:
+         result.reset(self.machine)
+         return result
+      else:
+         return nxt
 
    def permute(self, dist, mem, index, max_cost):
       """Permute a specific memory component.
