@@ -4,6 +4,7 @@ import Benchmark.Hash as Hash
 import Benchmark.Heap as Heap
 import Benchmark.MM as MM
 import Benchmark.QSort as QSort
+import Benchmark.Trace as Trace
 
 _benchmark_constructors = dict()
 
@@ -33,4 +34,9 @@ def _create_qsort(state, args):
    size = Parser.get_argument(args, 'size', 1024)
    return QSort.QSort(seed, size)
 _benchmark_constructors['qsort'] = _create_qsort
+
+def _create_trace(state, args):
+   file_name = Parser.get_argument(args, 'file', 'trace.txt')
+   return Trace.Trace(file_name)
+_benchmark_constructors['trace'] = _create_trace
 
