@@ -5,14 +5,11 @@ from Join import Join
 def random_shift(machine, nxt, rand, cost):
    bits = machine.addr_bits - machine.word_bits - 1
    shift = rand.randint(-bits, bits)
-   join = Join()
-   result = Shift(join, nxt, shift)
-   join.parent = result
-   return result
+   return Shift(Join(), nxt, shift)
 
 class Shift(Transform):
 
-   def __init__(self, bank, mem, shift = 0):
+   def __init__(self, bank, mem, shift):
       Transform.__init__(self, bank, mem)
       self.shift = shift
 

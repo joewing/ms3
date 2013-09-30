@@ -14,10 +14,14 @@ class Join(Memory):
    def process(self, write, addr, size):
       return self.parent.forward(self.index, write, addr, size)
 
-def find_join(mem, parent):
+def find_join(mem, parent = None):
    while mem != None:
-      if isinstance(mem, Join) and mem.parent == parent:
+      if isinstance(mem, Join) and mem.parent is parent:
          break
       mem = mem.get_next()
    return mem
+
+def set_parent(bank, parent):
+   join = find_join(bank)
+   join.parent = parent
 

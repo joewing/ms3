@@ -10,12 +10,10 @@ class TestXOR(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.main = MockMemory()
-      self.join = Join()
-      self.bank = MockMemory(self.join)
+      self.bank = MockMemory(Join())
 
    def test_xor16(self):
       xor = XOR(self.bank, self.main, 16)
-      self.join.parent = xor
       xor.reset(self.machine)
 
       t = xor.process(False, 32, 8)

@@ -1,14 +1,12 @@
 
 from Memory import Memory
-from Join import Join
+from Join import Join, set_parent
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
    bank0 = Join(0)
    bank1 = Join(1)
    result = Split(bank0, bank1, nxt, offset)
-   bank0.parent = result
-   bank1.parent = result
    if result.get_cost() <= cost:
       return result
    else:
@@ -21,6 +19,8 @@ class Split(Memory):
       self.bank1 = bank1
       self.mem = mem
       self.offset = offset
+      set_parent(bank0, self)
+      set_parent(bank1, self)
 
    def __str__(self):
       result  = "(split "

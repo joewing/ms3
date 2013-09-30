@@ -4,10 +4,7 @@ from Join import Join
 
 def random_xor(machine, nxt, rand, cost):
    value = 1 << rand.randint(0, machine.addr_bits - 1)
-   join = Join()
-   result = XOR(join, nxt, value)
-   join.parent = result
-   return result
+   return XOR(Join(), nxt, value)
 
 class XOR(Transform):
 

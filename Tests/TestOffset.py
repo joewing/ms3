@@ -10,12 +10,10 @@ class TestOffset(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.main = MockMemory()
-      self.join = Join()
-      self.bank = MockMemory(self.join)
+      self.bank = MockMemory(Join())
 
    def test_positive(self):
       offset = Offset(self.bank, self.main, 3)
-      self.join.parent = offset
       offset.reset(self.machine)
 
       t = offset.process(False, 0, 8)
@@ -74,22 +72,19 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_size, 8)
 
    def test_simplify1(self):
-      offset = Offset(self.join, self.main, 0)
-      self.join.parent = offset
+      offset = Offset(Join(), self.main, 0)
       offset.reset(self.machine)
       simplified = offset.simplify()
       self.assertEqual(str(simplified), "(mock)")
 
    def test_simplify2(self):
       offset = Offset(self.bank, self.main, 0)
-      self.join.parent = offset
       offset.reset(self.machine)
       simplified = offset.simplify()
       self.assertEqual(str(simplified), "(mock (mock))")
 
    def test_simplify3(self):
       offset = Offset(self.bank, self.main, 1)
-      self.join.parent = offset
       offset.reset(self.machine)
       simplified = offset.simplify()
       self.assertEqual(str(simplified),

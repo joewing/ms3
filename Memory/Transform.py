@@ -1,6 +1,6 @@
 
 from Container import Container
-from Join import Join
+from Join import Join, set_parent
 
 class Transform(Container):
    """A memory that transforms the address space for a bank."""
@@ -8,6 +8,7 @@ class Transform(Container):
    def __init__(self, bank, mem):
       Container.__init__(self, mem)
       self.bank = bank
+      set_parent(bank, self)
 
    def get_banks(self):
       return [self.bank]

@@ -7,14 +7,11 @@ def random_offset(machine, nxt, rand, cost):
       offset = rand.randint(-machine.word_size, machine.word_size)
    else:
       offset = rand.random_address(machine.word_size)
-   join = Join()
-   result = Offset(join, nxt, offset)
-   join.parent = result
-   return result
+   return Offset(Join(), nxt, offset)
 
 class Offset(Transform):
 
-   def __init__(self, bank, mem, offset = 0):
+   def __init__(self, bank, mem, offset):
       Transform.__init__(self, bank, mem)
       self.offset = offset
 
