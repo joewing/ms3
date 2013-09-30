@@ -45,6 +45,11 @@ class Lexer:
          self.last = None
       if ch == '':
          self.current = (TOKEN_EOF, '')
+      elif ch == ';':
+         self.last = ch
+         while self.last != '\n' and self.last != '':
+            self.last = self.f.read(1)
+         self.read_next()
       elif ch == TOKEN_OPEN:
          self.current = (TOKEN_OPEN, '')
       elif ch == TOKEN_CLOSE:
