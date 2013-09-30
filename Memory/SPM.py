@@ -5,7 +5,7 @@ import cacti
 
 def random_spm(machine, nxt, rand, cost):
    for i in range(100):
-      size = machine.word_size << rand.randint(0, 8)
+      size = machine.word_size << rand.randint(4, 20)
       spm = SPM(nxt, size)
       spm.reset(machine)
       if spm.get_cost() <= cost:

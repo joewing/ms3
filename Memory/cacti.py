@@ -11,6 +11,12 @@ class CACTIResult:
    area = 0
    time = 0
 
+   def __eq__(self, other):
+      return (self.area, self.time) == (other.area, other.time)
+
+   def __hash__(self):
+      return hash((self.area, self.time))
+
 class CACTIParams:
    size = 0
    block_size = 0
@@ -19,8 +25,8 @@ class CACTIParams:
    is_cache = False
 
 cacti_results = dict()
-area_regex = re.compile("Data array: Area \(mm2\): ([0-9\.]+)")
-time_regex = re.compile("Access time \(ns\): ([0-9\.]+)")
+area_regex = re.compile("Data array: Area \(mm2\): ([0-9.]+)")
+time_regex = re.compile("Access time \(ns\): ([0-9.]+)")
 
 def generate_file(fd, params):
    """Generate the input file for CACTI."""
@@ -70,17 +76,19 @@ def run_cacti(params):
    fobj.close();
 
    # Run CACTI.
-   buf = subprocess.check_output(['./cacti', '-infile', file_name])
-   os.unlink(file_name)
+   try:
+      buf = subprocess.check_output(['./cacti', '-infile', file_name])
+   finally:
+      os.remove(file_name)
 
    # Extract the area and time from the CACTI results.
    result = CACTIResult()
-   m = area_regex.match(buf)
+   m = area_regex.search(buf)
    if m == None:
       result.area = 1 << 31
    else:
       result.area = int(float(m.group(1)) * 1000.0 * 1000.0 + 0.5)
-   m = time_regex.match(buf)
+   m = time_regex.search(buf)
    if m == None:
       result.time = 1 << 31
    else:
