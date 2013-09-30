@@ -97,7 +97,7 @@ class Cache(Container):
             if self.get_cost() <= max_cost: return True
             self.line_size = line_size
          elif param == 1 and line_size > self.machine.word_size:
-            self.line_size /= 2
+            self.line_size //= 2
             if self.get_cost() <= max_cost: return True
             self.line_size = line_size
          elif param == 2:
@@ -105,7 +105,7 @@ class Cache(Container):
             if self.get_cost() <= max_cost: return True
             self.line_count = line_count
          elif param == 3 and line_count > associativity:
-            self.line_count /= 2
+            self.line_count //= 2
             if self.get_cost() <= max_cost: return True
             self.line_count = line_count
          elif param == 4 and associativity < line_count:
@@ -113,7 +113,7 @@ class Cache(Container):
             if self.get_cost() <= max_cost: return True
             self.associativity = associativity
          elif param == 5 and associativity > 1:
-            self.associativity /= 2
+            self.associativity //= 2
             if self.get_cost() <= max_cost: return True
             self.assocativity = associativity
          elif param == 6:
@@ -134,7 +134,7 @@ class Cache(Container):
          self.lines.append(CacheLine())
 
    def process(self, write, addr, size):
-      extra = size / self.line_size
+      extra = size // self.line_size
       mask = self.machine.addr_mask
       temp = addr
       result = 0
@@ -147,8 +147,8 @@ class Cache(Container):
 
    def _do_process(self, write, addr, size):
       tag = addr & ~(self.line_size - 1)
-      set_size = self.line_count / self.associativity
-      word_addr = addr / self.line_size
+      set_size = self.line_count // self.associativity
+      word_addr = addr // self.line_size
       first_line = word_addr % set_size
 
       # Update ages

@@ -93,10 +93,10 @@ class Distribution(random.Random):
          elif rand == 1:
             return addr + nsize - alignment
          elif rand < 5:
-            nsize = (nsize + 1) / 2
+            nsize = (nsize + 1) // 2
          else:
-            addr += nsize / 2
-            nsize = (nsize + 1) / 2
+            addr += nsize // 2
+            nsize = (nsize + 1) // 2
       return addr
 
    def random_address(self, alignment):

@@ -2,11 +2,12 @@
 from Container import Container
 
 def random_spm(machine, nxt, rand, cost):
-   while True:
+   for i in range(100):
       size = machine.word_size << rand.randint(0, 8)
       spm = SPM(nxt, size)
       if spm.get_cost() <= cost:
          return spm
+   return None
 
 class SPM(Container):
 
@@ -27,11 +28,11 @@ class SPM(Container):
 
    def permute(self, rand, max_cost):
       if self.size > self.machine.word_size and rand.randint(0, 1) == 1:
-         self.size /= 2
+         self.size //= 2
       else:
          self.size *= 2
          if self.get_cost() > max_cost:
-            self.size /= 2
+            self.size //= 2
             return False
       return True
 
@@ -48,7 +49,7 @@ class SPM(Container):
          # Complete hits the scrachpad
          offset = addr % self.machine.word_size
          count = (size + self.machine.word_size + offset - 1)
-         count /= self.machine.word_size
+         count //= self.machine.word_size
          return count * self.latency
       elif addr >= self.size and last_addr > self.size:
          # Completely misses the scratchpad
@@ -57,7 +58,7 @@ class SPM(Container):
          # First part hits, second part misses
          msize = size - last_addr + 1
          count = (last_addr + self.machine.word_size)
-         count /= self.machine.word_size
+         count //= self.machine.word_size
          t = count * self.latency
          return t + self.mem.process(write, addr, msize)
       else:
@@ -65,7 +66,7 @@ class SPM(Container):
          hsize = self.size - addr;
          offset = addr % self.machine.word_size
          count = (hsize + self.machine.word_size + offset - 1)
-         count /= self.machine.word_size
+         count //= self.machine.word_size
          t = count * self.latency
          return t + self.mem.process(write, self.size, size - hsize)
 

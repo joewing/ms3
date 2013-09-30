@@ -19,7 +19,7 @@ class RAM(Memory):
       assert(size > 0)
       word_size = self.machine.word_size
       offset = addr % word_size
-      count = (size + word_size + offset - 1) / word_size
+      count = (size + word_size + offset - 1) // word_size
       if self.burst == 0:
          t = count * self.latency
       else:

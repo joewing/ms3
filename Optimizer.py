@@ -208,12 +208,12 @@ class Optimizer:
             # Keep the current memory.
             self.last_value = time
             self.last = self.current.clone()
-            self.threshold -= (self.threshold + 1023) / 1024
+            self.threshold -= (self.threshold + 1023) // 1024
             self.age = 0
          else:
             # Revert to the last memory.
             self.current = self.last.clone()
-            self.threshold += 1 + (self.age * self.threshold) / 2048
+            self.threshold += 1 + (self.age * self.threshold) // 2048
             self.age += 1
          self.modify()
          simplified = self.current.simplified()
