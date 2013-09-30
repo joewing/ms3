@@ -1,6 +1,6 @@
 
-from Memory import Memory
-from Join import Join, find_join
+from Transform import Transform
+from Join import Join
 
 def random_offset(machine, nxt, rand, cost):
    if rand.randbool():
@@ -12,11 +12,10 @@ def random_offset(machine, nxt, rand, cost):
    join.parent = result
    return result
 
-class Offset(Memory):
+class Offset(Transform):
 
-   def __init__(self, bank, mem, offset=0):
-      self.bank = bank
-      self.mem = mem
+   def __init__(self, bank, mem, offset = 0):
+      Transform.__init__(self, bank, mem)
       self.offset = offset
 
    def __str__(self):
@@ -27,34 +26,8 @@ class Offset(Memory):
       result += ')'
       return result
 
-   def get_next(self):
-      return self.mem
-
-   def set_next(self, n):
-      self.mem = n
-
-   def get_banks(self):
-      return [self.bank]
-
-   def set_bank(self, i, b):
-      assert(i == 0)
-      self.bank = b
-
-   def simplify(self):
-      self.bank = self.bank.simplify()
-      self.mem = self.mem.simplify()
-      if isinstance(self.bank, Join):
-         return self.mem
-      if self.offset == 0:
-         last = None
-         t = self.bank
-         while (not isinstance(t, Join)) or t.parent != self:
-            last = t
-            t = t.get_next()
-         assert(last != None) # We already checked for an empty bank.
-         last.set_next(self.mem)
-         return self.bank
-      return self
+   def is_empty(self):
+      return self.offset == 0
 
    def permute(self, rand, max_cost):
       word_size = self.machine.word_size

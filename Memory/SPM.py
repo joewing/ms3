@@ -1,5 +1,5 @@
 
-from Memory import Memory
+from Container import Container
 
 def random_spm(machine, nxt, rand, cost):
    while True:
@@ -8,10 +8,10 @@ def random_spm(machine, nxt, rand, cost):
       if spm.get_cost() <= cost:
          return spm
 
-class SPM(Memory):
+class SPM(Container):
 
    def __init__(self, mem, size = 0, latency = 2):
-      self.mem = mem
+      Container.__init__(self, mem)
       self.size = size
       self.latency = latency
 
@@ -21,12 +21,6 @@ class SPM(Memory):
       result += "(memory " + str(self.mem) + ")"
       result += ")"
       return result
-
-   def get_next(self):
-      return self.mem
-
-   def set_next(self, n):
-      self.mem = n
 
    def get_cost(self):
       return self.size * 8
@@ -47,9 +41,6 @@ class SPM(Memory):
 
    def pop_transform(self, rand):
       rand.pop_limit()
-
-   def done(self):
-      return self.mem.done()
 
    def process(self, write, addr, size):
       last_addr = (addr + size) & self.machine.addr_mask

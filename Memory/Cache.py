@@ -1,5 +1,5 @@
 
-from Memory import Memory
+from Container import Container
 
 class CachePolicy:
 
@@ -44,7 +44,7 @@ class CacheLine:
    age = 0
    dirty = False
 
-class Cache(Memory):
+class Cache(Container):
 
    # Mapping line_index -> CacheLine
    lines = list()
@@ -56,7 +56,7 @@ class Cache(Memory):
                 latency = 1,
                 policy = CachePolicy.LRU,
                 write_back = True):
-      self.mem = mem
+      Container.__init__(self, mem)
       self.line_count = line_count
       self.line_size = line_size
       self.associativity = associativity
@@ -79,12 +79,6 @@ class Cache(Memory):
       result += "(memory " + str(self.mem) + ")"
       result += ")"
       return result
-
-   def get_next(self):
-      return self.mem
-
-   def set_next(self, n):
-      self.mem = n
 
    def get_cost(self):
       return self.line_count * self.line_size * self.machine.word_size * 8
@@ -134,13 +128,10 @@ class Cache(Memory):
       return False
 
    def reset(self, machine):
-      Memory.reset(self, machine)
+      Container.reset(self, machine)
       self.lines = list()
       for i in range(self.line_count):
          self.lines.append(CacheLine())
-
-   def done(self):
-      return self.mem.done()
 
    def process(self, write, addr, size):
       extra = size / self.line_size
