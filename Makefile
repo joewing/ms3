@@ -8,6 +8,9 @@ all:
 test:
 	$(PYTHON) test.py
 
+lint:
+	pyflakes .
+
 coverage:
 	$(COVERAGE) run test.py
 	$(COVERAGE) report -m

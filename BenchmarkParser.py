@@ -1,5 +1,4 @@
 
-import Lexer
 import Parser
 import Benchmark.Hash as Hash
 import Benchmark.Heap as Heap

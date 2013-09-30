@@ -2,7 +2,6 @@
 import unittest
 from Machine import MachineType
 from Memory.DRAM import DRAM
-from MockMemory import MockMemory
 
 class TestDRAM(unittest.TestCase):
 

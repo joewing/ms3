@@ -5,9 +5,6 @@ from Memory.Memory import MemoryList
 import Distribution
 import Process
 import Optimizer
-import Machine
-import Benchmark.Hash
-import Benchmark.MM
 import Lexer
 import TopParser
 

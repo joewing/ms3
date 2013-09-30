@@ -1,6 +1,5 @@
 
 from PriorityQueue import PriorityQueue
-from Distribution import Distribution
 
 class Process:
 

@@ -10,6 +10,7 @@ from Tests.TestParser import TestParser
 from Tests.TestShift import TestShift
 from Tests.TestSplit import TestSplit
 from Tests.TestSPM import TestSPM
+from Tests.TestXOR import TestXOR
 from Tests.TestPriorityQueue import TestPriorityQueue
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 
-
 import unittest
 from Machine import MachineType
 from Memory.Join import Join

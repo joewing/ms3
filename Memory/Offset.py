@@ -46,9 +46,6 @@ class Offset(Transform):
    def pop_transform(self, rand):
       rand.pop_transform()
 
-   def done(self):
-      return self.mem.done()
-
    def process(self, write, addr, size):
       addr = (addr + self.offset) & self.machine.addr_mask
       return self.bank.process(write, addr, size)

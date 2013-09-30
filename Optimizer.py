@@ -1,12 +1,12 @@
 
 import random
-import Distribution
 import Memory.Cache as Cache
 import Memory.Offset as Offset
 import Memory.SPM as SPM
 import Memory.Join as Join
 import Memory.Shift as Shift
 import Memory.Split as Split
+import Memory.XOR as XOR
 
 class Optimizer:
 
@@ -28,7 +28,8 @@ class Optimizer:
       SPM.random_spm,
       Cache.random_cache,
       Shift.random_shift,
-      Split.random_split
+      Split.random_split,
+      XOR.random_xor
    ]
 
    def __init__(self, machine, ml,
