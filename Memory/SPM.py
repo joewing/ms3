@@ -1,10 +1,13 @@
 
 from Container import Container
+from Machine import TargetType
+import cacti
 
 def random_spm(machine, nxt, rand, cost):
    for i in range(100):
       size = machine.word_size << rand.randint(0, 8)
       spm = SPM(nxt, size)
+      spm.reset(machine)
       if spm.get_cost() <= cost:
          return spm
    return None
@@ -24,7 +27,12 @@ class SPM(Container):
       return result
 
    def get_cost(self):
-      return self.size * 8
+      if self.machine.target == TargetType.SIMPLE:
+         return self.size * 8
+      elif self.machine.target == TargetType.ASIC:
+         return cacti.get_area(self.machine, self)
+      else:
+         assert(False)
 
    def permute(self, rand, max_cost):
       if self.size > self.machine.word_size and rand.randint(0, 1) == 1:
@@ -35,6 +43,11 @@ class SPM(Container):
             self.size //= 2
             return False
       return True
+
+   def reset(self, machine):
+      Container.reset(self, machine)
+      if machine.target == TargetType.ASIC:
+         self.latency = cacti.get_time(machine, self)
 
    def push_transform(self, index, rand):
       assert(index == -1)

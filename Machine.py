@@ -1,6 +1,22 @@
 
+class TargetType:
+   SIMPLE = 0
+   ASIC = 1
+
+def parse_target(s):
+   if s == 'simple':
+      return TargetType.SIMPLE
+   elif s == 'asic':
+      return TargetType.ASIC
+   else:
+      return None
+
 class MachineType:
-   def __init__(self, word_size = 8, addr_bits = 32):
+   def __init__(self,
+                target = TargetType.SIMPLE,
+                word_size = 8,
+                addr_bits = 32):
+      self.target = target
       self.word_size = word_size
       self.word_bits = log2(self.word_size)
       self.word_mask = word_size - 1

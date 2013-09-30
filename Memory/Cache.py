@@ -1,8 +1,9 @@
 
 from Container import Container
+from Machine import TargetType
+import cacti
 
 class CachePolicy:
-
    LRU = 0
    MRU = 1
    FIFO = 2
@@ -81,7 +82,10 @@ class Cache(Container):
       return result
 
    def get_cost(self):
-      return self.line_count * self.line_size * self.machine.word_size * 8
+      if self.machine.target == TargetType.SIMPLE:
+         return self.line_count * self.line_size * self.machine.word_size * 8
+      elif self.machine.target == TargetType.ASIC:
+         return cacti.get_area(self.machine, self)
 
    def permute(self, rand, max_cost):
       param_count = 8
@@ -132,6 +136,13 @@ class Cache(Container):
       self.lines = list()
       for i in range(self.line_count):
          self.lines.append(CacheLine())
+      if machine.target == TargetType.ASIC:
+         self.latency = cacti.get_time(machine, self)
+      else:
+         if self.policy == CachePolicy.PLRU:
+            self.latency = 3 + self.associativity // 8
+         else:
+            self.latency = 3 + self.associativity // 4
 
    def process(self, write, addr, size):
       extra = size // self.line_size

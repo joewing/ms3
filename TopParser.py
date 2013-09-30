@@ -3,7 +3,7 @@ import Lexer
 import BenchmarkParser
 import MemoryParser
 import Parser
-from Machine import MachineType
+from Machine import MachineType, TargetType, parse_target
 
 def parse(lexer):
    machine = None
@@ -28,7 +28,11 @@ def _parse_machine(lexer):
    args = Parser.parse_arguments(lexer)
    word_size = Parser.get_argument(args, 'word_size', 8)
    addr_bits = Parser.get_argument(args, 'addr_bits', 32)
-   return MachineType(word_size, addr_bits)
+   tstr = Parser.get_argument(args, 'target', 'simple')
+   target = parse_target(tstr)
+   if target == None:
+      Lexer.ParseError("invalid target: " + tstr)
+   return MachineType(target, word_size, addr_bits)
 
 def _parse_benchmarks(lexer):
    benchmarks = []
