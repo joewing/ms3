@@ -64,5 +64,6 @@ class ProcessList:
          if t > self.machine.time:
             self.machine.time = t
       print("Time: " + str(self.machine.time))
+      print("Cost: " + str(ml.get_cost()))
       return self.machine.time
 

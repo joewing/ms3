@@ -1,4 +1,5 @@
 
+import gc
 import sys
 from Memory.Memory import MemoryList
 import Distribution
@@ -86,6 +87,7 @@ def main():
          time = pl.run(ml)
       else:
          break
+      gc.collect()
 
 if __name__ == '__main__':
    main()

@@ -52,10 +52,11 @@ class DRAM(Memory):
 
    def reset(self, machine):
       Memory.reset(self, machine)
-      self.banks = list()
       bank_size = self.page_size * self.page_count
       bank_count = (machine.addr_mask + bank_size) // bank_size
-      self.banks.extend(map(lambda i: DRAMBank(), range(bank_count)))
+      self.banks = list()
+      for i in range(bank_count):
+         self.banks.append(DRAMBank())
 
    def process(self, write, addr, size):
       assert(size > 0)
