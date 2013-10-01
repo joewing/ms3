@@ -1,6 +1,6 @@
 (machine (word_size 4) (addr_bits 32) (target asic))
 (memory (dram))
 (benchmarks
-   (mm (size 64))
-   (hash (seed 15) (count 65536))
+   (mm (size 128))
+   (hash (seed 15) (count 131072))
 )

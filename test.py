@@ -1,6 +1,7 @@
 
 import unittest
 from Tests.TestCache import TestCache
+from Tests.TestDistribution import TestDistribution
 from Tests.TestDRAM import TestDRAM
 from Tests.TestLexer import TestLexer
 from Tests.TestMemory import TestMemory

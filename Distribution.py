@@ -6,17 +6,18 @@ class Distribution(random.Random):
    # Minimum range size in bytes.
    min_size = 8
 
-   # List of ranges, which are pairs of the form (start, length).
-   ranges = []
-
-   # Stack of address range limits of the form (False, lower limit, upper limit)
-   # and address transforms, which are functions from address to
-   # transformed address.  Transform entries are pairs: (True, function).
-   limits = []
-
    def __init__(self, seed):
       super(random.Random, self).__init__(seed)
       self.start_seed = seed
+
+      # List of ranges, which are pairs of the form (start, length).
+      self.ranges = []
+
+      # Stack of address range limits of the form:
+      # (False, lower limit, upper limit) and address transforms, which
+      # are functions from address to # transformed address.
+      # Transform entries are pairs: (True, function).
+      self.limits = []
 
    def reset(self):
       """Reset the random number generator using the original seed."""
