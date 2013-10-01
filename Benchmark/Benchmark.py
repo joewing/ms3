@@ -4,11 +4,9 @@ class Benchmark:
       A benchmark is a kernel used to generate an address trace.
    """
 
-   word_size = 4
-   offset = 0
-
-   def __init__(self, word_size):
+   def __init__(self, word_size = 4):
       self.word_size = word_size
+      self.offset = 0
 
    def read(self, addr):
       """Generate a read."""

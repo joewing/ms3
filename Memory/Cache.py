@@ -47,8 +47,6 @@ class CacheLine:
 
 class Cache(Container):
 
-   # Mapping line_index -> CacheLine
-   lines = list()
 
    def __init__(self, mem,
                 line_count = 1,
@@ -64,6 +62,7 @@ class Cache(Container):
       self.latency = latency
       self.policy = policy
       self.write_back = write_back
+      self.lines = list()
 
    def __str__(self):
       result  = "(cache "

@@ -3,10 +3,9 @@ from Memory import Memory
 
 class Join(Memory):
 
-   parent = None
-
    def __init__(self, index = 0):
       self.index = index
+      self.parent = None
 
    def __str__(self):
       return "(join)"

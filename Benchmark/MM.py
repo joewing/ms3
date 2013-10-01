@@ -5,6 +5,7 @@ class MM(Benchmark):
    """Benchmark to simulate matrix-matrix multiplication."""
 
    def __init__(self, size, iterations = 1):
+      Benchmark.__init__(self)
       self.size = size
       self.iterations = iterations
 

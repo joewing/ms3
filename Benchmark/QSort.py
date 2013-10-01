@@ -6,6 +6,7 @@ class QSort(Benchmark):
    """Benchmark to simulate quick sort."""
 
    def __init__(self, seed, size):
+      Benchmark.__init__(self)
       self.seed = seed
       self.size = size
 

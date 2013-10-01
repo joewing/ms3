@@ -6,6 +6,7 @@ class Heap(Benchmark):
    """Benchmark to simulate operations on a binary heap."""
 
    def __init__(self, seed, size):
+      Benchmark.__init__(self)
       self.seed = seed
       self.size = size
 

@@ -6,6 +6,7 @@ class Hash(Benchmark):
    """Benchmark to simulate probes into a hash table."""
 
    def __init__(self, seed, count):
+      Benchmark.__init__(self)
       self.seed = seed
       self.count = count
 

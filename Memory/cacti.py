@@ -25,6 +25,17 @@ class CACTIParams:
    associativity = 1
    is_cache = False
 
+   def get_pair(self):
+      p = (self.size, self.block_size, self.bus_bits,
+           self.associativity, self.is_cache)
+      return p
+
+   def __eq__(self, other):
+      return self.get_pair() == other.get_pair()
+
+   def __hash__(self):
+      return hash(self.get_pair())
+
 cacti_results = dict()
 area_regex = re.compile("Data array: Area \(mm2\): ([0-9.]+)")
 time_regex = re.compile("Access time \(ns\): ([0-9.]+)")

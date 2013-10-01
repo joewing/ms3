@@ -6,6 +6,7 @@ class Trace(Benchmark):
    """Benchmark to replay an address trace."""
 
    def __init__(self, file_name):
+      Benchmark.__init__(self)
       self.file_name = file_name
       self.expr = re.compile(r'([RW])([0-9a-fA-F]+):([0-9a-fA-F]+)')
 
