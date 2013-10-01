@@ -178,10 +178,10 @@ class Optimizer:
             index = self.rand.randint(0, count - 1)
             stat = self.permute(dist, mem, index, max_cost)
 
-   def update_best(self, time):
+   def update_best(self, simplified, time):
       """Update and display the best memory found so far."""
-      cost = self.current.get_cost()
-      name = self.current.get_name()
+      cost = simplified.get_cost()
+      name = simplified.get_name()
       if self.best_value == -1 or time < self.best_value or \
          (time == self.best_value and cost < self.best_cost) or \
          (time == self.best_value and cost == self.best_cost and \
@@ -228,11 +228,13 @@ class Optimizer:
          It returns the next memory list to evaluate, None when complete.
       """
       self.evaluations += 1
-      self.update_best(time)
 
       # Cache the simplified memory.
       simplified = self.current.simplified()
       self.cache[simplified.get_name()] = time
+
+      # Track the best.
+      self.update_best(simplified, time)
 
       result = self.generate_next(time)
       if result != None:
