@@ -1,4 +1,6 @@
 
+from Process import AccessType
+
 class Benchmark:
    """Base clase for benchmarks.
       A benchmark is a kernel used to generate an address trace.
@@ -12,13 +14,25 @@ class Benchmark:
       """Generate a read."""
       addr *= self.word_size
       addr += self.offset
-      return False, addr, self.word_size
+      return AccessType.READ, addr, self.word_size
 
    def write(self, addr):
       """Generate a write."""
       addr *= self.word_size
       addr += self.offset
-      return True, addr, self.word_size
+      return AccessType.WRITE, addr, self.word_size
+
+   def idle(self, cycles):
+      """Idle for some number of cycles."""
+      return AccessType.IDLE, cycles, 0
+
+   def produce(self, port):
+      """Produce a value on the specified port."""
+      return AccessType.PRODUCE, port, 0
+
+   def consume(self, port):
+      """Consume a value on the specified port."""
+      return AccessType.CONSUME, port, 0
 
    def reset(self, offset):
       """Prepare the benchmark to be run and set the address offset."""

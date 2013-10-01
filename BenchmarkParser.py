@@ -26,7 +26,10 @@ _benchmark_constructors['heap'] = _create_heap
 def _create_mm(state, args):
    size = Parser.get_argument(args, 'size', 64)
    iterations = Parser.get_argument(args, 'iterations', 1)
-   return MM.MM(size, iterations)
+   input_port = Parser.get_argument(args, 'input_port', -1)
+   output_port = Parser.get_argument(args, 'output_port', -1)
+   return MM.MM(size = size, iterations = iterations,
+                input_port = input_port, output_port = output_port)
 _benchmark_constructors['mm'] = _create_mm
 
 def _create_qsort(state, args):

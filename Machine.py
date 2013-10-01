@@ -24,6 +24,26 @@ class MachineType:
       self.addr_mask = (1 << addr_bits) - 1
       self.time = 0
 
+   def reset(self):
+      self.time = 0
+      for i in range(len(self.ports)):
+         self.ports[i] = 0
+
+   def produce(self, port):
+      while len(self.ports) <= port:
+         self.ports.append(0)
+      self.ports[port] += 1
+      return True
+
+   def consume(self, port):
+      while len(self.ports) <= port:
+         self.ports.append(0)
+      if self.ports[port] == 0:
+         return False
+      else:
+         self.ports[port] -= 1
+         return True
+
    def flip(self, value):
       """Reverse the bits in an addr_bits sized value."""
       src_mask = 1 << (self.addr_bits - 1)
