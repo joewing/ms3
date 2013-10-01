@@ -22,6 +22,7 @@ class SPM(Container):
    def __str__(self):
       result  = "(spm "
       result += "(size " + str(self.size) + ")"
+      result += "(latency " + str(self.latency) + ")"
       result += "(memory " + str(self.mem) + ")"
       result += ")"
       return result
