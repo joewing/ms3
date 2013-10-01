@@ -14,13 +14,17 @@ def parse_benchmark(lexer):
 def _create_hash(state, args):
    seed = Parser.get_argument(args, 'seed', 7)
    count = Parser.get_argument(args, 'count', 65536)
-   return Hash.Hash(seed, count)
+   input_port = Parser.get_argument(args, 'input_port', -1)
+   output_port = Parser.get_argument(args, 'output_port', -1)
+   return Hash.Hash(seed, count, input_port, output_port)
 _benchmark_constructors['hash'] = _create_hash
 
 def _create_heap(state, args):
    seed = Parser.get_argument(args, 'seed', 7)
    size = Parser.get_argument(args, 'size', 1024)
-   return Heap.Heap(seed, size)
+   input_port = Parser.get_argument(args, 'input_port', -1)
+   output_port = Parser.get_argument(args, 'output_port', -1)
+   return Heap.Heap(seed, size, input_port, output_port)
 _benchmark_constructors['heap'] = _create_heap
 
 def _create_mm(state, args):
@@ -35,7 +39,9 @@ _benchmark_constructors['mm'] = _create_mm
 def _create_qsort(state, args):
    seed = Parser.get_argument(args, 'seed', 7)
    size = Parser.get_argument(args, 'size', 1024)
-   return QSort.QSort(seed, size)
+   input_port = Parser.get_argument(args, 'input_port', -1)
+   output_port = Parser.get_argument(args, 'output_port', -1)
+   return QSort.QSort(seed, size, input_port, output_port)
 _benchmark_constructors['qsort'] = _create_qsort
 
 def _create_trace(state, args):

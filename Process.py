@@ -7,6 +7,7 @@ class AccessType:
    IDLE = 2       # Idle
    CONSUME = 3    # Consume a value from an input port
    PRODUCE = 4    # Produce a value on an output port
+   END = 5        # Produce a value indicating the end of a stream
 
 class Process:
 
@@ -52,6 +53,8 @@ class Process:
          elif at == AccessType.CONSUME:
             if not self.machine.consume(addr):
                waiting = addr
+         elif at == AccessType.END:
+            self.machine.end(addr)
          else:
             assert(False)
          return True

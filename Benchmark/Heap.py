@@ -5,10 +5,12 @@ from Benchmark import Benchmark
 class Heap(Benchmark):
    """Benchmark to simulate operations on a binary heap."""
 
-   def __init__(self, seed, size):
+   def __init__(self, seed, size, input_port, output_port):
       Benchmark.__init__(self)
       self.seed = seed
       self.size = size
+      self.input_port = input_port
+      self.output_port = output_port
 
    def _insert(self, heap, value):
       heap[0] += 1
@@ -66,10 +68,12 @@ class Heap(Benchmark):
       rand = random.Random(self.seed)
       heap = [0] * (self.size + 1)
       for i in range(self.size):
+         yield self.consume(self.input_port)
          value = rand.randint(0, 1 << 30)
          for a in self._insert(heap, value):
             yield a
       for i in range(self.size):
          for a in self._remove(heap):
             yield a
+         yield self.produce(self.output_port)
 

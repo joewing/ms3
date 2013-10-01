@@ -28,11 +28,17 @@ class Benchmark:
 
    def produce(self, port):
       """Produce a value on the specified port."""
-      return AccessType.PRODUCE, port, 0
+      if port >= 0:
+         return AccessType.PRODUCE, port, 0
+      else:
+         return AccessType.IDLE, 0, 0
 
    def consume(self, port):
       """Consume a value on the specified port."""
-      return AccessType.CONSUME, port, 0
+      if port >= 0:
+         return AccessType.CONSUME, port, 0
+      else:
+         return AccessType.IDLE, 0, 0
 
    def reset(self, offset):
       """Prepare the benchmark to be run and set the address offset."""

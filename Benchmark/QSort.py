@@ -5,10 +5,12 @@ from Benchmark import Benchmark
 class QSort(Benchmark):
    """Benchmark to simulate quick sort."""
 
-   def __init__(self, seed, size):
+   def __init__(self, seed, size, input_port, output_port):
       Benchmark.__init__(self)
       self.seed = seed
       self.size = size
+      self.input_port = input_port
+      self.output_port = output_port
 
    def _sort(self, array, left, right):
       yield self.read(left)
@@ -41,6 +43,9 @@ class QSort(Benchmark):
       array = []
       for i in range(self.size):
          array.append(rand.randint(0, 1 << 30))
+         yield self.consume(self.input_port)
       for a in self._sort(array, 0, self.size - 1):
          yield a
+      for i in range(self.size):
+         yield self.produce(self.output_port)
 
