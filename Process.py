@@ -1,4 +1,5 @@
 
+import sys
 from PriorityQueue import PriorityQueue
 
 class AccessType:
@@ -41,6 +42,9 @@ class Process:
       try:
          at, addr, size = next(self.generator)
          if first:
+            if addr > self.machine.addr_mask:
+               print("ERROR: address out of range")
+               sys.exit(-1)
             self.dist.insert_range(addr, size)
          if at == AccessType.READ:
             self.time = self.mem.process(False, addr, size)
