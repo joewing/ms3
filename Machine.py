@@ -23,6 +23,7 @@ class MachineType:
       self.addr_bits = addr_bits
       self.addr_mask = (1 << addr_bits) - 1
       self.time = 0
+      self.ports = []
 
    def reset(self):
       self.time = 0
