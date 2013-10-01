@@ -92,7 +92,7 @@ def run_cacti(params):
                                     prefix = 'ms',
                                     dir = None,
                                     text = True)
-   fobj = os.fdopen(fd)
+   fobj = os.fdopen(fd, 'w')
    generate_file(fobj, params)
    fobj.close();
 
