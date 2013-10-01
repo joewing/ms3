@@ -1,4 +1,5 @@
 
+import math
 import os
 import re
 import subprocess
@@ -66,6 +67,15 @@ def run_cacti(params):
    if params in cacti_results:
       return cacti_results[params]
 
+   # Make sure the cacti program exists and is executable.
+   cacti_exe = './cacti'
+   if not os.path.isfile(cacti_exe):
+      print("ERROR: " + cacti_exe + " not found")
+      sys.exit(-1)
+   if not os.access(cacti_exe, os.X_OK):
+      print("ERROR: " + cacti_exe + " not executable")
+      sys.exit(-1)
+
    # Generate a file containing the parameters for CACTI.
    fd, file_name = tempfile.mkstemp(suffix = '.cacti',
                                     prefix = 'ms',
@@ -78,6 +88,8 @@ def run_cacti(params):
    # Run CACTI.
    try:
       buf = subprocess.check_output(['./cacti', '-infile', file_name])
+   except subprocess.CalledProcessError:
+      buf = ''
    finally:
       os.remove(file_name)
 
@@ -87,12 +99,12 @@ def run_cacti(params):
    if m == None:
       result.area = 1 << 31
    else:
-      result.area = int(float(m.group(1)) * 1000.0 * 1000.0 + 0.5)
+      result.area = int(math.ceil(float(m.group(1)) * 1000.0 * 1000.0))
    m = time_regex.search(buf)
    if m == None:
       result.time = 1 << 31
    else:
-      result.time = int(float(m.group(1)) + 0.5)
+      result.time = int(math.ceil(float(m.group(1))))
 
    cacti_results[params] = result
    return result
