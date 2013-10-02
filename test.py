@@ -13,6 +13,7 @@ from Tests.TestSplit import TestSplit
 from Tests.TestSPM import TestSPM
 from Tests.TestXOR import TestXOR
 from Tests.TestPriorityQueue import TestPriorityQueue
+from Tests.TestHash import TestHash
 
 if __name__ == '__main__':
 	unittest.main()
