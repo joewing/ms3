@@ -1,5 +1,6 @@
 
 import Parser
+import Benchmark.Cholesky as Cholesky
 import Benchmark.Hash as Hash
 import Benchmark.Heap as Heap
 import Benchmark.MM as MM
@@ -10,6 +11,13 @@ _benchmark_constructors = dict()
 
 def parse_benchmark(lexer):
    return Parser.parse(lexer, _benchmark_constructors)
+
+def _create_cholesky(state, args):
+   size = Parser.get_argument(args, 'size', 128)
+   input_port = Parser.get_argument(args, 'input_port', -1)
+   output_port = Parser.get_argument(args, 'output_port', -1)
+   return Cholesky.Cholesky(size, input_port, output_port)
+_benchmark_constructors['cholesky'] = _create_cholesky
 
 def _create_hash(state, args):
    seed = Parser.get_argument(args, 'seed', 7)
