@@ -3,6 +3,7 @@ import Parser
 import Benchmark.Cholesky as Cholesky
 import Benchmark.Hash as Hash
 import Benchmark.Heap as Heap
+import Benchmark.Maze as Maze
 import Benchmark.MM as MM
 import Benchmark.QSort as QSort
 import Benchmark.Trace as Trace
@@ -34,6 +35,13 @@ def _create_heap(state, args):
    output_port = Parser.get_argument(args, 'output_port', -1)
    return Heap.Heap(seed, size, input_port, output_port)
 _benchmark_constructors['heap'] = _create_heap
+
+def _create_maze(state, args):
+   width = Parser.get_argument(args, 'width', 32)
+   height = Parser.get_argument(args, 'height', 32)
+   seed = Parser.get_argument(args, 'seed', 5)
+   return Maze.Maze(width, height, seed)
+_benchmark_constructors['maze'] = _create_maze
 
 def _create_mm(state, args):
    size = Parser.get_argument(args, 'size', 64)
