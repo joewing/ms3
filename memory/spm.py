@@ -29,9 +29,9 @@ class SPM(base.Container):
       return result
 
    def get_cost(self):
-      if self.machine.target == TargetType.SIMPLE:
+      if self.machine.target == machine.TargetType.SIMPLE:
          return self.size * 8
-      elif self.machine.target == TargetType.ASIC:
+      elif self.machine.target == machine.TargetType.ASIC:
          return cacti.get_area(self.machine, self)
       else:
          assert(False)

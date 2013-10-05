@@ -72,6 +72,6 @@ def _create_maze(args):
    width = parser.get_argument(args, 'width', 32)
    height = parser.get_argument(args, 'height', 32)
    seed = parser.get_argument(args, 'seed', 5)
-   return maze.Maze(width, height, seed)
+   return Maze(width, height, seed)
 base.constructors['maze'] = _create_maze
 
