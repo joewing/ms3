@@ -6,6 +6,7 @@ import hash
 import heap
 import maze
 import mm
+import pca
 import qsort
 import trace
 
