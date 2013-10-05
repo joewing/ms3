@@ -1,7 +1,9 @@
 
-from machine import TargetType
-from base import Container
+import base
 import cacti
+import lex
+import machine
+import parser
 
 class CachePolicy:
    LRU = 0
@@ -10,17 +12,21 @@ class CachePolicy:
    PLRU = 3
    MAX_POLICY = 3
 
+policy_map = {
+   CachePolicy.LRU:  "lru",
+   CachePolicy.MRU:  "mru",
+   CachePolicy.FIFO: "fifo",
+   CachePolicy.PLRU: "plru"
+}
+
 def show_policy(value):
-   if value == CachePolicy.LRU:
-      return "lru"
-   elif value == CachePolicy.MRU:
-      return "mru"
-   elif value == CachePolicy.FIFO:
-      return "fifo"
-   elif value == CachePolicy.PLRU:
-      return "plru"
-   else:
-      return "?"
+   return policy_map.get(value, "?")
+
+def parse_policy(name):
+   for (k, v) in policy_map.items():
+      if name == v:
+         return k
+   raise lex.ParseError("invalid cache policy: " + name)
 
 def random_cache(machine, nxt, rand, cost):
    line_size = machine.word_size
@@ -45,7 +51,7 @@ class CacheLine:
    age = 0
    dirty = False
 
-class Cache(Container):
+class Cache(base.Container):
 
 
    def __init__(self, mem,
@@ -55,7 +61,7 @@ class Cache(Container):
                 latency = 1,
                 policy = CachePolicy.LRU,
                 write_back = True):
-      Container.__init__(self, mem)
+      base.Container.__init__(self, mem)
       self.line_count = line_count
       self.line_size = line_size
       self.associativity = associativity
@@ -81,9 +87,9 @@ class Cache(Container):
       return result
 
    def get_cost(self):
-      if self.machine.target == TargetType.SIMPLE:
+      if self.machine.target == machine.TargetType.SIMPLE:
          return self.line_count * self.line_size * self.machine.word_size * 8
-      elif self.machine.target == TargetType.ASIC:
+      elif self.machine.target == machine.TargetType.ASIC:
          return cacti.get_area(self.machine, self)
 
    def permute(self, rand, max_cost):
@@ -130,13 +136,13 @@ class Cache(Container):
          param = (param + 1) % param_count
       return False
 
-   def reset(self, machine):
-      Container.reset(self, machine)
+   def reset(self, m):
+      base.Container.reset(self, m)
       self.lines = list()
       for i in range(self.line_count):
          self.lines.append(CacheLine())
-      if machine.target == TargetType.ASIC:
-         self.latency = cacti.get_time(machine, self)
+      if m.target == machine.TargetType.ASIC:
+         self.latency = cacti.get_time(m, self)
       else:
          if self.policy == CachePolicy.PLRU:
             self.latency = 3 + self.associativity // 8
@@ -233,4 +239,21 @@ class Cache(Container):
       else:
          # Write on a write-through cache.
          return self.mem.process(write, addr, size) + self.latency
+
+def _create_cache(args):
+   mem = parser.get_argument(args, 'mem')
+   line_count = parser.get_argument(args, 'line_count', 1)
+   line_size = parser.get_argument(args, 'line_size', 8)
+   associativity = parser.get_argument(args, 'associativity', 1)
+   latency = parser.get_argument(args, 'latency', 1)
+   policy = parse_policy(parser.get_argument(args, 'policy', 'lru'))
+   write_back = parser.get_argument(args, 'write_back', True)
+   return Cache(mem = mem,
+                line_count = line_count,
+                line_size = line_size,
+                associativity = associativity,
+                latency = latency,
+                policy = policy,
+                write_back = write_back)
+base.constructors['cache'] = _create_cache
 
