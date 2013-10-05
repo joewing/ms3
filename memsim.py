@@ -1,12 +1,13 @@
 
 import gc
 import sys
-from Memory.Memory import MemoryList
-import Distribution
-import Process
-import Optimizer
-import Lexer
-import TopParser
+
+import distribution
+import lex
+import memory
+import model
+import optimizer
+import process
 
 _defaults = {
    '-max_cost'    : 100000,
@@ -45,10 +46,8 @@ def parse_options():
 
 def parse_file(options):
    try:
-      model = options['-model']
-      with open(model, 'r') as f:
-         lexer = Lexer.Lexer(f)
-         return TopParser.parse(lexer)
+      with open(options['-model'], 'r') as f:
+         return model.parse_model(lex.Lexer(f))
    except IOError:
       print("ERROR: could not open model")
       sys.exit(-1)
@@ -60,20 +59,20 @@ def main():
    max_cost = options['-max_cost']
    seed = options['-seed']
    iterations = options['-iterations']
-   machine, memory, benchmarks = parse_file(options)
+   machine, mem, benchmarks = parse_file(options)
 
    distributions = []
    processes = []
    memories = []
    for b in benchmarks:
-      dist = Distribution.Distribution(seed)
+      dist = distribution.Distribution(seed)
       distributions.append(dist)
-      processes.append(Process.Process(dist, b))
-      memories.append(memory)
+      processes.append(process.Process(dist, b))
+      memories.append(mem)
 
-   pl = Process.ProcessList(machine, processes)
-   ml = MemoryList(memories, distributions)
-   o = Optimizer.Optimizer(machine, ml,
+   pl = process.ProcessList(machine, processes)
+   ml = memory.MemoryList(memories, distributions)
+   o = optimizer.Optimizer(machine, ml,
                            max_cost = max_cost,
                            seed = seed,
                            iterations = iterations)
