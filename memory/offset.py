@@ -7,7 +7,7 @@ def random_offset(machine, nxt, rand, cost):
       offset = rand.randint(-machine.word_size, machine.word_size)
    else:
       offset = rand.random_address(machine.word_size)
-   return Offset(Join(), nxt, offset)
+   return Offset(base.Join(), nxt, offset)
 
 class Offset(base.Transform):
 

@@ -1,14 +1,15 @@
 
-from base import Transform, Join
+import base
+import parser
 
 def random_xor(machine, nxt, rand, cost):
    value = 1 << rand.randint(0, machine.addr_bits - 1)
-   return XOR(Join(), nxt, value)
+   return XOR(base.Join(), nxt, value)
 
-class XOR(Transform):
+class XOR(base.Transform):
 
    def __init__(self, bank, mem, value):
-      Transform.__init__(self, bank, mem)
+      base.Transform.__init__(self, bank, mem)
       self.value = value
 
    def __str__(self):
@@ -41,4 +42,11 @@ class XOR(Transform):
    def forward(self, index, write, addr, size):
       assert(index == 0)
       return self.mem.process(write, addr ^ self.value, size)
+
+def _create_xor(args):
+   value = parser.get_argument(args, 'value', 0)
+   mem = parser.get_argument(args, 'memory')
+   bank = parser.get_argument(args, 'bank')
+   return XOR(bank, mem, value)
+base.constructors['xor'] = _create_xor
 
