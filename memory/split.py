@@ -1,25 +1,26 @@
 
-from base import Memory, Join, set_parent
+import base
+import parser
 
 def random_split(machine, nxt, rand, cost):
    offset = rand.random_address(machine.word_size)
-   bank0 = Join(0)
-   bank1 = Join(1)
+   bank0 = base.Join(0)
+   bank1 = base.Join(1)
    result = Split(bank0, bank1, nxt, offset)
    if result.get_cost() <= cost:
       return result
    else:
       return None
 
-class Split(Memory):
+class Split(base.Memory):
 
-   def __init__(self, bank0, bank1, mem, offset=0):
+   def __init__(self, bank0, bank1, mem, offset):
       self.bank0 = bank0
       self.bank1 = bank1
       self.mem = mem
       self.offset = offset
-      set_parent(bank0, self)
-      set_parent(bank1, self)
+      base.set_parent(bank0, self)
+      base.set_parent(bank1, self)
 
    def __str__(self):
       result  = "(split "
@@ -54,7 +55,8 @@ class Split(Memory):
       self.bank0 = self.bank0.simplify()
       self.bank1 = self.bank1.simplify()
       self.mem = self.mem.simplify()
-      if isinstance(self.bank0, Join) and isinstance(self.bank1, Join):
+      if isinstance(self.bank0, base.Join) and \
+         isinstance(self.bank1, base.Join):
          return self.mem
       return self
 
@@ -97,4 +99,12 @@ class Split(Memory):
          return self.mem.process(write, addr, size)
       else:
          return self.mem.process(write, addr, size)
+
+def _create_split(args):
+   offset = parser.get_argument(args, 'offset', 0)
+   mem = parser.get_argument(args, 'memory')
+   bank0 = parser.get_argument(args, 'bank0')
+   bank1 = parser.get_argument(args, 'bank1')
+   return Split(bank0, bank1, mem, offset)
+base.constructors['split'] = _create_split
 
