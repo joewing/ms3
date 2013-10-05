@@ -1,15 +1,16 @@
 
-from base import Transform, Join
+import base
+import parser
 
 def random_shift(machine, nxt, rand, cost):
    bits = machine.addr_bits - machine.word_bits - 1
    shift = rand.randint(-bits, bits)
-   return Shift(Join(), nxt, shift)
+   return Shift(base.Join(), nxt, shift)
 
-class Shift(Transform):
+class Shift(base.Transform):
 
    def __init__(self, bank, mem, shift):
-      Transform.__init__(self, bank, mem)
+      base.Transform.__init__(self, bank, mem)
       self.shift = shift
 
    def __str__(self):
@@ -57,4 +58,11 @@ class Shift(Transform):
    def forward(self, index, write, addr, size):
       addr = self._rotate(addr, -self.shift)
       return self.mem.process(write, addr, size)
+
+def _create_shift(args):
+   value = parser.get_argument(args, 'value', 0)
+   mem = parser.get_argument(args, 'memory')
+   bank = parser.get_argument(args, 'bank')
+   return Shift(bank, mem, offset)
+base.constructors['shift'] = _create_shift
 
