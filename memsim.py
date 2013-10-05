@@ -1,5 +1,6 @@
 
 import gc
+import optparse
 import sys
 
 import distribution
@@ -9,44 +10,19 @@ import model
 import optimizer
 import process
 
-_defaults = {
-   '-max_cost'    : 100000,
-   '-seed'        : 7,
-   '-iterations'  : 10000,
-   '-model'       : 'model.txt'
-}
+parser = optparse.OptionParser()
+parser.add_option('-c', '--max_cost', dest='max_cost', default=100000,
+                  help='max subsystem cost')
+parser.add_option('-s', '--seed', dest='seed', default=7,
+                  help='random number seed for the optimizer')
+parser.add_option('-i', '--iterations', dest='iterations', default=10000,
+                  help='number of iterations for optimization')
+parser.add_option('-m', '--model', dest='model', default='model.txt',
+                  help='model to use for optimization')
 
-def show_options(options):
-   for k in sorted(options.keys()):
-      d = options[k]
-      print("   " + k + " " + str(d))
-
-def show_usage():
-   print("usage: memsim <options>")
-   print("options:")
-   show_options(_defaults)
-
-def parse_options():
-   options = _defaults
-   argc = len(sys.argv)
-   i = 1
-   while i < argc:
-      opt = sys.argv[i]
-      if (i + 1 < argc) and (opt in options):
-         value = sys.argv[i + 1]
-         if isinstance(options[opt], int):
-            options[opt] = int(value)
-         else:
-            options[opt] = value
-         i += 2
-      else:
-         show_usage()
-         sys.exit(-1)
-   return options
-
-def parse_file(options):
+def parse_model_file(file_name):
    try:
-      with open(options['-model'], 'r') as f:
+      with open(file_name, 'r') as f:
          return model.parse_model(lex.Lexer(f))
    except IOError:
       print("ERROR: could not open model")
@@ -54,28 +30,24 @@ def parse_file(options):
 
 def main():
 
-   options = parse_options()
-   show_options(options)
-   max_cost = options['-max_cost']
-   seed = options['-seed']
-   iterations = options['-iterations']
-   machine, mem, benchmarks = parse_file(options)
+   (options, args) = parser.parse_args()
+   mach, mem, bms = parse_model_file(options.model)
 
    distributions = []
    processes = []
    memories = []
-   for b in benchmarks:
-      dist = distribution.Distribution(seed)
+   for b in bms:
+      dist = distribution.Distribution(options.seed)
       distributions.append(dist)
       processes.append(process.Process(dist, b))
       memories.append(mem)
 
-   pl = process.ProcessList(machine, processes)
+   pl = process.ProcessList(mach, processes)
    ml = memory.MemoryList(memories, distributions)
-   o = optimizer.Optimizer(machine, ml,
-                           max_cost = max_cost,
-                           seed = seed,
-                           iterations = iterations)
+   o = optimizer.Optimizer(mach, ml,
+                           max_cost = options.max_cost,
+                           seed = options.seed,
+                           iterations = options.iterations)
    time = pl.run(ml, True)
    while True:
       ml = o.optimize(time)
