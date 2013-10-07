@@ -196,31 +196,33 @@ class Optimizer:
 
    def generate_next(self, time):
       """Generate the next memory to try."""
-      self.iterations += 1
-      self.steps += 1
-      if self.iterations > self.max_iterations:
-         return None
-      if self.last == None:
-         self.last = self.current.clone()
-      else:
-         diff = time - self.last_value
-         if diff <= self.threshold:
-            # Keep the current memory.
-            self.last_value = time
+      while True:
+         self.iterations += 1
+         self.steps += 1
+         if self.iterations > self.max_iterations:
+            return None
+         if self.last == None:
             self.last = self.current.clone()
-            self.threshold -= (self.threshold + 1023) // 1024
-            self.age = 0
          else:
-            # Revert to the last memory.
-            self.current = self.last.clone()
-            self.threshold += 1 + (self.age * self.threshold) // 2048
-            self.age += 1
-         self.modify()
-         simplified = self.current.simplified()
-         simplified_name = simplified.get_name()
-         if simplified_name in self.results:
-            return self.generate_next(self.results[simplified_name])
-      return self.current
+            diff = time - self.last_value
+            if diff <= self.threshold:
+               # Keep the current memory.
+               self.last_value = time
+               self.last = self.current.clone()
+               self.threshold -= (self.threshold + 1023) // 1024
+               self.age = 0
+            else:
+               # Revert to the last memory.
+               self.current = self.last.clone()
+               self.threshold += 1 + (self.age * self.threshold) // 2048
+               self.age += 1
+            self.modify()
+            simplified = self.current.simplified()
+            simplified_name = simplified.get_name()
+            if simplified_name not in self.results:
+               return self.current
+            else:
+               time = self.results[simplified_name]
       
 
    def optimize(self, time):
