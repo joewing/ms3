@@ -103,6 +103,10 @@ class Distribution(random.Random):
    def random_address(self, alignment):
       """Get a random address with the specified alignment."""
 
+      # Handle the case when there are no addresses.
+      if len(self.ranges) == 0:
+         return 0
+
       # We make multiple attempts to pick a valid address.
       # If we fail, we just return a random address since it's
       # possible that no valid addresses exist.
