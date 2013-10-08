@@ -33,6 +33,10 @@ class SPM(base.Container):
          return self.size * 8
       elif self.machine.target == machine.TargetType.ASIC:
          return cacti.get_area(self.machine, self)
+      elif self.machine.target == machine.TargetType.FPGA:
+         width = self.machine.word_size * 8
+         depth = self.size // self.machine.word_size
+         return machine.get_bram_count(width, depth)
       else:
          assert(False)
 
