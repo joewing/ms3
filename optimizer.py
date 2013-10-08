@@ -3,6 +3,7 @@ import random
 import memory
 import memory.cache as cache
 import memory.offset as offset
+import memory.prefetch as prefetch
 import memory.spm as spm
 import memory.shift as shift
 import memory.split as split
@@ -24,11 +25,12 @@ class Optimizer:
    current = None
 
    constructors = [
-      offset.random_offset,
-      spm.random_spm,
       cache.random_cache,
+      offset.random_offset,
+      prefetch.random_prefetch,
       shift.random_shift,
       split.random_split,
+      spm.random_spm,
       xor.random_xor
    ]
 

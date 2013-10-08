@@ -140,6 +140,9 @@ class Container(Memory):
    def done(self):
       return self.mem.done()
 
+   def process(self, write, addr, size):
+      return self.mem.process(write, addr, size)
+
 class Transform(Container):
    """A memory that transforms the address space for a bank."""
 

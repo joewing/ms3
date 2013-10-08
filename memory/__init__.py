@@ -5,6 +5,7 @@ import cache
 import dram
 import offset
 import option
+import prefetch
 import ram
 import shift
 import split

@@ -8,6 +8,7 @@ from testmemory import TestMemory
 from testoffset import TestOffset
 from testoptimizer import TestOptimizer
 from testparser import TestParser
+from testprefetch import TestPrefetch
 from testpriorityqueue import TestPriorityQueue
 from testshift import TestShift
 from testsplit import TestSplit

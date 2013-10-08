@@ -53,7 +53,6 @@ class CacheLine:
 
 class Cache(base.Container):
 
-
    def __init__(self, mem,
                 line_count = 1,
                 line_size = 8,
