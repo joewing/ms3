@@ -3,6 +3,7 @@ from testdistribution import TestDistribution
 from testdram import TestDRAM
 from testhash import TestHash
 from testlexer import TestLexer
+from testmachine import TestMachine
 from testmemory import TestMemory
 from testoffset import TestOffset
 from testoptimizer import TestOptimizer

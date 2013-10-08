@@ -2,14 +2,21 @@
 class TargetType:
    SIMPLE = 0
    ASIC = 1
+   FPGA = 2
 
 def parse_target(s):
    if s == 'simple':
       return TargetType.SIMPLE
    elif s == 'asic':
       return TargetType.ASIC
+   elif s == "fpga":
+      return TargetType.FPGA
    else:
       return None
+
+# Size of an FPGA BRAM.
+BRAM_WIDTH  = 72
+BRAM_DEPTH  = 512
 
 class MachineType:
    def __init__(self,
@@ -18,7 +25,7 @@ class MachineType:
                 addr_bits = 32):
       self.target = target
       self.word_size = word_size
-      self.word_bits = log2(self.word_size)
+      self.word_bits = log2(word_size) - 1
       self.word_mask = word_size - 1
       self.addr_bits = addr_bits
       self.addr_mask = (1 << addr_bits) - 1
@@ -64,9 +71,32 @@ class MachineType:
       return result
 
 def log2(n):
-   r = 1
+   """Compute the log base 2 of n."""
+   r = 0
    while n > 0:
       r += 1
-      n >>= 2
+      n >>= 1
    return r
+
+def round_power2(n):
+   """Round n up to the next highest power of 2."""
+   return 1 << log2(n - 1)
+
+def get_bram_count(width, depth):
+   """Get the number of BRAMs needed for the specified aspect ratio."""
+
+   # Handle the portion that is less than a BRAM wide.
+   result = 0
+   small_width = width % BRAM_WIDTH
+   if small_width != 0:
+      max_width = BRAM_WIDTH * BRAM_DEPTH
+      rounded = round_power2(small_width)
+      small_depth = max_width // rounded
+      result = (depth + small_depth - 1) // small_depth
+
+   # Handle the portion that is at least as wide as a BRAM.
+   big_count = width // BRAM_WIDTH
+   big_depth = (depth + BRAM_DEPTH - 1) // BRAM_DEPTH
+   result += big_depth * big_count
+   return result
 
