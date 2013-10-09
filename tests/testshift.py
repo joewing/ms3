@@ -18,7 +18,7 @@ class TestShift(unittest.TestCase):
       self.join.parent = shift
       shift.reset(self.machine)
 
-      t = shift.process(False, 0, 8)
+      t = shift.process(0, False, 0, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 1)
       self.assertEqual(self.bank.writes, 0)
@@ -29,7 +29,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 0)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = shift.process(False, 1, 1)
+      t = shift.process(0, False, 1, 1)
       self.assertEqual(t, 200)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 0)
@@ -40,7 +40,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 1)
       self.assertEqual(self.bank.last_size, 1)
 
-      t = shift.process(True, 1, 1)
+      t = shift.process(0, True, 1, 1)
       self.assertEqual(t, 200)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 1)
@@ -51,7 +51,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 1)
       self.assertEqual(self.bank.last_size, 1)
 
-      t = shift.process(False, 16, 8)
+      t = shift.process(0, False, 16, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 3)
       self.assertEqual(self.bank.writes, 1)
@@ -62,7 +62,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 32)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = shift.process(False, 1 << 31, 4)
+      t = shift.process(0, False, 1 << 31, 4)
       self.assertEqual(t, 800)
       self.assertEqual(self.bank.reads, 4)
       self.assertEqual(self.bank.writes, 1)
@@ -73,7 +73,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 8)
       self.assertEqual(self.bank.last_size, 4)
 
-      t = shift.process(False, 105, 2)
+      t = shift.process(0, False, 105, 2)
       self.assertEqual(t, 400)
       self.assertEqual(self.bank.reads, 5)
       self.assertEqual(self.bank.writes, 1)
@@ -89,7 +89,7 @@ class TestShift(unittest.TestCase):
       self.join.parent = shift
       shift.reset(self.machine)
 
-      t = shift.process(False, 0, 8)
+      t = shift.process(0, False, 0, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 1)
       self.assertEqual(self.bank.writes, 0)
@@ -100,7 +100,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 0)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = shift.process(False, 1, 1)
+      t = shift.process(0, False, 1, 1)
       self.assertEqual(t, 200)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 0)
@@ -111,7 +111,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 1)
       self.assertEqual(self.bank.last_size, 1)
 
-      t = shift.process(True, 1, 1)
+      t = shift.process(0, True, 1, 1)
       self.assertEqual(t, 200)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 1)
@@ -122,7 +122,7 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 1)
       self.assertEqual(self.bank.last_size, 1)
 
-      t = shift.process(True, 9, 4)
+      t = shift.process(0, True, 9, 4)
       self.assertEqual(t, 800)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 2)

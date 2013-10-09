@@ -43,14 +43,14 @@ class Offset(base.Transform):
    def pop_transform(self, rand):
       rand.pop_transform()
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       addr = (addr + self.offset) & self.machine.addr_mask
-      return self.bank.process(write, addr, size)
+      return self.bank.process(start, write, addr, size)
 
-   def forward(self, index, write, addr, size):
+   def forward(self, index, start, write, addr, size):
       assert(index == 0)
       addr = (addr - self.offset) & self.machine.addr_mask
-      return self.mem.process(write, addr, size) 
+      return self.mem.process(start, write, addr, size)
 
 def _create_offset(args):
    offset = parser.get_argument(args, 'value', 0)

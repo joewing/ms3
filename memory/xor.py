@@ -36,12 +36,12 @@ class XOR(base.Transform):
    def pop_transform(self, rand):
       rand.pop_transform();
 
-   def process(self, write, addr, size):
-      return self.bank.process(write, addr ^ self.value, size)
+   def process(self, start, write, addr, size):
+      return self.bank.process(start, write, addr ^ self.value, size)
 
-   def forward(self, index, write, addr, size):
+   def forward(self, index, start, write, addr, size):
       assert(index == 0)
-      return self.mem.process(write, addr ^ self.value, size)
+      return self.mem.process(start, write, addr ^ self.value, size)
 
 def _create_xor(args):
    value = parser.get_argument(args, 'value', 0)

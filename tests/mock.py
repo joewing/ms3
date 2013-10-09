@@ -47,15 +47,15 @@ class MockMemory(memory.Memory):
       assert(i < len(self.banks))
       self.banks[i] = b
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       self.last_addr = addr
       self.last_size = size
       if write:
          self.writes += 1
       else:
          self.reads += 1
-      result = 100 * size
+      result = start + 100 * size
       if self.mem != None:
-         result += self.mem.process(write, addr, size)
+         result = self.mem.process(result, write, addr, size)
       return result
 

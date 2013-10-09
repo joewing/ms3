@@ -16,7 +16,7 @@ class TestOffset(unittest.TestCase):
       offset = Offset(self.bank, self.main, 3)
       offset.reset(self.machine)
 
-      t = offset.process(False, 0, 8)
+      t = offset.process(0, False, 0, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 1)
       self.assertEqual(self.bank.writes, 0)
@@ -27,7 +27,7 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 3)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = offset.process(False, 5, 8)
+      t = offset.process(0, False, 5, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 0)
@@ -38,7 +38,7 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 8)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = offset.process(True, 5, 4)
+      t = offset.process(0, True, 5, 4)
       self.assertEqual(t, 800)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 1)
@@ -49,7 +49,7 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 8)
       self.assertEqual(self.bank.last_size, 4)
 
-      t = offset.process(True, 2, 8)
+      t = offset.process(0, True, 2, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 2)
       self.assertEqual(self.bank.writes, 2)
@@ -60,7 +60,7 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 5)
       self.assertEqual(self.bank.last_size, 8)
 
-      t = offset.process(False, (1 << 32) - 6, 8)
+      t = offset.process(0, False, (1 << 32) - 6, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 3)
       self.assertEqual(self.bank.writes, 2)

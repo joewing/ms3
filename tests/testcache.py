@@ -20,25 +20,25 @@ class TestCache(unittest.TestCase):
       cache.reset(self.machine)
       self.assertEqual(cache.latency, 3)
 
-      t = cache.process(False, 0, 1)
+      t = cache.process(0, False, 0, 1)
       self.assertEqual(t, 203)
 
-      t = cache.process(False, 1, 1)
+      t = cache.process(0, False, 1, 1)
       self.assertEqual(t, 3)
 
-      t = cache.process(True, 1, 1)
+      t = cache.process(0, True, 1, 1)
       self.assertEqual(t, 3)
 
-      t = cache.process(False, 8, 1)
+      t = cache.process(0, False, 8, 1)
       self.assertEqual(t, 403)
 
-      t = cache.process(False, 2, 2)
+      t = cache.process(0, False, 2, 2)
       self.assertEqual(t, 203)
 
-      t = cache.process(True, 4, 2)
+      t = cache.process(0, True, 4, 2)
       self.assertEqual(t, 3)
 
-      t = cache.process(True, 6, 1)
+      t = cache.process(0, True, 6, 1)
       self.assertEqual(t, 203)
 
    def test_set(self):
@@ -52,25 +52,25 @@ class TestCache(unittest.TestCase):
       cache.reset(self.machine)
       self.assertEqual(cache.latency, 3)
 
-      t = cache.process(False, 0, 1)
+      t = cache.process(0, False, 0, 1)
       self.assertEqual(t, 203)
 
-      t = cache.process(False, 1, 1)
+      t = cache.process(0, False, 1, 1)
       self.assertEqual(t, 3)
 
-      t = cache.process(True, 1, 1)
+      t = cache.process(0, True, 1, 1)
       self.assertEqual(t, 3)
 
-      t = cache.process(False, 8, 1)
+      t = cache.process(0, False, 8, 1)
       self.assertEqual(t, 203)
 
-      t = cache.process(False, 2, 2)
+      t = cache.process(0, False, 2, 2)
       self.assertEqual(t, 203)
 
-      t = cache.process(True, 4, 2)
+      t = cache.process(0, True, 4, 2)
       self.assertEqual(t, 203)
 
-      t = cache.process(True, 6, 1)
+      t = cache.process(0, True, 6, 1)
       self.assertEqual(t, 203)
 
 

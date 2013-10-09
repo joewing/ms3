@@ -69,32 +69,32 @@ class SPM(base.Container):
    def pop_transform(self, rand):
       rand.pop_limit()
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       last_addr = (addr + size) & self.machine.addr_mask
       if addr < self.size and last_addr <= self.size:
          # Complete hits the scrachpad
          offset = addr % self.machine.word_size
          count = (size + self.machine.word_size + offset - 1)
          count //= self.machine.word_size
-         return count * self.latency
+         return start + count * self.latency
       elif addr >= self.size and last_addr > self.size:
          # Completely misses the scratchpad
-         return self.mem.process(write, addr, size)
+         return self.mem.process(start, write, addr, size)
       elif addr > self.size and last_addr < self.size:
          # First part hits, second part misses
          msize = size - last_addr + 1
          count = (last_addr + self.machine.word_size)
          count //= self.machine.word_size
-         t = count * self.latency
-         return t + self.mem.process(write, addr, msize)
+         t = start + count * self.latency
+         return self.mem.process(t, write, addr, msize)
       else:
          # First part misses, second part hits
          hsize = self.size - addr;
          offset = addr % self.machine.word_size
          count = (hsize + self.machine.word_size + offset - 1)
          count //= self.machine.word_size
-         t = count * self.latency
-         return t + self.mem.process(write, self.size, size - hsize)
+         t = start + count * self.latency
+         return self.mem.process(t, write, self.size, size - hsize)
 
 def _create_spm(args):
    mem = parser.get_argument(args, 'memory')

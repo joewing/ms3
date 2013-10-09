@@ -22,27 +22,27 @@ class TestDRAM(unittest.TestCase):
                   open_page_mode = True)
       dram.reset(self.machine)
 
-      t = dram.process(False, 0, 4) # Miss
+      t = dram.process(0, False, 0, 4) # Miss
       self.assertEqual(t, 22)
       self.machine.time += t
 
-      t = dram.process(False, 4, 4)  # Hit
+      t = dram.process(0, False, 4, 4)  # Hit
       self.assertEqual(t, 8)
       self.machine.time += t
 
-      t = dram.process(False, 2097152, 4)  # Miss
+      t = dram.process(0, False, 2097152, 4)  # Miss
       self.assertEqual(t, 22)
       self.machine.time += t
 
-      t = dram.process(True, 2097152, 8)   # Hit
+      t = dram.process(0, True, 2097152, 8)   # Hit
       self.assertEqual(t, 16)
       self.machine.time += t
 
-      t = dram.process(True, 2097152 - 4, 8)  # Miss/hit
+      t = dram.process(0, True, 2097152 - 4, 8)  # Miss/hit
       self.assertEqual(t, 30)
       self.machine.time += t
 
-      t = dram.process(False, 4, 4)  # Miss/write-back
+      t = dram.process(0, False, 4, 4)  # Miss/write-back
       self.assertEqual(t, 24)
       self.machine.time += t
 
@@ -59,27 +59,27 @@ class TestDRAM(unittest.TestCase):
                   open_page_mode = False)
       dram.reset(self.machine)
 
-      t = dram.process(False, 0, 4)
+      t = dram.process(0, False, 0, 4)
       self.assertEqual(t, 14)
       self.machine.time += t
 
-      t = dram.process(False, 4, 4)
+      t = dram.process(0, False, 4, 4)
       self.assertEqual(t, 22)
       self.machine.time += t
 
-      t = dram.process(False, 2097152, 4)
+      t = dram.process(0, False, 2097152, 4)
       self.assertEqual(t, 14)
       self.machine.time += t
 
-      t = dram.process(True, 2097152, 8)
+      t = dram.process(0, True, 2097152, 8)
       self.assertEqual(t, 46)
       self.machine.time += t
 
-      t = dram.process(True, 2097152 - 4, 8)
+      t = dram.process(0, True, 2097152 - 4, 8)
       self.assertEqual(t, 28)
       self.machine.time += t
 
-      t = dram.process(False, 4, 4)
+      t = dram.process(0, False, 4, 4)
       self.assertEqual(t, 14)
       self.machine.time += t
 

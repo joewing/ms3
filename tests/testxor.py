@@ -16,7 +16,7 @@ class TestXOR(unittest.TestCase):
       xor = XOR(self.bank, self.main, 16)
       xor.reset(self.machine)
 
-      t = xor.process(False, 32, 8)
+      t = xor.process(0, False, 32, 8)
       self.assertEqual(t, 1600)
       self.assertEqual(self.bank.reads, 1)
       self.assertEqual(self.bank.writes, 0)

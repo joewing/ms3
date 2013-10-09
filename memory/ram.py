@@ -16,17 +16,15 @@ class RAM(base.Memory):
       result += ')'
       return result
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       assert(size > 0)
       word_size = self.machine.word_size
       offset = addr % word_size
       count = (size + word_size + offset - 1) // word_size
       if self.burst == 0:
-         t = count * self.latency
+         return start + count * self.latency
       else:
-         t = self.latency + self.burst * (count - 1)
-      self.machine.time += t
-      return 0
+         return start + self.latency + self.burst * (count - 1)
 
 def _create_ram(args):
    latency = parser.get_argument(args, 'latency', 100)

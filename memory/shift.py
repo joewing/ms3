@@ -51,13 +51,13 @@ class Shift(base.Transform):
          shifted = ((shift_part << count2) & mask) | (shift_part >> -count)
       return (shifted << self.machine.word_bits) | word_part
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       addr = self._rotate(addr, self.shift)
-      return self.bank.process(write, addr, size)
+      return self.bank.process(start, write, addr, size)
 
-   def forward(self, index, write, addr, size):
+   def forward(self, index, start, write, addr, size):
       addr = self._rotate(addr, -self.shift)
-      return self.mem.process(write, addr, size)
+      return self.mem.process(start, write, addr, size)
 
 def _create_shift(args):
    value = parser.get_argument(args, 'value', 0)

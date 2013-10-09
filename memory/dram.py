@@ -58,11 +58,11 @@ class DRAM(base.Memory):
       for i in range(bank_count):
          self.banks.append(DRAMBank())
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       assert(size > 0)
       bsize = self.burst_size * self.width
       last = addr + size - 1
-      delta = 0
+      delta = start
       while addr <= last:
          temp = addr - (addr % bsize) + bsize
          addr &= self.machine.addr_mask

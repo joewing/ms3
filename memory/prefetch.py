@@ -17,7 +17,7 @@ class Prefetch(base.Container):
    def __init__(self, mem, stride):
       base.Container.__init__(self, mem)
       self.stride = stride
-      self.pending = 0
+      self.time = 0
 
    def __str__(self):
       result  = "(prefetch "
@@ -39,16 +39,20 @@ class Prefetch(base.Container):
 
    def reset(self, m):
       base.Container.reset(self, m)
-      self.pending = 0
+      self.time = 0
 
    def done(self):
-      return self.pending
+      return max(self.time - self.machine.time, 0)
 
-   def process(self, write, addr, size):
-      result = self.mem.process(write, addr, size) + self.pending
+   def process(self, start, write, addr, size):
+      result = max(start, self.time - self.machine.time)
+      result = self.mem.process(result, write, addr, size)
       if not write:
          temp = (addr + self.stride) & self.machine.addr_mask
-         self.pending = self.mem.process(write, temp, 1)
+         t = self.mem.process(result, write, temp, 1)
+         self.time = self.machine.time + t
+      else:
+         self.time = 0
       return result
 
 def _create_prefetch(args):

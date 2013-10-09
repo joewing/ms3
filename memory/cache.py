@@ -171,19 +171,20 @@ class Cache(base.Container):
          else:
             self.latency = 3 + self.associativity // 4
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       extra = size // self.line_size
       mask = self.machine.addr_mask
       temp = addr
-      result = 0
+      result = start
       for i in range(extra):
-         result += self._do_process(write, temp, self.line_size)
+         result = self._do_process(result, write, temp, self.line_size)
          temp = (temp + self.line_size) & mask
       if size > extra * self.line_size:
-         result += self._do_process(write, temp, size - extra * self.line_size)
+         result = self._do_process(result, write, temp,
+                                   size - extra * self.line_size)
       return result
 
-   def _do_process(self, write, addr, size):
+   def _do_process(self, start, write, addr, size):
       tag = addr & ~(self.line_size - 1)
       set_size = self.line_count // self.associativity
       word_addr = addr // self.line_size
@@ -236,9 +237,9 @@ class Cache(base.Container):
       if (not write) or self.write_back:
 
          # Evict this entry if necessary.
-         time = self.latency
+         time = start + self.latency
          if to_replace.dirty:
-            time += self.mem.process(True, to_replace.tag, self.line_size)
+            time = self.mem.process(time, True, to_replace.tag, self.line_size)
             to_replace.dirty = False
          to_replace.tag = tag
          to_replace.dirty = write
@@ -254,13 +255,13 @@ class Cache(base.Container):
 
          # Read the new entry.
          if (not write) or size != self.line_size:
-            time += self.mem.process(False, tag, self.line_size)
+            time = self.mem.process(time, False, tag, self.line_size)
 
          return time
 
       else:
          # Write on a write-through cache.
-         return self.mem.process(write, addr, size) + self.latency
+         return self.mem.process(start, write, addr, size) + self.latency
 
 def _create_cache(args):
    mem = parser.get_argument(args, 'mem')

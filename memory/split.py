@@ -63,26 +63,26 @@ class Split(base.Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       mask = self.machine.addr_mask
       last = (addr + size - 1) & mask
-      result = 0
+      result = start
       if addr > last:
-         result += self._do_process(addr, mask - addr + 1, write)
-         result += self._do_process(0, last + 1, write)
+         result = self._do_process(result, addr, mask - addr + 1, write)
+         result = self._do_process(result, 0, last + 1, write)
       else:
-         result += self._do_process(addr, size, write)
+         result = self._do_process(result, addr, size, write)
       return result
 
-   def _do_process(self, addr, size, write):
+   def _do_process(self, start, addr, size, write):
       last = (addr + size - 1) & self.machine.addr_mask
-      result = 0
+      result = start
       if addr < self.offset:
          if last <= self.offset:
             temp_size = size
          else:
             temp_size = self.offset - addr
-         result += self.bank0.process(write, addr, temp_size)
+         result = self.bank0.process(result, write, addr, temp_size)
       if last >= self.offset:
          if addr >= self.offset:
             temp_addr = addr - self.offset
@@ -90,15 +90,15 @@ class Split(base.Memory):
          else:
             temp_addr = 0
             temp_size = last - self.offset + 1
-         result += self.bank1.process(write, temp_addr, temp_size)
+         result = self.bank1.process(result, write, temp_addr, temp_size)
       return result
 
-   def forward(self, index, write, addr, size):
+   def forward(self, index, start, write, addr, size):
       if index == 1:
          addr = (addr + self.offset) & self.machine.addr_mask
-         return self.mem.process(write, addr, size)
+         return self.mem.process(start, write, addr, size)
       else:
-         return self.mem.process(write, addr, size)
+         return self.mem.process(start, write, addr, size)
 
 def _create_split(args):
    offset = parser.get_argument(args, 'offset', 0)

@@ -26,8 +26,8 @@ class Option(base.Memory):
       self.index = rand.randint(0, len(self.options) - 1)
       return True
 
-   def process(self, write, addr, size):
-      return self.options[self.index].process(write, addr, size)
+   def process(self, start, write, addr, size):
+      return self.options[self.index].process(start, write, addr, size)
 
    def done(self):
       return self.options[self.index].done()

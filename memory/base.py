@@ -88,12 +88,18 @@ class Memory:
       if self.get_next() != None:
          self.get_next().reset(machine)
 
-   def process(self, write, addr, size):
+   def process(self, start, write, addr, size):
       """Process a memory access operation.
-         This function will return the number of cycles spent
-         in the memory subsystem (excluding the main memory).
+         This function will return the number of cycles until the
+         access completes.
+         The start parameter is the relative start time of the access.
+         That is, adding start to self.machine.time will give the
+         absolute time of the access.
+         write is True for writes and False for reads.
+         addr is the byte address of the access.
+         size is the size of the access in bytes.
       """
-      return 0
+      return start
 
    def done(self):
       """Finish a trace execution.
@@ -111,8 +117,8 @@ class Join(Memory):
    def __str__(self):
       return "(join)"
 
-   def process(self, write, addr, size):
-      return self.parent.forward(self.index, write, addr, size)
+   def process(self, start, write, addr, size):
+      return self.parent.forward(self.index, start, write, addr, size)
 
 def find_join(mem, parent = None):
    while mem != None:
@@ -140,8 +146,8 @@ class Container(Memory):
    def done(self):
       return self.mem.done()
 
-   def process(self, write, addr, size):
-      return self.mem.process(write, addr, size)
+   def process(self, start, write, addr, size):
+      return self.mem.process(start, write, addr, size)
 
 class Transform(Container):
    """A memory that transforms the address space for a bank."""
@@ -175,7 +181,7 @@ class Transform(Container):
          return self.bank
       return self
 
-   def forward(self, index, write, addr, size):
+   def forward(self, index, start, write, addr, size):
       """Forward a request from the bank to the following memory."""
       assert(False)
 

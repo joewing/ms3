@@ -67,9 +67,9 @@ class Process:
 
       # Perform the access.
       if at == AccessType.READ:
-         return self.mem.process(False, addr, size)
+         return self.mem.process(0, False, addr, size)
       elif at == AccessType.WRITE:
-         return self.mem.process(True, addr, size)
+         return self.mem.process(0, True, addr, size)
       elif at == AccessType.IDLE:
          return addr
       elif at == AccessType.PRODUCE:
