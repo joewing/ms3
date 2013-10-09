@@ -50,6 +50,13 @@ class SPM(base.Container):
             return False
       return True
 
+   def simplify(self):
+      self.mem = self.mem.simplify()
+      if self.size == 0:
+         return self.mem
+      else:
+         return self
+
    def reset(self, m):
       base.Container.reset(self, m)
       if m.target == machine.TargetType.ASIC:

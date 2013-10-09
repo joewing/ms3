@@ -30,6 +30,13 @@ class Prefetch(base.Container):
       self.stride = self.machine.word_size * rand.randint(-8, 8)
       return True
 
+   def simplify(self):
+      self.mem = self.mem.simplify()
+      if self.stride == 0:
+         return self.mem
+      else:
+         return self
+
    def reset(self, m):
       base.Container.reset(self, m)
       self.pending = 0
