@@ -23,6 +23,10 @@ class Distribution(random.Random):
       """Reset the random number generator using the original seed."""
       self.seed(self.start_seed)
 
+   def is_empty(self):
+      """Determine if there are any address ranges in this distribution."""
+      return len(self.ranges) > 0
+
    def _check_overlap(self, a, b):
       """Determine if two ranges overlap."""
       a1, a2 = a[0], a[0] + a[1] + self.min_size

@@ -151,9 +151,14 @@ class Optimizer:
       while not stat:
 
          # Select a memory to modify.
-         mindex = self.rand.randint(0, len(self.current) - 1)
-         mem = self.current.memories[mindex]
-         dist = self.current.distributions[mindex]
+         # Note that we do not attempt to modify a memory subsystem
+         # unless it is actually used, which we determine using
+         # Distribution.is_empty.
+         while True:
+            mindex = self.rand.randint(0, len(self.current) - 1)
+            mem = self.current.memories[mindex]
+            dist = self.current.distributions[mindex]
+            if not dist.is_empty(): break
          count = mem.count()
 
          # Select an action to perform.
@@ -225,7 +230,6 @@ class Optimizer:
                return self.current
             else:
                time = self.results[simplified_name]
-      
 
    def optimize(self, time):
       """This function is to be called after each evaluation.
