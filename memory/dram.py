@@ -9,9 +9,7 @@ class DRAMBank:
    time     = 0         # Time of the next allowed access.
 
 class DRAM(base.Memory):
-   """DRAM device model.
-      We can model DDR by doubling the width parameter.
-   """
+   """DRAM device model."""
 
    def __init__(self,
                 frequency,       # Frequency of the device
@@ -22,8 +20,9 @@ class DRAM(base.Memory):
                 page_size,       # Size of a page in bytes
                 page_count,      # Number of pages per bank
                 width,           # Width of the channel in bytes
-                burst_size,      # Size of a burst in bytes
-                open_page_mode): # True for open-page, False for closed-page
+                burst_size,      # Size of a burst in transfers
+                open_page_mode,  # True for open-page, False for closed-page
+                ddr):            # True for DDR, False for SDR.
       self.frequency = frequency
       self.cas_cycles = cas_cycles
       self.rcd_cycles = rcd_cycles
@@ -34,6 +33,7 @@ class DRAM(base.Memory):
       self.width = width
       self.burst_size = burst_size
       self.open_page_mode = open_page_mode
+      self.ddr = ddr
       self.banks = list()
 
    def __str__(self):
@@ -51,6 +51,10 @@ class DRAM(base.Memory):
          result += '(open_page_mode true)'
       else:
          result += '(open_page_mode false)'
+      if self.ddr:
+         result += '(ddr true)'
+      else:
+         result += '(ddr false)'
       result += ')'
       return result
 
@@ -96,27 +100,32 @@ class DRAM(base.Memory):
       if mtime + delta < bank.time:
          delta = bank.time - mtime
 
-      extra = 0
+      # Determine how many cycles to use for the burst.
+      burst_cycles = float(self.burst_size)
+      if self.ddr:
+         burst_cycles /= 2.0
+
+      extra = 0.0
       page_index = addr // self.page_size
       if not self.open_page_mode:
          # Closed page mode.
          delta += self.cas_cycles
+         delta += burst_cycles
          delta += self.rcd_cycles
-         delta += self.burst_size
          extra += self.rp_cycles
          if write:
             extra += self.wb_cycles
       elif bank.page == page_index:
          # Page hit.
          delta += self.cas_cycles
-         delta += self.burst_size
+         delta += burst_cycles
          bank.dirty = bank.dirty or write
       else:
          # Page miss.
          delta += self.rp_cycles
          delta += self.rcd_cycles
          delta += self.cas_cycles
-         delta += self.burst_size
+         delta += burst_cycles
          if bank.dirty:
             delta += self.wb_cycles
          bank.dirty = write
@@ -132,9 +141,10 @@ def _create_dram(args):
    wb_cycles = parser.get_argument(args, 'wb_cycles', 0)
    page_size = parser.get_argument(args, 'page_size', 1024)
    page_count = parser.get_argument(args, 'page_count', 65536)
-   width = parser.get_argument(args, 'width', 16)
+   width = parser.get_argument(args, 'width', 8)
    burst_size = parser.get_argument(args, 'burst_size', 4)
    open_page_mode = parser.get_argument(args, 'open_page_mode', True)
+   ddr = parser.get_argument(args, 'ddr', True)
    return DRAM(frequency = frequency,
                cas_cycles = cas_cycles,
                rcd_cycles = rcd_cycles,
@@ -144,6 +154,7 @@ def _create_dram(args):
                page_count = page_count,
                width = width,
                burst_size = burst_size,
-               open_page_mode = open_page_mode)
+               open_page_mode = open_page_mode,
+               ddr = ddr)
 base.constructors['dram'] = _create_dram
 
