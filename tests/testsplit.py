@@ -8,7 +8,9 @@ from mock import MockMemory
 class TestSplit(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 8, addr_bits = 32)
+      self.machine = MachineType(frequency = 1e9,
+                                 word_size = 8,
+                                 addr_bits = 32)
       self.main = MockMemory()
       self.join0 = Join(0)
       self.join1 = Join(1)

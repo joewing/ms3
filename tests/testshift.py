@@ -8,7 +8,7 @@ from mock import MockMemory
 class TestShift(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 8, addr_bits = 32)
+      self.machine = MachineType()
       self.main = MockMemory()
       self.join = Join()
       self.bank = MockMemory(self.join)

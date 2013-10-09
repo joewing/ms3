@@ -8,7 +8,7 @@ from mock import MockMemory
 class TestOffset(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 8, addr_bits = 32)
+      self.machine = MachineType()
       self.main = MockMemory()
       self.bank = MockMemory(Join())
 

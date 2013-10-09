@@ -6,7 +6,7 @@ from machine import MachineType, TargetType, log2, round_power2
 class TestMachine(unittest.TestCase):
 
    def test_type(self):
-      m = MachineType(TargetType.SIMPLE, 4, 32)
+      m = MachineType(TargetType.SIMPLE, 1e9, 4, 32)
       self.assertEqual(m.word_size, 4)
       self.assertEqual(m.word_bits, 2)
       self.assertEqual(m.word_mask, 3)

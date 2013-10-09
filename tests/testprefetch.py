@@ -7,7 +7,7 @@ from mock import MockMemory
 class TestPrefetch(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 4, addr_bits = 32)
+      self.machine = MachineType()
       self.machine.reset()
       self.main = MockMemory()
 

@@ -6,11 +6,11 @@ from memory.dram import DRAM
 class TestDRAM(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 4, addr_bits = 32)
+      self.machine = MachineType(word_size = 4)
       self.machine.reset()
 
    def test_open(self):
-      dram = DRAM(multiplier = 2,
+      dram = DRAM(frequency = 1e9 / 2,
                   cas_cycles = 2,
                   rcd_cycles = 3,
                   rp_cycles  = 4,
@@ -47,7 +47,7 @@ class TestDRAM(unittest.TestCase):
       self.machine.time += t
 
    def test_closed(self):
-      dram = DRAM(multiplier = 2,
+      dram = DRAM(frequency = 1e9 / 2,
                   cas_cycles = 2,
                   rcd_cycles = 3,
                   rp_cycles  = 4,

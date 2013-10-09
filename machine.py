@@ -21,9 +21,11 @@ BRAM_DEPTH  = 512
 class MachineType:
    def __init__(self,
                 target = TargetType.SIMPLE,
+                frequency = 1e9,
                 word_size = 8,
                 addr_bits = 32):
       self.target = target
+      self.frequency = frequency
       self.word_size = word_size
       self.word_bits = log2(word_size) - 1
       self.word_mask = word_size - 1

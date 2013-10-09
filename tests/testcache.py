@@ -7,7 +7,7 @@ from mock import MockMemory
 class TestCache(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(word_size = 8, addr_bits = 32)
+      self.machine = MachineType()
       self.main = MockMemory()
 
    def test_direct(self):
