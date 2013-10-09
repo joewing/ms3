@@ -17,27 +17,35 @@ class ParseError(Exception):
       self.message = msg
 
 class Lexer:
+   """Lexer for parsing s-expressions."""
 
    def __init__(self, f):
+      """Initialize a lexer using file f."""
       self.f = f
       self.last = None
-      self.read_next()
+      self._read_next()
 
    def get_type(self):
+      """Get the type of the current token."""
       return self.current[0]
 
    def get_value(self):
+      """Get the value of the current token (for literals)."""
       return self.current[1]
 
    def match(self, t):
+      """Match the current token and move to the next.
+         If the current token doesn't match t, ParseError is raised.
+      """
       actual = self.get_type()
       if t == actual:
-         self.read_next();
+         self._read_next();
       else:
          raise ParseError("unexpected token: got '" + actual +
                           "' expected '" + t + "'")
 
-   def read_next(self):
+   def _read_next(self):
+      """Read the next token."""
       if self.last == None:
          ch = self.f.read(1)
       else:
@@ -49,13 +57,13 @@ class Lexer:
          self.last = ch
          while self.last != '\n' and self.last != '':
             self.last = self.f.read(1)
-         self.read_next()
+         self._read_next()
       elif ch == TOKEN_OPEN:
          self.current = (TOKEN_OPEN, '')
       elif ch == TOKEN_CLOSE:
          self.current = (TOKEN_CLOSE, '')
       elif isspace(ch):
-         return self.read_next()
+         return self._read_next()
       else:
          temp = ch
          while True:

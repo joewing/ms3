@@ -24,8 +24,8 @@ def parse_model_file(file_name):
    try:
       with open(file_name, 'r') as f:
          return model.parse_model(lex.Lexer(f))
-   except IOError:
-      print("ERROR: could not open model")
+   except IOError as e:
+      print("ERROR: could not open model: " + str(e))
       sys.exit(-1)
 
 def main():
