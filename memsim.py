@@ -49,6 +49,9 @@ def main():
                            seed = options.seed,
                            iterations = options.iterations)
    time = pl.run(ml, True)
+   if all(map(lambda d: d.is_empty(), distributions)):
+      print("ERROR: no valid address trace for optimization")
+      sys.exit(-1)
    while True:
       ml = o.optimize(time)
       if ml != None:

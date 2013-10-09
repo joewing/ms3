@@ -198,8 +198,11 @@ class MemoryList:
       return reduce(lambda x, y: x + y, costs, 0);
 
    def get_name(self):
-      names = map(str, self.memories)
-      return reduce(lambda a, b: a + ":" + b, names)
+      if len(self.memories) > 0:
+         names = map(str, self.memories)
+         return reduce(lambda a, b: a + ":" + b, names)
+      else:
+         return ""
 
    def reset(self, machine):
       for m in self.memories:
