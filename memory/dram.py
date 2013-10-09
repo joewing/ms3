@@ -3,9 +3,9 @@ import base
 import parser
 
 class DRAMBank:
-   page     = -1
-   dirty    = False
-   pending  = 0
+   page     = -1        # Currently open page.
+   dirty    = False     # Set if the open page is dirty.
+   time     = 0         # Time of the next allowed access.
 
 class DRAM(base.Memory):
 
@@ -30,7 +30,6 @@ class DRAM(base.Memory):
       self.width = width
       self.burst_size = burst_size
       self.open_page_mode = open_page_mode
-      self.pending = 0
       self.banks = list()
 
    def __str__(self):
@@ -63,13 +62,15 @@ class DRAM(base.Memory):
       assert(size > 0)
       bsize = self.burst_size * self.width
       last = addr + size - 1
+      delta = 0
       while addr <= last:
          temp = addr - (addr % bsize) + bsize
-         self._do_process(write, addr & self.machine.addr_mask, temp >= last)
+         addr &= self.machine.addr_mask
+         delta = self._do_process(delta, write, addr, temp >= last)
          addr = temp
-      return 0
+      return delta
 
-   def _do_process(self, write, addr, is_last):
+   def _do_process(self, delta, write, addr, is_last):
 
       # Get the bank.
       bank_size = self.page_size * self.page_count
@@ -77,37 +78,36 @@ class DRAM(base.Memory):
       bank = self.banks[bank_index]
 
       # Make sure this bank is ready for another request.
-      if self.machine.time < bank.pending:
-         self.machine.time = bank.pending
+      if self.machine.time + delta < bank.time:
+         delta = bank.time - self.machine.time
 
       extra = 0
-      cycles = 0
       page_index = addr // self.page_size
       if not self.open_page_mode:
          # Closed page mode.
-         cycles += self.cas_cycles * self.multiplier
-         cycles += self.rcd_cycles * self.multiplier
-         cycles += self.burst_size * self.multiplier
+         delta += self.cas_cycles * self.multiplier
+         delta += self.rcd_cycles * self.multiplier
+         delta += self.burst_size * self.multiplier
          extra += self.rp_cycles * self.multiplier
          if write:
             extra += self.wb_cycles * self.multiplier
       elif bank.page == page_index:
          # Page hit.
-         cycles += self.cas_cycles * self.multiplier
-         cycles += self.burst_size * self.multiplier
+         delta += self.cas_cycles * self.multiplier
+         delta += self.burst_size * self.multiplier
          bank.dirty = bank.dirty or write
       else:
          # Page miss.
-         cycles += self.rp_cycles * self.multiplier
-         cycles += self.rcd_cycles * self.multiplier
-         cycles += self.cas_cycles * self.multiplier
-         cycles += self.burst_size * self.multiplier
+         delta += self.rp_cycles * self.multiplier
+         delta += self.rcd_cycles * self.multiplier
+         delta += self.cas_cycles * self.multiplier
+         delta += self.burst_size * self.multiplier
          if bank.dirty:
-            cycles += self.wb_cycles * self.multiplier
+            delta += self.wb_cycles * self.multiplier
          bank.dirty = write
-      self.machine.time += cycles
-      bank.pending = self.machine.time + extra
+      bank.time = self.machine.time + delta + extra
       bank.page = page_index
+      return delta
 
 def _create_dram(args):
    multiplier = parser.get_argument(args, 'multiplier', 1)

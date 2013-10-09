@@ -7,6 +7,7 @@ class TestDRAM(unittest.TestCase):
 
    def setUp(self):
       self.machine = MachineType(word_size = 4, addr_bits = 32)
+      self.machine.reset()
 
    def test_open(self):
       dram = DRAM(multiplier = 2,
@@ -21,29 +22,29 @@ class TestDRAM(unittest.TestCase):
                   open_page_mode = True)
       dram.reset(self.machine)
 
-      dram.process(False, 0, 4) # Miss
-      t = 22
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 0, 4) # Miss
+      self.assertEqual(t, 22)
+      self.machine.time += t
 
-      dram.process(False, 4, 4)  # Hit
-      t += 8
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 4, 4)  # Hit
+      self.assertEqual(t, 8)
+      self.machine.time += t
 
-      dram.process(False, 2097152, 4)  # Miss
-      t += 22
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 2097152, 4)  # Miss
+      self.assertEqual(t, 22)
+      self.machine.time += t
 
-      dram.process(True, 2097152, 8)   # Hit
-      t += 16
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(True, 2097152, 8)   # Hit
+      self.assertEqual(t, 16)
+      self.machine.time += t
 
-      dram.process(True, 2097152 - 4, 8)  # Miss/hit
-      t += 30
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(True, 2097152 - 4, 8)  # Miss/hit
+      self.assertEqual(t, 30)
+      self.machine.time += t
 
-      dram.process(False, 4, 4)  # Miss/write-back
-      t += 24
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 4, 4)  # Miss/write-back
+      self.assertEqual(t, 24)
+      self.machine.time += t
 
    def test_closed(self):
       dram = DRAM(multiplier = 2,
@@ -58,27 +59,27 @@ class TestDRAM(unittest.TestCase):
                   open_page_mode = False)
       dram.reset(self.machine)
 
-      dram.process(False, 0, 4)
-      t = 14
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 0, 4)
+      self.assertEqual(t, 14)
+      self.machine.time += t
 
-      dram.process(False, 4, 4)
-      t += 22
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 4, 4)
+      self.assertEqual(t, 22)
+      self.machine.time += t
 
-      dram.process(False, 2097152, 4)
-      t += 14
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 2097152, 4)
+      self.assertEqual(t, 14)
+      self.machine.time += t
 
-      dram.process(True, 2097152, 8)
-      t += 46
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(True, 2097152, 8)
+      self.assertEqual(t, 46)
+      self.machine.time += t
 
-      dram.process(True, 2097152 - 4, 8)
-      t += 28
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(True, 2097152 - 4, 8)
+      self.assertEqual(t, 28)
+      self.machine.time += t
 
-      dram.process(False, 4, 4)
-      t += 14
-      self.assertEqual(self.machine.time, t)
+      t = dram.process(False, 4, 4)
+      self.assertEqual(t, 14)
+      self.machine.time += t
 
