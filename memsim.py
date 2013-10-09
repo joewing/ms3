@@ -27,6 +27,9 @@ def parse_model_file(file_name):
    except IOError as e:
       print("ERROR: could not open model: " + str(e))
       sys.exit(-1)
+   except lex.ParseError as e:
+      print("ERROR: " + str(e))
+      sys.exit(-1)
 
 def main():
 

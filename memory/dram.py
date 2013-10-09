@@ -126,12 +126,12 @@ class DRAM(base.Memory):
 
 def _create_dram(args):
    frequency = parser.get_argument(args, 'frequency', 666666667)
-   cas_cycles = parser.get_argument(args, 'cas_cycles', 15)
-   rcd_cycles = parser.get_argument(args, 'rcd_cycles', 15)
-   rp_cycles = parser.get_argument(args, 'rp_cycles', 15)
+   cas_cycles = parser.get_argument(args, 'cas_cycles', 10)
+   rcd_cycles = parser.get_argument(args, 'rcd_cycles', 10)
+   rp_cycles = parser.get_argument(args, 'rp_cycles', 10)
    wb_cycles = parser.get_argument(args, 'wb_cycles', 0)
    page_size = parser.get_argument(args, 'page_size', 1024)
-   page_count = parser.get_argument(args, 'page_count', 16384)
+   page_count = parser.get_argument(args, 'page_count', 65536)
    width = parser.get_argument(args, 'width', 16)
    burst_size = parser.get_argument(args, 'burst_size', 4)
    open_page_mode = parser.get_argument(args, 'open_page_mode', True)

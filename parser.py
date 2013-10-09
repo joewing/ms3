@@ -50,19 +50,22 @@ def get_argument(args, name, default = None):
    """
    if name in args:
       value = args[name]
-      if isinstance(default, int):
-         return int(value)
-      elif isinstance(default, float):
-         return float(value)
-      elif isinstance(default, bool):
-         if value == 'true':
-            return True
-         elif value == 'false':
-            return False
+      try:
+         if isinstance(default, bool):
+            if value == 'true':
+               return True
+            elif value == 'false':
+               return False
+            else:
+               raise lex.ParseError("invalid boolean value: '" + value + "'")
+         elif isinstance(default, int):
+            return int(value)
+         elif isinstance(default, float):
+            return float(value)
          else:
-            raise lex.ParseError("invalid boolean value: '" + value + "'")
-      else:
-         return args[name]
+            return args[name]
+      except ValueError:
+         raise lex.ParseError("invalid value for '" + name + "'")
    else:
       return default
 

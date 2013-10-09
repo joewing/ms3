@@ -13,8 +13,10 @@ def isend(ch):
 
 class ParseError(Exception):
    def __init__(self, msg):
-      print "ParseError: " + msg
       self.message = msg
+
+   def __str__(self):
+      return self.message
 
 class Lexer:
    """Lexer for parsing s-expressions."""
