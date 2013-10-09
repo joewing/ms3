@@ -101,7 +101,7 @@ class Cache(base.Container):
             width += machine.log2(self.associativity - 1)
       if self.write_back:
          width += 1
-      width *= self.machine.associativity
+      width *= self.associativity
 
       # Determine the depth of the cache.
       depth = self.line_count / self.associativity

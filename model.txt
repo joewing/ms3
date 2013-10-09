@@ -1,4 +1,4 @@
-(machine (word_size 4) (addr_bits 32) (target asic))
+(machine (word_size 4) (addr_bits 32) (target fpga) (max_cost 800))
 (memory (dram))
 (benchmarks
    (mm (size 128) (output_port 1))
