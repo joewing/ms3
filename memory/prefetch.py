@@ -27,7 +27,7 @@ class Prefetch(base.Container):
       return result
 
    def permute(self, rand, max_cost):
-      self.stride = machine.word_size * rand.randint(-8, 8)
+      self.stride = self.machine.word_size * rand.randint(-8, 8)
       return True
 
    def reset(self, m):
