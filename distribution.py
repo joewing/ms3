@@ -25,7 +25,7 @@ class Distribution(random.Random):
 
    def is_empty(self):
       """Determine if there are any address ranges in this distribution."""
-      return len(self.ranges) > 0
+      return len(self.ranges) == 0
 
    def _check_overlap(self, a, b):
       """Determine if two ranges overlap."""
