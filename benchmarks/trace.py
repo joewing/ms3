@@ -35,7 +35,7 @@ class Trace(base.Benchmark):
                elif at == 'X':
                   yield AccessType.END, addr, size
 
-def _create_trace(args):
-   file_name = parser.get_argument(args, 'file', 'trace.txt')
+def _create_trace(lexer, args):
+   file_name = parser.get_argument(lexer, args, 'file', 'trace.txt')
    return Trace(file_name)
 base.constructors['trace'] = _create_trace

@@ -26,7 +26,7 @@ class RAM(base.Memory):
       else:
          return start + self.latency + self.burst * (count - 1)
 
-def _create_ram(args):
-   latency = parser.get_argument(args, 'latency', 100)
+def _create_ram(lexer, args):
+   latency = parser.get_argument(lexer, args, 'latency', 100)
    return RAM(latency)
 base.constructors['ram'] = _create_ram

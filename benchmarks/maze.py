@@ -68,10 +68,10 @@ class Maze(base.Benchmark):
          yield a
       #self.show(maze)
 
-def _create_maze(args):
-   width = parser.get_argument(args, 'width', 32)
-   height = parser.get_argument(args, 'height', 32)
-   seed = parser.get_argument(args, 'seed', 5)
+def _create_maze(lexer, args):
+   width = parser.get_argument(lexer, args, 'width', 32)
+   height = parser.get_argument(lexer, args, 'height', 32)
+   seed = parser.get_argument(lexer, args, 'seed', 5)
    return Maze(width, height, seed)
 base.constructors['maze'] = _create_maze
 

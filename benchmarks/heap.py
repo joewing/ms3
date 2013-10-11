@@ -78,10 +78,11 @@ class Heap(base.Benchmark):
             yield a
          yield self.produce(self.output_port)
 
-def _create_heap(args):
-   seed = parser.get_argument(args, 'seed', 7)
-   size = parser.get_argument(args, 'size', 1024)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_heap(lexer, args):
+   seed = parser.get_argument(lexer, args, 'seed', 7)
+   size = parser.get_argument(lexer, args, 'size', 1024)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return Heap(seed, size, input_port, output_port)
 base.constructors['heap'] = _create_heap
+

@@ -34,11 +34,11 @@ class MM(base.Benchmark):
                else:
                   yield self.write(dest + a * self.size + b)
 
-def _create_mm(args):
-   size = parser.get_argument(args, 'size', 64)
-   iterations = parser.get_argument(args, 'iterations', 1)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_mm(lexer, args):
+   size = parser.get_argument(lexer, args, 'size', 64)
+   iterations = parser.get_argument(lexer, args, 'iterations', 1)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return MM(size = size, iterations = iterations,
              input_port = input_port, output_port = output_port)
 base.constructors['mm'] = _create_mm

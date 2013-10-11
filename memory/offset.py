@@ -52,10 +52,10 @@ class Offset(base.Transform):
       addr = (addr - self.offset) & self.machine.addr_mask
       return self.mem.process(start, write, addr, size)
 
-def _create_offset(args):
-   offset = parser.get_argument(args, 'value', 0)
-   mem = parser.get_argument(args, 'memory')
-   bank = parser.get_argument(args, 'bank')
+def _create_offset(lexer, args):
+   offset = parser.get_argument(lexer, args, 'value', 0)
+   mem = parser.get_argument(lexer, args, 'memory')
+   bank = parser.get_argument(lexer, args, 'bank')
    return Offset(bank, mem, offset)
 base.constructors['offset'] = _create_offset
 

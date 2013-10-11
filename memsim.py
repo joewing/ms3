@@ -23,7 +23,7 @@ parser.add_option('-m', '--model', dest='model', default='model.txt',
 def parse_model_file(file_name):
    try:
       with open(file_name, 'r') as f:
-         return model.parse_model(lex.Lexer(f))
+         return model.parse_model(lex.Lexer(f, file_name))
    except IOError as e:
       print("ERROR: could not open model: " + str(e))
       sys.exit(-1)

@@ -19,7 +19,7 @@ class TestDRAM(unittest.TestCase):
                   page_count = 2048,
                   width      = 2,
                   burst_size = 2,
-                  open_page_mode = True,
+                  open_page  = True,
                   ddr = False)
       dram.reset(self.machine)
 
@@ -57,7 +57,7 @@ class TestDRAM(unittest.TestCase):
                   page_count = 2048,
                   width      = 2,
                   burst_size = 2,
-                  open_page_mode = False,
+                  open_page  = False,
                   ddr = False)
       dram.reset(self.machine)
 

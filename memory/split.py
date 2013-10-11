@@ -100,11 +100,11 @@ class Split(base.Memory):
       else:
          return self.mem.process(start, write, addr, size)
 
-def _create_split(args):
-   offset = parser.get_argument(args, 'offset', 0)
-   mem = parser.get_argument(args, 'memory')
-   bank0 = parser.get_argument(args, 'bank0')
-   bank1 = parser.get_argument(args, 'bank1')
+def _create_split(lexer, args):
+   offset = parser.get_argument(lexer, args, 'offset', 0)
+   mem = parser.get_argument(lexer, args, 'memory')
+   bank0 = parser.get_argument(lexer, args, 'bank0')
+   bank1 = parser.get_argument(lexer, args, 'bank1')
    return Split(bank0, bank1, mem, offset)
 base.constructors['split'] = _create_split
 

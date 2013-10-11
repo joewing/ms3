@@ -226,7 +226,7 @@ class MemoryList:
 def parse_memory(lexer):
    return parser.parse(lexer, constructors)
 
-def _create_join(args):
+def _create_join(lexer, args):
    return Join()
 constructors['join'] = _create_join
 

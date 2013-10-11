@@ -21,7 +21,7 @@ class DRAM(base.Memory):
                 page_count,      # Number of pages per bank
                 width,           # Width of the channel in bytes
                 burst_size,      # Size of a burst in transfers
-                open_page_mode,  # True for open-page, False for closed-page
+                open_page,       # True for open-page, False for closed-page
                 ddr):            # True for DDR, False for SDR.
       self.frequency = frequency
       self.cas_cycles = cas_cycles
@@ -32,7 +32,7 @@ class DRAM(base.Memory):
       self.page_count = page_count
       self.width = width
       self.burst_size = burst_size
-      self.open_page_mode = open_page_mode
+      self.open_page = open_page
       self.ddr = ddr
       self.banks = list()
 
@@ -47,10 +47,10 @@ class DRAM(base.Memory):
       result += '(page_count ' + str(self.page_count) + ')'
       result += '(width ' + str(self.width) + ')'
       result += '(burst_size ' + str(self.burst_size) + ')'
-      if self.open_page_mode:
-         result += '(open_page_mode true)'
+      if self.open_page:
+         result += '(open_page true)'
       else:
-         result += '(open_page_mode false)'
+         result += '(open_page false)'
       if self.ddr:
          result += '(ddr true)'
       else:
@@ -107,7 +107,7 @@ class DRAM(base.Memory):
 
       extra = 0.0
       page_index = addr // self.page_size
-      if not self.open_page_mode:
+      if not self.open_page:
          # Closed page mode.
          delta += self.cas_cycles
          delta += burst_cycles
@@ -133,18 +133,18 @@ class DRAM(base.Memory):
       bank.page = page_index
       return delta
 
-def _create_dram(args):
-   frequency = parser.get_argument(args, 'frequency', 666666667)
-   cas_cycles = parser.get_argument(args, 'cas_cycles', 10)
-   rcd_cycles = parser.get_argument(args, 'rcd_cycles', 10)
-   rp_cycles = parser.get_argument(args, 'rp_cycles', 10)
-   wb_cycles = parser.get_argument(args, 'wb_cycles', 0)
-   page_size = parser.get_argument(args, 'page_size', 1024)
-   page_count = parser.get_argument(args, 'page_count', 65536)
-   width = parser.get_argument(args, 'width', 8)
-   burst_size = parser.get_argument(args, 'burst_size', 4)
-   open_page_mode = parser.get_argument(args, 'open_page_mode', True)
-   ddr = parser.get_argument(args, 'ddr', True)
+def _create_dram(lexer, args):
+   frequency = parser.get_argument(lexer, args, 'frequency', 666666667)
+   cas_cycles = parser.get_argument(lexer, args, 'cas_cycles', 10)
+   rcd_cycles = parser.get_argument(lexer, args, 'rcd_cycles', 10)
+   rp_cycles = parser.get_argument(lexer, args, 'rp_cycles', 10)
+   wb_cycles = parser.get_argument(lexer, args, 'wb_cycles', 0)
+   page_size = parser.get_argument(lexer, args, 'page_size', 1024)
+   page_count = parser.get_argument(lexer, args, 'page_count', 65536)
+   width = parser.get_argument(lexer, args, 'width', 8)
+   burst_size = parser.get_argument(lexer, args, 'burst_size', 4)
+   open_page = parser.get_argument(lexer, args, 'open_page', True)
+   ddr = parser.get_argument(lexer, args, 'ddr', True)
    return DRAM(frequency = frequency,
                cas_cycles = cas_cycles,
                rcd_cycles = rcd_cycles,
@@ -154,7 +154,7 @@ def _create_dram(args):
                page_count = page_count,
                width = width,
                burst_size = burst_size,
-               open_page_mode = open_page_mode,
+               open_page = open_page,
                ddr = ddr)
 base.constructors['dram'] = _create_dram
 

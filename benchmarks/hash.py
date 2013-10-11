@@ -23,11 +23,11 @@ class Hash(base.Benchmark):
          if self.output_port >= 0:
             yield self.produce(self.output_port)
 
-def _create_hash(args):
-   seed = parser.get_argument(args, 'seed', 7)
-   count = parser.get_argument(args, 'count', 65536)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_hash(lexer, args):
+   seed = parser.get_argument(lexer, args, 'seed', 7)
+   count = parser.get_argument(lexer, args, 'count', 65536)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return Hash(seed, count, input_port, output_port)
 base.constructors['hash'] = _create_hash
 

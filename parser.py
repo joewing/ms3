@@ -5,7 +5,7 @@ def parse(lexer, constructors):
    """Parse key-value pairs using the specified constructors.
       lexer should be an instance of Lexer.
       constructors should be a dictionary that maps names to
-      functions taking a dictionary of arguments as a parameter.
+      functions taking a lexer and dictionary of arguments as a parameter.
    """
    lexer.match(lex.TOKEN_OPEN)
    name = lexer.get_value()
@@ -13,13 +13,13 @@ def parse(lexer, constructors):
    if name in constructors:
       args = parse_arguments(lexer, constructors)
       c = constructors[name]
-      result = c(args)
+      result = c(lexer, args)
    elif name == "include":
       value = lexer.get_value()
       lexer.match(lex.TOKEN_LITERAL)
-      result = parse(lex.Lexer(open(value, "r")), constructors)
+      result = parse(lex.Lexer(open(value, "r"), value), constructors)
    else:
-      raise lex.ParseError("invalid component: " + name)
+      raise lex.ParseError(lexer, "invalid component: " + name)
    lexer.match(lex.TOKEN_CLOSE)
    return result
 
@@ -42,7 +42,7 @@ def parse_arguments(lexer, constructors = None):
       lexer.match(lex.TOKEN_CLOSE)
    return result
 
-def get_argument(args, name, default = None):
+def get_argument(lexer, args, name, default = None):
    """Get an argument from a dictionary of arguments.
       args should be a dictionary of arguments returned from parse_arguments.
       name is the name of the argument.
@@ -57,7 +57,8 @@ def get_argument(args, name, default = None):
             elif value == 'false':
                return False
             else:
-               raise lex.ParseError("invalid boolean value: '" + value + "'")
+               raise lex.ParseError(lexer, "invalid boolean value: '" +
+                                           value + "'")
          elif isinstance(default, int):
             return int(value)
          elif isinstance(default, float):
@@ -65,7 +66,7 @@ def get_argument(args, name, default = None):
          else:
             return args[name]
       except ValueError:
-         raise lex.ParseError("invalid value for '" + name + "'")
+         raise lex.ParseError(lexer, "invalid value for '" + name + "'")
    else:
       return default
 

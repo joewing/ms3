@@ -263,14 +263,14 @@ class Cache(base.Container):
          # Write on a write-through cache.
          return self.mem.process(start, write, addr, size) + self.latency
 
-def _create_cache(args):
-   mem = parser.get_argument(args, 'mem')
-   line_count = parser.get_argument(args, 'line_count', 1)
-   line_size = parser.get_argument(args, 'line_size', 8)
-   associativity = parser.get_argument(args, 'associativity', 1)
-   latency = parser.get_argument(args, 'latency', 1)
-   policy = parse_policy(parser.get_argument(args, 'policy', 'lru'))
-   write_back = parser.get_argument(args, 'write_back', True)
+def _create_cache(lexer, args):
+   mem = parser.get_argument(lexer, args, 'mem')
+   line_count = parser.get_argument(lexer, args, 'line_count', 1)
+   line_size = parser.get_argument(lexer, args, 'line_size', 8)
+   associativity = parser.get_argument(lexer, args, 'associativity', 1)
+   latency = parser.get_argument(lexer, args, 'latency', 1)
+   policy = parse_policy(parser.get_argument(lexer, args, 'policy', 'lru'))
+   write_back = parser.get_argument(lexer, args, 'write_back', True)
    return Cache(mem = mem,
                 line_count = line_count,
                 line_size = line_size,

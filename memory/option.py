@@ -32,14 +32,14 @@ class Option(base.Memory):
    def done(self):
       return self.options[self.index].done()
 
-def _create_option(args):
+def _create_option(lexer, args):
    result = Option()
    i = 0
    while ('memory' + str(i)) in args:
       result.add_option(args['memory' + str(i)])
       i += 1
    if i == 0:
-      raise lex.ParseError("no memories in option")
+      raise lex.ParseError(lexer, "no memories in option")
    return result
 base.constructors['option'] = _create_option
 

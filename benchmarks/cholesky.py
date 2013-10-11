@@ -26,10 +26,10 @@ class Cholesky(base.Benchmark):
             yield self.write(j * self.size + i)
             yield self.produce(self.output_port)
 
-def _create_cholesky(args):
-   size = parser.get_argument(args, 'size', 128)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_cholesky(lexer, args):
+   size = parser.get_argument(lexer, args, 'size', 128)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return Cholesky(size, input_port, output_port)
 base.constructors['cholesky'] = _create_cholesky
 

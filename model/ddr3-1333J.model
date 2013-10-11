@@ -1,0 +1,12 @@
+(memory (dram
+   (frequency     666666667)
+   (cas_cycles    10)
+   (rcd_cycles    10)
+   (rp_cycles     10)
+   (page_size     1024)
+   (page_count    65536)
+   (width         8)
+   (burst_size    4)
+   (open_page     true)
+   (ddr           true)
+))

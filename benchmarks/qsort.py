@@ -50,11 +50,11 @@ class QSort(base.Benchmark):
       for i in range(self.size):
          yield self.produce(self.output_port)
 
-def _create_qsort(args):
-   seed = parser.get_argument(args, 'seed', 7)
-   size = parser.get_argument(args, 'size', 1024)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_qsort(lexer, args):
+   seed = parser.get_argument(lexer, args, 'seed', 7)
+   size = parser.get_argument(lexer, args, 'size', 1024)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return QSort(seed, size, input_port, output_port)
 base.constructors['qsort'] = _create_qsort
 

@@ -96,10 +96,10 @@ class SPM(base.Container):
          t = start + count * self.latency
          return self.mem.process(t, write, self.size, size - hsize)
 
-def _create_spm(args):
-   mem = parser.get_argument(args, 'memory')
-   word_count = parser.get_argument(args, 'word_count', 0)
-   latency = parser.get_argument(args, 'latency', 2)
+def _create_spm(lexer, args):
+   mem = parser.get_argument(lexer, args, 'memory')
+   word_count = parser.get_argument(lexer, args, 'word_count', 0)
+   latency = parser.get_argument(lexer, args, 'latency', 2)
    return SPM(mem, word_count, latency)
 base.constructors['spm'] = _create_spm
 

@@ -12,19 +12,24 @@ def isend(ch):
    return isspace(ch) or ch == '(' or ch == ')' or ch == ''
 
 class ParseError(Exception):
-   def __init__(self, msg):
+
+   def __init__(self, lexer, msg):
+      self.fname = lexer.fname
+      self.line = lexer.line
       self.message = msg
 
    def __str__(self):
-      return self.message
+      return self.fname + "[" + str(self.line) + "]: " + self.message
 
 class Lexer:
    """Lexer for parsing s-expressions."""
 
-   def __init__(self, f):
-      """Initialize a lexer using file f."""
+   def __init__(self, f, fname):
+      """Initialize a lexer using file f (named fname)."""
       self.f = f
+      self.fname = fname
       self.last = None
+      self.line = 1
       self._read_next()
 
    def get_type(self):
@@ -43,8 +48,8 @@ class Lexer:
       if t == actual:
          self._read_next();
       else:
-         raise ParseError("unexpected token: got '" + actual +
-                          "' expected '" + t + "'")
+         raise ParseError(self, "unexpected token: got '" + actual +
+                                "' expected '" + t + "'")
 
    def _read_next(self):
       """Read the next token."""
@@ -59,12 +64,14 @@ class Lexer:
          self.last = ch
          while self.last != '\n' and self.last != '':
             self.last = self.f.read(1)
+         if self.last == '\n': self.line += 1
          self._read_next()
       elif ch == TOKEN_OPEN:
          self.current = (TOKEN_OPEN, '')
       elif ch == TOKEN_CLOSE:
          self.current = (TOKEN_CLOSE, '')
       elif isspace(ch):
+         if ch == '\n': self.line += 1
          return self._read_next()
       else:
          temp = ch

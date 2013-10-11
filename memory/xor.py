@@ -43,10 +43,10 @@ class XOR(base.Transform):
       assert(index == 0)
       return self.mem.process(start, write, addr ^ self.value, size)
 
-def _create_xor(args):
-   value = parser.get_argument(args, 'value', 0)
-   mem = parser.get_argument(args, 'memory')
-   bank = parser.get_argument(args, 'bank')
+def _create_xor(lexer, args):
+   value = parser.get_argument(lexer, args, 'value', 0)
+   mem = parser.get_argument(lexer, args, 'memory')
+   bank = parser.get_argument(lexer, args, 'bank')
    return XOR(bank, mem, value)
 base.constructors['xor'] = _create_xor
 

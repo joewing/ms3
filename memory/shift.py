@@ -59,10 +59,10 @@ class Shift(base.Transform):
       addr = self._rotate(addr, -self.shift)
       return self.mem.process(start, write, addr, size)
 
-def _create_shift(args):
-   value = parser.get_argument(args, 'value', 0)
-   mem = parser.get_argument(args, 'memory')
-   bank = parser.get_argument(args, 'bank')
+def _create_shift(lexer, args):
+   value = parser.get_argument(lexer, args, 'value', 0)
+   mem = parser.get_argument(lexer, args, 'memory')
+   bank = parser.get_argument(lexer, args, 'bank')
    return Shift(bank, mem, offset)
 base.constructors['shift'] = _create_shift
 

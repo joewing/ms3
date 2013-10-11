@@ -50,12 +50,12 @@ class PCA(base.Benchmark):
                   yield self.read(x_offset + i)
                   yield self.produce(self.output_port)
 
-def _create_pca(args):
-   size = parser.get_argument(args, 'size', 64)
-   count = parser.get_argument(args, 'count', 16)
-   iterations = parser.get_argument(args, 'iterations', 1)
-   input_port = parser.get_argument(args, 'input_port', -1)
-   output_port = parser.get_argument(args, 'output_port', -1)
+def _create_pca(lexer, args):
+   size = parser.get_argument(lexer, args, 'size', 64)
+   count = parser.get_argument(lexer, args, 'count', 16)
+   iterations = parser.get_argument(lexer, args, 'iterations', 1)
+   input_port = parser.get_argument(lexer, args, 'input_port', -1)
+   output_port = parser.get_argument(lexer, args, 'output_port', -1)
    return PCA(size, count, iterations, input_port, output_port)
 base.constructors['pca'] = _create_pca
 
