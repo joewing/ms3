@@ -264,13 +264,13 @@ class Cache(base.Container):
          return self.mem.process(start, write, addr, size) + self.latency
 
 def _create_cache(lexer, args):
-   mem = parser.get_argument(lexer, args, 'mem')
    line_count = parser.get_argument(lexer, args, 'line_count', 1)
    line_size = parser.get_argument(lexer, args, 'line_size', 8)
    associativity = parser.get_argument(lexer, args, 'associativity', 1)
    latency = parser.get_argument(lexer, args, 'latency', 1)
    policy = parse_policy(parser.get_argument(lexer, args, 'policy', 'lru'))
    write_back = parser.get_argument(lexer, args, 'write_back', True)
+   mem = parser.get_argument(lexer, args, 'memory')
    return Cache(mem = mem,
                 line_count = line_count,
                 line_size = line_size,

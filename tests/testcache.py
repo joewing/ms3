@@ -1,14 +1,16 @@
 
 import unittest
-from machine import MachineType
+import lex
+import machine
+import memory
+import mock
 from memory.cache import Cache, CachePolicy
-from mock import MockMemory
 
 class TestCache(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType()
-      self.main = MockMemory()
+      self.machine = machine.MachineType()
+      self.main = mock.MockMemory()
 
    def test_direct(self):
       cache = Cache(self.main,
@@ -73,4 +75,10 @@ class TestCache(unittest.TestCase):
       t = cache.process(0, True, 6, 1)
       self.assertEqual(t, 203)
 
+   def test_parse(self):
+      s  = "(cache (line_count 2)(line_size 4)(associativity 2)(latency 2)"
+      s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s), "mock")
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 
