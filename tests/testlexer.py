@@ -6,7 +6,7 @@ import mock
 class TestLexer(unittest.TestCase):
 
    def test_match(self):
-      l = lex.Lexer(mock.MockFile("()asdf ( ) (123)"), "mock")
+      l = lex.Lexer(mock.MockFile("()asdf ( ) (123)"))
       self.assertEqual(l.get_type(), lex.TOKEN_OPEN)
       self.assertEqual(l.get_value(), '')
       l.match(lex.TOKEN_OPEN)

@@ -19,7 +19,7 @@ def parse_model(lexer, mach = None, mem = None, bms = []):
       elif name == 'include':
          value = lexer.get_value()
          lexer.match(lex.TOKEN_LITERAL)
-         mach, mem, bms = parse_model(lex.Lexer(open(value, 'r'), value),
+         mach, mem, bms = parse_model(lex.Lexer(open(value, 'r')),
                                       mach, mem, bms)
       else:
          lex.ParseError(lexer, "invalid top-level component: " + name)

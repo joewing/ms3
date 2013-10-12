@@ -89,7 +89,7 @@ class TestCache(unittest.TestCase):
    def test_parse(self):
       s  = "(cache (line_count 2)(line_size 4)(associativity 2)(latency 2)"
       s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"
-      l = lex.Lexer(mock.MockFile(s), "mock")
+      l = lex.Lexer(mock.MockFile(s))
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
 

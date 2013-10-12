@@ -6,6 +6,7 @@ class MockFile:
    def __init__(self, value):
       self.value = value
       self.index = 0
+      self.name = "mock"
 
    def read(self, size):
       if self.index + size >= len(self.value):

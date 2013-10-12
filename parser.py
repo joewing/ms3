@@ -17,7 +17,7 @@ def parse(lexer, constructors):
    elif name == "include":
       value = lexer.get_value()
       lexer.match(lex.TOKEN_LITERAL)
-      result = parse(lex.Lexer(open(value, "r"), value), constructors)
+      result = parse(lex.Lexer(open(value, "r")), constructors)
    else:
       raise lex.ParseError(lexer, "invalid component: " + name)
    lexer.match(lex.TOKEN_CLOSE)

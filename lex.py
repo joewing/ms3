@@ -14,7 +14,7 @@ def isend(ch):
 class ParseError(Exception):
 
    def __init__(self, lexer, msg):
-      self.fname = lexer.fname
+      self.fname = lexer.f.name
       self.line = lexer.line
       self.message = msg
 
@@ -24,10 +24,9 @@ class ParseError(Exception):
 class Lexer:
    """Lexer for parsing s-expressions."""
 
-   def __init__(self, f, fname):
-      """Initialize a lexer using file f (named fname)."""
+   def __init__(self, f):
+      """Initialize a lexer using file f."""
       self.f = f
-      self.fname = fname
       self.last = None
       self.line = 1
       self._read_next()

@@ -36,6 +36,6 @@ class TestSPM(unittest.TestCase):
 
    def test_parse(self):
       s = "(spm (size 1024)(latency 3)(memory (ram (latency 100))))"
-      l = lex.Lexer(mock.MockFile(s), "mock")
+      l = lex.Lexer(mock.MockFile(s))
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
