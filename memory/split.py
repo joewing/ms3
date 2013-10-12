@@ -60,6 +60,14 @@ class Split(base.Memory):
          return self.mem
       return self
 
+   def get_path_length(self):
+      b0 = self.bank0.get_path_length()
+      b1 = self.bank1.get_path_length()
+      return self.machine.addr_bits + max(b0, b1)
+
+   def get_forward_path_length(self):
+      return self.machine.addr_bits + self.get_next().get_path_length()
+
    def done(self):
       return self.mem.done()
 

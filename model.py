@@ -31,11 +31,16 @@ def _parse_machine(lexer):
    word_size = parser.get_argument(lexer, args, 'word_size', 8)
    addr_bits = parser.get_argument(lexer, args, 'addr_bits', 32)
    frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
+   max_path = parser.get_argument(lexer, args, 'max_path', 64)
    tstr = parser.get_argument(lexer, args, 'target', 'simple')
    target = machine.parse_target(tstr)
    if target == None:
       lex.ParseError(lexer, "invalid target: " + tstr)
-   return machine.MachineType(target, frequency, word_size, addr_bits)
+   return machine.MachineType(target = target,
+                              frequency = frequency,
+                              word_size = word_size,
+                              addr_bits = addr_bits,
+                              max_path_length = max_path)
 
 def _parse_benchmarks(lexer):
    bms = []

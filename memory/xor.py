@@ -36,6 +36,9 @@ class XOR(base.Transform):
    def pop_transform(self, rand):
       rand.pop_transform();
 
+   def get_transform_path_length(self):
+      return 1
+
    def process(self, start, write, addr, size):
       return self.bank.process(start, write, addr ^ self.value, size)
 

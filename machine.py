@@ -23,7 +23,8 @@ class MachineType:
                 target = TargetType.SIMPLE,
                 frequency = 1e9,
                 word_size = 8,
-                addr_bits = 32):
+                addr_bits = 32,
+                max_path_length = 64):
       self.target = target
       self.frequency = frequency
       self.word_size = word_size
@@ -31,6 +32,7 @@ class MachineType:
       self.word_mask = word_size - 1
       self.addr_bits = addr_bits
       self.addr_mask = (1 << addr_bits) - 1
+      self.max_path_length = max_path_length
       self.time = 0
       self.ports = []
 

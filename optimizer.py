@@ -223,8 +223,13 @@ class Optimizer:
                self.current = self.last.clone()
                self.threshold += 1 + (self.age * self.threshold) // 2048
                self.age += 1
-            self.modify()
-            simplified = self.current.simplified()
+            before = self.current.clone()
+            while True:
+               self.modify()
+               simplified = self.current.simplified()
+               ml = simplified.get_max_path_length()
+               if ml <= self.machine.max_path_length: break
+               self.current = before.clone()
             simplified_name = simplified.get_name()
             if simplified_name not in self.results:
                return self.current

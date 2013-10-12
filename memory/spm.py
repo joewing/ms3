@@ -69,6 +69,9 @@ class SPM(base.Container):
    def pop_transform(self, rand):
       rand.pop_limit()
 
+   def get_path_length(self):
+      return self.machine.addr_bits + self.get_next().get_path_length()
+
    def process(self, start, write, addr, size):
       last_addr = (addr + size) & self.machine.addr_mask
       if addr < self.size and last_addr <= self.size:

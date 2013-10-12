@@ -38,6 +38,9 @@ class Shift(base.Transform):
    def pop_transform(self, rand):
       rand.pop_transform()
 
+   def get_transform_path_length(self):
+      return 0
+
    def _rotate(self, value, count):
       bits = self.machine.addr_bits - self.machine.word_bits
       mask = (1 << bits) - 1

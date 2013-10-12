@@ -43,6 +43,9 @@ class Offset(base.Transform):
    def pop_transform(self, rand):
       rand.pop_transform()
 
+   def get_transform_path_length(self):
+      return self.machine.addr_bits
+
    def process(self, start, write, addr, size):
       addr = (addr + self.offset) & self.machine.addr_mask
       return self.bank.process(start, write, addr, size)

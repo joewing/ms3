@@ -50,6 +50,10 @@ class Memory:
          result += self.get_next().get_total_cost()
       return result
 
+   def get_path_length(self):
+      """Get the total path length before the next register."""
+      return 0
+
    def simplify(self):
       """Return a simplified memory subsystem."""
       banks = self.get_banks()
@@ -117,6 +121,9 @@ class Join(Memory):
    def __str__(self):
       return "(join)"
 
+   def get_path_length(self):
+      return self.parent.get_forward_path_length()
+
    def process(self, start, write, addr, size):
       return self.parent.forward(self.index, start, write, addr, size)
 
@@ -146,6 +153,9 @@ class Container(Memory):
    def done(self):
       return self.mem.done()
 
+   def get_path_length(self):
+      return self.mem.get_path_length()
+
    def process(self, start, write, addr, size):
       return self.mem.process(start, write, addr, size)
 
@@ -163,6 +173,19 @@ class Transform(Container):
    def set_bank(self, i, b):
       assert(i == 0)
       self.bank = b
+
+   def get_transform_path_length(self):
+      """Get the path length through the transform."""
+      assert(False)
+
+   def get_path_length(self):
+      tl = self.get_transform_path_length() 
+      return tl + self.get_bank().get_path_length()
+
+   def get_forward_path_length(self):
+      """Get the path length leaving the transform."""
+      tl = self.get_transform_path_length()
+      return tl + self.get_next().get_path_length()
 
    def is_empty(self):
       return False
@@ -202,6 +225,9 @@ class MemoryList:
    def get_cost(self):
       costs = map(lambda m: m.get_total_cost(), self.memories)
       return reduce(lambda x, y: x + y, costs, 0);
+
+   def get_max_path_length(self):
+      return max(map(lambda m: m.get_path_length(), self.memories))
 
    def get_name(self):
       if len(self.memories) > 0:
