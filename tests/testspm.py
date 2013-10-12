@@ -39,3 +39,4 @@ class TestSPM(unittest.TestCase):
       l = lex.Lexer(mock.MockFile(s))
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
+

@@ -67,6 +67,8 @@ def get_argument(lexer, args, name, default = None):
             return args[name]
       except ValueError:
          raise lex.ParseError(lexer, "invalid value for '" + name + "'")
-   else:
+   elif default != None:
       return default
+   else:
+      raise lex.ParseError(lexer, "no value specified for '" + name + "'")
 

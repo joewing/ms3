@@ -1,15 +1,17 @@
 
 import unittest
-from machine import MachineType
+import machine
+import memory
+import mock
+import lex
 from memory.prefetch import Prefetch
-from mock import MockMemory
 
 class TestPrefetch(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType()
+      self.machine = machine.MachineType()
       self.machine.reset()
-      self.main = MockMemory()
+      self.main = mock.MockMemory()
 
    def test_positive(self):
       pf = Prefetch(self.main, 8)
@@ -42,4 +44,10 @@ class TestPrefetch(unittest.TestCase):
       pf = Prefetch(self.main, 0)
       simplified = pf.simplify()
       self.assertEqual(self.main, simplified)
+
+   def test_parse(self):
+      s = "(prefetch (stride -8)(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s))
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 

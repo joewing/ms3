@@ -1,21 +1,22 @@
 
 import unittest
-from machine import MachineType
-from memory import Join
+import lex
+import machine
+import memory
+import mock
 from memory.split import Split
-from mock import MockMemory
 
 class TestSplit(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType(frequency = 1e9,
-                                 word_size = 8,
-                                 addr_bits = 32)
-      self.main = MockMemory()
-      self.join0 = Join(0)
-      self.join1 = Join(1)
-      self.bank0 = MockMemory(self.join0)
-      self.bank1 = MockMemory(self.join1)
+      self.machine = machine.MachineType(frequency = 1e9,
+                                         word_size = 8,
+                                         addr_bits = 32)
+      self.main = mock.MockMemory()
+      self.join0 = memory.Join(0)
+      self.join1 = memory.Join(1)
+      self.bank0 = mock.MockMemory(self.join0)
+      self.bank1 = mock.MockMemory(self.join1)
 
    def test_split256(self):
       split = Split(self.bank0, self.bank1,
@@ -120,4 +121,11 @@ class TestSplit(unittest.TestCase):
                     self.main, offset = 256)
       simplified = split.simplify()
       self.assertEqual(simplified, self.main)
+
+   def test_parse(self):
+      s  = "(split (offset 128)(bank0 (join))(bank1 (join))(memory "
+      s += "(ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s))
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 

@@ -56,8 +56,8 @@ class Prefetch(base.Container):
       return result
 
 def _create_prefetch(lexer, args):
-   mem = parser.get_argument(lexer, args, 'mem')
-   stride = parser.get_argument(lexer, args, 'stride')
+   mem = parser.get_argument(lexer, args, 'memory')
+   stride = parser.get_argument(lexer, args, 'stride', 0)
    return Prefetch(mem, stride)
 base.constructors['prefetch'] = _create_prefetch
 

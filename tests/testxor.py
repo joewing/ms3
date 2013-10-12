@@ -1,17 +1,18 @@
 
 import unittest
-from machine import MachineType
-from memory import Join
+import machine
+import mock
+import lex
+import memory
 from memory.xor import XOR
-from mock import MockMemory
 
 class TestXOR(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType()
-      self.main = MockMemory()
-      self.join = Join()
-      self.bank = MockMemory(self.join)
+      self.machine = machine.MachineType()
+      self.main = mock.MockMemory()
+      self.join = memory.Join()
+      self.bank = mock.MockMemory(self.join)
 
    def test_xor16(self):
       xor = XOR(self.bank, self.main, 16)
@@ -42,4 +43,10 @@ class TestXOR(unittest.TestCase):
       xor = XOR(self.join, self.main, 8)
       simplified = xor.simplify()
       self.assertEqual(simplified, self.main)
+
+   def test_parse(self):
+      s = "(xor (value 1024)(bank (join))(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s))
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 
