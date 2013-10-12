@@ -1,14 +1,16 @@
 
 import unittest
-from machine import MachineType
+import machine
+import mock
+import memory
+import lex
 from memory.spm import SPM
-from mock import MockMemory
 
 class TestSPM(unittest.TestCase):
 
    def setUp(self):
-      self.machine =  MachineType()
-      self.main = MockMemory()
+      self.machine =  machine.MachineType()
+      self.main = mock.MockMemory()
 
    def test_spm1(self):
       spm = SPM(self.main, size = 1024, latency = 1)
@@ -32,3 +34,8 @@ class TestSPM(unittest.TestCase):
       t = spm.process(0, True, 8192, 16)
       self.assertEqual(t, 1600)
 
+   def test_parse(self):
+      s = "(spm (size 1024)(latency 3)(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s), "mock")
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
