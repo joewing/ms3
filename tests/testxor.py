@@ -10,7 +10,8 @@ class TestXOR(unittest.TestCase):
    def setUp(self):
       self.machine = MachineType()
       self.main = MockMemory()
-      self.bank = MockMemory(Join())
+      self.join = Join()
+      self.bank = MockMemory(self.join)
 
    def test_xor16(self):
       xor = XOR(self.bank, self.main, 16)
@@ -27,4 +28,18 @@ class TestXOR(unittest.TestCase):
       self.assertEqual(self.bank.last_addr, 48)
       self.assertEqual(self.bank.last_size, 8)
 
+   def test_simplify1(self):
+      xor = XOR(self.bank, self.main, 16)
+      simplified = xor.simplify()
+      self.assertEqual(xor, simplified)
+
+   def test_simplify2(self):
+      xor = XOR(self.bank, self.main, 0)
+      simplified = xor.simplify()
+      self.assertEqual(simplified, self.bank)
+
+   def test_simplify3(self):
+      xor = XOR(self.join, self.main, 8)
+      simplified = xor.simplify()
+      self.assertEqual(simplified, self.main)
 

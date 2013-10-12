@@ -75,6 +75,17 @@ class TestCache(unittest.TestCase):
       t = cache.process(0, True, 6, 1)
       self.assertEqual(t, 203)
 
+   def testsimplify1(self):
+      cache = Cache(self.main,
+                    line_count = 4,
+                    line_size = 2,
+                    associativity = 2,
+                    policy = CachePolicy.LRU,
+                    latency = 1,
+                    write_back = True)
+      simplified = cache.simplify()
+      self.assertEqual(cache, simplified)
+
    def test_parse(self):
       s  = "(cache (line_count 2)(line_size 4)(associativity 2)(latency 2)"
       s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"

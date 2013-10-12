@@ -14,3 +14,8 @@ class TestMemory(unittest.TestCase):
       self.assertEquals(b.count(), 1)
       self.assertEquals(c.count(), 4)
 
+   def test_simplify(self):
+      main = MockMemory()
+      simplified = main.simplify()
+      self.assertEqual(main, simplified)
+

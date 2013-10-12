@@ -20,9 +20,6 @@ class TestSplit(unittest.TestCase):
    def test_split256(self):
       split = Split(self.bank0, self.bank1,
                     self.main, offset = 256)
-      self.join0.parent = split
-      self.join1.parent = split
-
       split.reset(self.machine)
 
       t = split.process(0, False, 0, 8)
@@ -105,4 +102,22 @@ class TestSplit(unittest.TestCase):
       self.assertEqual(self.bank1.writes, 1)
       self.assertEqual(self.main.reads, 10)
       self.assertEqual(self.main.writes, 2)
+
+   def test_simplify1(self):
+      split = Split(self.bank0, self.bank1,
+                    self.main, offset = 256)
+      simplified = split.simplify()
+      self.assertEqual(simplified, split)
+
+   def test_simplify2(self):
+      split = Split(self.bank0, self.bank1,
+                    self.main, offset = 0)
+      simplified = split.simplify()
+      self.assertEqual(simplified, split)
+
+   def test_simplify3(self):
+      split = Split(self.join0, self.join1,
+                    self.main, offset = 256)
+      simplified = split.simplify()
+      self.assertEqual(simplified, self.main)
 

@@ -33,3 +33,13 @@ class TestPrefetch(unittest.TestCase):
       self.assertEqual(self.main.last_addr, 16)
       self.assertEqual(self.main.last_size, 4)
 
+   def test_simplify1(self):
+      pf = Prefetch(self.main, 8)
+      simplified = pf.simplify()
+      self.assertEqual(pf, simplified)
+
+   def test_simplify2(self):
+      pf = Prefetch(self.main, 0)
+      simplified = pf.simplify()
+      self.assertEqual(self.main, simplified)
+

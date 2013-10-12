@@ -85,3 +85,18 @@ class TestDRAM(unittest.TestCase):
       self.assertEqual(t, 14)
       self.machine.time += t
 
+   def test_simplify(self):
+      dram = DRAM(frequency = 1e9 / 2,
+                  cas_cycles = 2,
+                  rcd_cycles = 3,
+                  rp_cycles  = 4,
+                  wb_cycles  = 1,
+                  page_size  = 1024,
+                  page_count = 2048,
+                  width      = 2,
+                  burst_size = 2,
+                  open_page  = False,
+                  ddr = False)
+      simplified = dram.simplify()
+      self.assertEqual(dram, simplified)
+

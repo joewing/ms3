@@ -15,7 +15,6 @@ class TestShift(unittest.TestCase):
 
    def test_positive(self):
       shift = Shift(self.bank, self.main, 1)
-      self.join.parent = shift
       shift.reset(self.machine)
 
       t = shift.process(0, False, 0, 8)
@@ -86,7 +85,6 @@ class TestShift(unittest.TestCase):
 
    def test_negative(self):
       shift = Shift(self.bank, self.main, -2)
-      self.join.parent = shift
       shift.reset(self.machine)
 
       t = shift.process(0, False, 0, 8)
@@ -132,4 +130,19 @@ class TestShift(unittest.TestCase):
       self.assertEqual(self.main.last_size, 4)
       self.assertEqual(self.bank.last_addr, (1 << 30) | 1)
       self.assertEqual(self.bank.last_size, 4)
+
+   def test_simplify1(self):
+      shift = Shift(self.bank, self.main, 1)
+      simplified = shift.simplify()
+      self.assertEqual(simplified, shift)
+
+   def test_simplify2(self):
+      shift = Shift(self.bank, self.main, 0)
+      simplified = shift.simplify()
+      self.assertEqual(simplified, self.bank)
+
+   def test_simplify3(self):
+      shift = Shift(self.join, self.main, 1)
+      simplified = shift.simplify()
+      self.assertEqual(simplified, self.main)
 
