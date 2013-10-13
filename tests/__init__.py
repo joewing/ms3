@@ -7,6 +7,7 @@ from testmachine import TestMachine
 from testmemory import TestMemory
 from testoffset import TestOffset
 from testoptimizer import TestOptimizer
+from testoption import TestOption
 from testparser import TestParser
 from testprefetch import TestPrefetch
 from testpriorityqueue import TestPriorityQueue
