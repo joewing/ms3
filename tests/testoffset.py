@@ -90,3 +90,12 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(str(simplified),
                        "(offset (value 1)(bank (mock (join)))(memory (mock)))")
 
+   def test_path(self):
+      offset = Offset(self.bank, self.main, 1)
+      offset.reset(self.machine)
+      self.assertEqual(offset.get_path_length(), self.machine.addr_bits)
+
+   def test_cost(self):
+      offset = Offset(self.bank, self.main, 1)
+      self.assertEqual(offset.get_cost(), 0)
+

@@ -50,3 +50,11 @@ class TestXOR(unittest.TestCase):
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
 
+   def test_cost(self):
+      xor = XOR(self.bank, self.main, 8)
+      self.assertEqual(xor.get_cost(), 0)
+
+   def test_path(self):
+      xor = XOR(self.bank, self.main, 8)
+      self.assertEqual(xor.get_path_length(), 1)
+

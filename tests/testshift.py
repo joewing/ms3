@@ -146,3 +146,11 @@ class TestShift(unittest.TestCase):
       simplified = shift.simplify()
       self.assertEqual(simplified, self.main)
 
+   def test_cost(self):
+      shift = Shift(self.bank, self.main, 5)
+      self.assertEqual(shift.get_cost(), 0)
+
+   def test_path(self):
+      shift = Shift(self.bank, self.main, 5)
+      self.assertEqual(shift.get_path_length(), 0)
+

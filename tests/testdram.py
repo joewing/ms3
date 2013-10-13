@@ -23,6 +23,9 @@ class TestDRAM(unittest.TestCase):
                   ddr = False)
       dram.reset(self.machine)
 
+      self.assertEqual(dram.get_path_length(), 0)
+      self.assertEqual(dram.get_cost(), 0)
+
       t = dram.process(0, False, 0, 4) # Miss
       self.assertEqual(t, 22)
       self.machine.time += t

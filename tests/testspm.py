@@ -40,3 +40,18 @@ class TestSPM(unittest.TestCase):
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
 
+   def test_simplify(self):
+      spm = SPM(self.main, size = 1024, latency = 1)
+      simplified = spm.simplify()
+      self.assertEqual(spm, simplified)
+
+   def test_cost(self):
+      spm = SPM(self.main, size = 1024, latency = 1)
+      spm.reset(self.machine)
+      self.assertEqual(spm.get_cost(), 8 * 1024)
+
+   def test_path(self):
+      spm = SPM(self.main, size = 1024, latency = 1)
+      spm.reset(self.machine)
+      self.assertEqual(spm.get_path_length(), self.machine.addr_bits)
+

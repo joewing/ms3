@@ -31,3 +31,13 @@ class TestOption(unittest.TestCase):
       result = memory.parse_memory(l)
       self.assertEqual(str(result), "(ram (latency 100))")
 
+   def test_cost(self):
+      op = Option()
+      op.add_option(mock.MockMemory())
+      self.assertEqual(op.get_cost(), 0)
+
+   def test_path(self):
+      op = Option()
+      op.add_option(mock.MockMemory())
+      self.assertEqual(op.get_path_length(), 0)
+

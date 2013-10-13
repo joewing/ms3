@@ -86,6 +86,16 @@ class TestCache(unittest.TestCase):
       simplified = cache.simplify()
       self.assertEqual(cache, simplified)
 
+   def test_path(self):
+      cache = Cache(self.main,
+                    line_count = 4,
+                    line_size = 2,
+                    associativity = 2,
+                    policy = CachePolicy.LRU,
+                    latency = 1,
+                    write_back = True)
+      self.assertEqual(cache.get_path_length(), 0)
+
    def test_parse(self):
       s  = "(cache (line_count 2)(line_size 4)(associativity 2)(latency 2)"
       s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"

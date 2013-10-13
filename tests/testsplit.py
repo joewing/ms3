@@ -129,3 +129,12 @@ class TestSplit(unittest.TestCase):
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
 
+   def test_cost(self):
+      split = Split(self.bank0, self.bank1, self.main, offset = 8)
+      self.assertEqual(split.get_cost(), 0)
+
+   def test_path(self):
+      split = Split(self.bank0, self.bank1, self.main, offset = 8)
+      split.reset(self.machine)
+      self.assertEqual(split.get_path_length(), self.machine.addr_bits)
+

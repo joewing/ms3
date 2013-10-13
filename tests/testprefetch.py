@@ -51,3 +51,11 @@ class TestPrefetch(unittest.TestCase):
       result = memory.parse_memory(l)
       self.assertEqual(str(result), s)
 
+   def test_cost(self):
+      pf = Prefetch(self.main, 0)
+      self.assertEqual(pf.get_cost(), 0)
+
+   def test_path(self):
+      pf = Prefetch(self.main, 0)
+      self.assertEqual(pf.get_path_length(), 0)
+
