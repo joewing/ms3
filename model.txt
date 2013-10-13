@@ -1,4 +1,4 @@
-(include model/asic1.model)
+(machine (target simple) (word_size 4) (addr_bits 30))
 (include model/ddr3-1333J.model)
 (benchmarks
    (mm (size 128) (output_port 1))

@@ -180,7 +180,7 @@ class Transform(Container):
 
    def get_path_length(self):
       tl = self.get_transform_path_length() 
-      return tl + self.get_bank().get_path_length()
+      return tl + self.bank.get_path_length()
 
    def get_forward_path_length(self):
       """Get the path length leaving the transform."""
