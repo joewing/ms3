@@ -11,6 +11,7 @@ from testoption import TestOption
 from testparser import TestParser
 from testprefetch import TestPrefetch
 from testpriorityqueue import TestPriorityQueue
+from testprocess import TestProcess
 from testshift import TestShift
 from testsplit import TestSplit
 from testspm import TestSPM

@@ -1,4 +1,5 @@
 
+import benchmarks
 import memory
 
 class MockFile:
@@ -14,6 +15,16 @@ class MockFile:
       result = self.value[self.index:self.index + size]
       self.index += size
       return result
+
+class MockBenchmark(benchmarks.Benchmark):
+
+   def __init__(self, seq, word_size = 4):
+      benchmarks.Benchmark.__init__(self, word_size)
+      self.seq = seq
+
+   def run(self):
+      for x in self.seq:
+         yield x
 
 class MockMemory(memory.Memory):
 
