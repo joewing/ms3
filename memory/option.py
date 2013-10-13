@@ -1,7 +1,6 @@
 
 import base
 import lex
-import parser
 
 class Option(base.Memory):
 

@@ -76,7 +76,7 @@ class Process:
          self.machine.produce(addr)
       elif at == AccessType.CONSUME:
          if not self.machine.consume(addr):
-            waiting = addr
+            self.waiting = addr
       elif at == AccessType.END:
          self.machine.end(addr)
       else:

@@ -66,6 +66,6 @@ def _create_shift(lexer, args):
    value = parser.get_argument(lexer, args, 'value', 0)
    mem = parser.get_argument(lexer, args, 'memory')
    bank = parser.get_argument(lexer, args, 'bank')
-   return Shift(bank, mem, offset)
+   return Shift(bank, mem, value)
 base.constructors['shift'] = _create_shift
 

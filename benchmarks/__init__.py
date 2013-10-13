@@ -1,4 +1,4 @@
-from base import *
+from base import Benchmark, parse_benchmark
 
 # Import all benchmarks to register them with the parser.
 import cholesky

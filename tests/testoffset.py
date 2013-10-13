@@ -1,16 +1,17 @@
 
 import unittest
-from machine import MachineType
-from memory import Join
+import lex
+import machine
+import memory
+import mock
 from memory.offset import Offset
-from mock import MockMemory
 
 class TestOffset(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType()
-      self.main = MockMemory()
-      self.bank = MockMemory(Join())
+      self.machine = machine.MachineType()
+      self.main = mock.MockMemory()
+      self.bank = mock.MockMemory(memory.Join())
 
    def test_positive(self):
       offset = Offset(self.bank, self.main, 3)
@@ -72,7 +73,7 @@ class TestOffset(unittest.TestCase):
       self.assertEqual(self.bank.last_size, 8)
 
    def test_simplify1(self):
-      offset = Offset(Join(), self.main, 0)
+      offset = Offset(memory.Join(), self.main, 0)
       offset.reset(self.machine)
       simplified = offset.simplify()
       self.assertEqual(str(simplified), "(mock)")
@@ -89,6 +90,12 @@ class TestOffset(unittest.TestCase):
       simplified = offset.simplify()
       self.assertEqual(str(simplified),
                        "(offset (value 1)(bank (mock (join)))(memory (mock)))")
+
+   def test_parse(self):
+      s = "(offset (value 8)(bank (join))(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s))
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 
    def test_path(self):
       offset = Offset(self.bank, self.main, 1)

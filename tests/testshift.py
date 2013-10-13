@@ -1,17 +1,18 @@
 
 import unittest
-from machine import MachineType
-from memory import Join
+import lex
+import machine
+import memory
+import mock
 from memory.shift import Shift
-from mock import MockMemory
 
 class TestShift(unittest.TestCase):
 
    def setUp(self):
-      self.machine = MachineType()
-      self.main = MockMemory()
-      self.join = Join()
-      self.bank = MockMemory(self.join)
+      self.machine = machine.MachineType()
+      self.main = mock.MockMemory()
+      self.join = memory.Join()
+      self.bank = mock.MockMemory(self.join)
 
    def test_positive(self):
       shift = Shift(self.bank, self.main, 1)
@@ -145,6 +146,12 @@ class TestShift(unittest.TestCase):
       shift = Shift(self.join, self.main, 1)
       simplified = shift.simplify()
       self.assertEqual(simplified, self.main)
+
+   def test_parse(self):
+      s = "(shift (value 2)(bank (join))(memory (ram (latency 100))))"
+      l = lex.Lexer(mock.MockFile(s))
+      result = memory.parse_memory(l)
+      self.assertEqual(str(result), s)
 
    def test_cost(self):
       shift = Shift(self.bank, self.main, 5)
