@@ -93,9 +93,8 @@ def run_cacti(params):
                                     prefix = 'ms',
                                     dir = None,
                                     text = True)
-   fobj = os.fdopen(fd, 'w')
-   generate_file(fobj, params)
-   fobj.close();
+   with os.fdopen(fd, 'w') as f:
+      generate_file(f, params)
 
    # Run CACTI.
    try:

@@ -14,4 +14,5 @@ from testpriorityqueue import TestPriorityQueue
 from testshift import TestShift
 from testsplit import TestSplit
 from testspm import TestSPM
+from testtrace import TestTrace
 from testxor import TestXOR
