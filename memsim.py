@@ -47,11 +47,12 @@ def main():
 
    pl = process.ProcessList(mach, processes)
    ml = memory.MemoryList(memories, distributions)
+   time = pl.run(ml)
    o = optimizer.Optimizer(mach, ml,
                            max_cost = int(options.max_cost),
                            seed = int(options.seed),
-                           iterations = int(options.iterations))
-   time = pl.run(ml)
+                           iterations = int(options.iterations),
+                           use_prefetch = pl.has_delay())
    if all(map(lambda d: d.is_empty(), distributions)):
       print("ERROR: no valid address trace for optimization")
       sys.exit(-1)

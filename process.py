@@ -24,6 +24,10 @@ class Process:
       self.benchmark = benchmark
       self.machine = None
       self.waiting = -1
+      self.delay = False
+
+   def has_delay(self):
+      return self.delay
 
    def reset(self, machine, mem, offset):
       """Reset this process for the next simulation.
@@ -71,10 +75,12 @@ class Process:
       elif at == AccessType.WRITE:
          return self.mem.process(0, True, addr, size)
       elif at == AccessType.IDLE:
+         self.delay = True
          return addr
       elif at == AccessType.PRODUCE:
          self.machine.produce(addr)
       elif at == AccessType.CONSUME:
+         self.delay = True
          if not self.machine.consume(addr):
             self.waiting = addr
       elif at == AccessType.END:
@@ -95,6 +101,12 @@ class ProcessList:
       self.machine = machine
       self.processes = processes
       self.first = True
+
+   def has_delay(self):
+      """Determine if there are blocking operations.
+         This is used to determine if prefetching is useful.
+      """
+      return any(map(lambda p: p.has_delay(), self.processes))
 
    def run(self, ml):
       """Run a simulation.

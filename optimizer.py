@@ -27,7 +27,6 @@ class Optimizer:
    constructors = [
       cache.random_cache,
       offset.random_offset,
-      prefetch.random_prefetch,
       shift.random_shift,
       split.random_split,
       spm.random_spm,
@@ -38,7 +37,8 @@ class Optimizer:
                 max_cost = 100000,
                 iterations = 1000,
                 seed = 7,
-                permute_only = False):
+                permute_only = False,
+                use_prefetch = False):
       self.current = ml
       self.machine = machine
       self.max_cost = max_cost
@@ -46,6 +46,8 @@ class Optimizer:
       self.rand = random.Random(seed)
       self.permute_only = permute_only
       self.current.reset(machine)
+      if use_prefetch:
+         self.constructors.append(prefetch.random_prefetch)
 
    def create_memory(self, dist, nxt, cost, in_bank):
       index = self.rand.randint(0, len(self.constructors) - 1)
