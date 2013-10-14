@@ -14,6 +14,16 @@ def parse_target(s):
    else:
       return None
 
+def show_target(t):
+   if t == TargetType.SIMPLE:
+      return "simple"
+   elif t == TargetType.ASIC:
+      return "asic"
+   elif t == TargetType.FPGA:
+      return "fpga"
+   else:
+      return "?"
+
 # Size of an FPGA BRAM.
 BRAM_WIDTH  = 72
 BRAM_DEPTH  = 512
@@ -37,6 +47,17 @@ class MachineType:
       self.max_path_length = max_path_length
       self.time = 0
       self.ports = []
+
+   def __str__(self):
+      result  = "(machine "
+      result += "(target " + show_target(self.target) + ")"
+      result += "(frequency " + str(self.frequency) + ")"
+      result += "(technology " + str(self.technology) + ")"
+      result += "(word_size " + str(self.word_size) + ")"
+      result += "(addr_bits " + str(self.addr_bits) + ")"
+      result += "(max_path " + str(self.max_path_length) + ")"
+      result += ")"
+      return result
 
    def reset(self):
       self.time = 0

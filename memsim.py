@@ -36,6 +36,8 @@ def main():
    (options, args) = parser.parse_args()
    mach, mem, bms = parse_model_file(options.model)
 
+   print(mach)
+
    distributions = []
    processes = []
    memories = []
