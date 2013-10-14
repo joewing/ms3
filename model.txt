@@ -1,4 +1,10 @@
-(machine (target asic) (word_size 4) (addr_bits 30))
+(machine
+   (target asic)
+   (technology 0.045)
+   (frequency 1000000000)
+   (word_size 4)
+   (addr_bits 30)
+)
 (include model/ddr3-1333J.model)
 (benchmarks
    (mm (size 128) (output_port 1))

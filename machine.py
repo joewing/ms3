@@ -24,9 +24,11 @@ class MachineType:
                 frequency = 1e9,
                 word_size = 8,
                 addr_bits = 32,
-                max_path_length = 64):
+                max_path_length = 64,
+                technology = 0.045):
       self.target = target
       self.frequency = frequency
+      self.technology = technology
       self.word_size = word_size
       self.word_bits = log2(word_size) - 1
       self.word_mask = word_size - 1

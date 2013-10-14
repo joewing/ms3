@@ -29,10 +29,11 @@ class CACTIParams:
    bus_bits = 0
    associativity = 1
    is_cache = False
+   technology = 0.045
 
    def get_pair(self):
       p = (self.size, self.block_size, self.bus_bits,
-           self.associativity, self.is_cache)
+           self.associativity, self.is_cache, self.technology)
       return p
 
    def __eq__(self, other):
@@ -43,8 +44,8 @@ class CACTIParams:
 
 cacti_results = dict()
 area_regex = re.compile("Data array: Area \(mm2\): ([0-9.]+)")
-access_regex = re.compile("Access time \(ns\): ([0-9.]+)")
-cycle_regex = re.compile("Cycle time \(ns\): ([0-9.]+)")
+access_regex = re.compile("Access time \(ns\): +([0-9.]+)")
+cycle_regex = re.compile("Cycle time \(ns\): +([0-9.]+)")
 
 def generate_file(fd, params):
    """Generate the input file for CACTI."""
@@ -56,7 +57,7 @@ def generate_file(fd, params):
    fd.write("-exclusive write port 0\n")
    fd.write("-single ended read ports 0\n")
    fd.write("-UCA bank count 1\n")
-   fd.write("-technology (u) 0.032\n")
+   fd.write("-technology (u) " + str(params.technology) + "\n")
    fd.write("-Data array cell type - \"itrs-hp\"\n")
    fd.write("-Data array peripheral type - \"itrs-hp\"\n")
    fd.write("-Tag array cell type - \"itrs-hp\"\n")
@@ -123,7 +124,7 @@ def run_cacti(params):
       result.access_time = float(m.group(1))
    m = cycle_regex.search(buf)
    if m == None:
-      result.cycle_time = 1 << 31
+      result.cycle_time = result.access_time
    else:
       result.cycle_time = float(m.group(1))
 
@@ -133,6 +134,7 @@ def run_cacti(params):
 def get_cache_params(machine, mem):
    """Get the CACTI parameters for a cache."""
    params = CACTIParams()
+   params.technology = machine.technology
    params.size = machine.word_size * mem.line_count * mem.line_size
    params.block_size = machine.word_size * mem.line_size
    params.bus_bits = machine.addr_bits + machine.word_size * 8
@@ -143,6 +145,7 @@ def get_cache_params(machine, mem):
 def get_spm_params(machine, mem):
    """Get the CACTI parameters for an SPM."""
    params = CACTIParams()
+   params.technology = machine.technology
    params.size = mem.size
    params.block_size = machine.word_size
    params.bus_bits = 8 * machine.word_size
