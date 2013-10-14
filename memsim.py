@@ -11,8 +11,6 @@ import optimizer
 import process
 
 parser = optparse.OptionParser()
-parser.add_option('-c', '--max_cost', dest='max_cost', default=100000,
-                  help='max subsystem cost')
 parser.add_option('-s', '--seed', dest='seed', default=7,
                   help='random number seed for the optimizer')
 parser.add_option('-i', '--iterations', dest='iterations', default=10000,
@@ -51,7 +49,6 @@ def main():
    ml = memory.MemoryList(memories, distributions)
    time = pl.run(ml)
    o = optimizer.Optimizer(mach, ml,
-                           max_cost = int(options.max_cost),
                            seed = int(options.seed),
                            iterations = int(options.iterations),
                            use_prefetch = pl.has_delay())

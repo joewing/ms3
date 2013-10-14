@@ -35,6 +35,7 @@ class MachineType:
                 word_size = 8,
                 addr_bits = 32,
                 max_path_length = 64,
+                max_cost = 10000,
                 technology = 0.045):
       self.target = target
       self.frequency = frequency
@@ -45,6 +46,7 @@ class MachineType:
       self.addr_bits = addr_bits
       self.addr_mask = (1 << addr_bits) - 1
       self.max_path_length = max_path_length
+      self.max_cost = max_cost
       self.time = 0
       self.ports = []
 
@@ -56,6 +58,7 @@ class MachineType:
       result += "(word_size " + str(self.word_size) + ")"
       result += "(addr_bits " + str(self.addr_bits) + ")"
       result += "(max_path " + str(self.max_path_length) + ")"
+      result += "(max_cost " + str(self.max_cost) + ")"
       result += ")"
       return result
 

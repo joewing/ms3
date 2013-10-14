@@ -33,6 +33,7 @@ def _parse_machine(lexer):
    frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
    technology = parser.get_argument(lexer, args, 'technology', 0.045)
    max_path = parser.get_argument(lexer, args, 'max_path', 64)
+   max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
    tstr = parser.get_argument(lexer, args, 'target', 'simple')
    target = machine.parse_target(tstr)
    if target == None:
@@ -42,6 +43,7 @@ def _parse_machine(lexer):
                               word_size = word_size,
                               addr_bits = addr_bits,
                               max_path_length = max_path,
+                              max_cost = max_cost,
                               technology = technology)
 
 def _parse_benchmarks(lexer):

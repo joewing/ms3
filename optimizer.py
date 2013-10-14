@@ -34,14 +34,12 @@ class Optimizer:
    ]
 
    def __init__(self, machine, ml,
-                max_cost = 100000,
                 iterations = 1000,
                 seed = 7,
                 permute_only = False,
                 use_prefetch = False):
       self.current = ml
       self.machine = machine
-      self.max_cost = max_cost
       self.max_iterations = iterations
       self.rand = random.Random(seed)
       self.permute_only = permute_only
@@ -148,7 +146,7 @@ class Optimizer:
 
       # Loop until we successfully modify the memory subsystem.
       total_cost = self.current.get_cost()
-      max_cost = self.max_cost - total_cost
+      max_cost = self.machine.max_cost - total_cost
       stat = False
       while not stat:
 
