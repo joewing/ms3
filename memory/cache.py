@@ -92,7 +92,7 @@ class Cache(base.Container):
       word_size = self.machine.word_size
       line_words = (self.line_size + word_size - 1) // word_size
       ls_bits = machine.log2(line_words - 1)
-      tag_bits = self.machine.addr_bits - index_bits - ls_bits
+      tag_bits = max(self.machine.addr_bits - index_bits - ls_bits, 0)
       width = 1 + tag_bits
       if self.associativity > 1:
          if self.policy == CachePolicy.PLRU:
@@ -104,7 +104,7 @@ class Cache(base.Container):
       width *= self.associativity
 
       # Determine the depth of the cache.
-      depth = self.line_count / self.associativity
+      depth = self.line_count // self.associativity
 
       # Get the cost.
       if self.machine.target == machine.TargetType.SIMPLE:
