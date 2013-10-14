@@ -7,7 +7,7 @@ class Distribution(random.Random):
    min_size = 8
 
    def __init__(self, seed):
-      super(random.Random, self).__init__(seed)
+      random.Random.__init__(self, seed)
       self.start_seed = seed
 
       # List of ranges, which are pairs of the form (start, length).
