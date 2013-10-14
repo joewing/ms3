@@ -57,24 +57,28 @@ class Cache(base.Container):
                 line_count = 1,
                 line_size = 8,
                 associativity = 1,
-                latency = 1,
+                access_time = 1,
+                cycle_time = 1,
                 policy = CachePolicy.LRU,
                 write_back = True):
       base.Container.__init__(self, mem)
       self.line_count = line_count
       self.line_size = line_size
       self.associativity = associativity
-      self.latency = latency
+      self.access_time = access_time
+      self.cycle_time = cycle_time
       self.policy = policy
       self.write_back = write_back
       self.lines = list()
+      self.pending = 0
 
    def __str__(self):
       result  = "(cache "
       result += "(line_count " + str(self.line_count) + ")"
       result += "(line_size " + str(self.line_size) + ")"
       result += "(associativity " + str(self.associativity) + ")"
-      result += "(latency " + str(self.latency) + ")"
+      result += "(access_time " + str(self.access_time) + ")"
+      result += "(cycle_time " + str(self.cycle_time) + ")"
       if self.associativity > 1:
          result += "(policy " + show_policy(self.policy) + ")"
       if self.write_back:
@@ -160,28 +164,37 @@ class Cache(base.Container):
 
    def reset(self, m):
       base.Container.reset(self, m)
+      self.pending = 0
       self.lines = list()
       for i in range(self.line_count):
          self.lines.append(CacheLine())
       if m.target == machine.TargetType.ASIC:
-         self.latency = cacti.get_time(m, self)
+         self.access_time = cacti.get_access_time(m, self)
+         self.cycle_time = cacti.get_cycle_time(m, self)
       else:
          if self.policy == CachePolicy.PLRU:
-            self.latency = 3 + self.associativity // 8
+            latency = 3 + self.associativity // 8
          else:
-            self.latency = 3 + self.associativity // 4
+            latency = 3 + self.associativity // 4
+         self.access_time = latency
+         self.cycle_time = latency
+
+   def done(self):
+      return max(self.pending - self.machine.time, 0)
 
    def process(self, start, write, addr, size):
       extra = size // self.line_size
       mask = self.machine.addr_mask
       temp = addr
-      result = start
+      result = max(start, self.pending - self.machine.time)
       for i in range(extra):
          result = self._do_process(result, write, temp, self.line_size)
          temp = (temp + self.line_size) & mask
       if size > extra * self.line_size:
          result = self._do_process(result, write, temp,
                                    size - extra * self.line_size)
+      self.pending = self.machine.time + result
+      self.pending += max(self.cycle_time - self.access_time, 0)
       return result
 
    def _do_process(self, start, write, addr, size):
@@ -215,10 +228,10 @@ class Cache(base.Container):
                line.age = 0
             if (not write) or self.write_back:
                line.dirty = line.dirty or write
-               return self.latency
+               return self.access_time
             else:
                t = self.mem.process(True, tag, self.line_size)
-               return t + self.latency
+               return t + self.access_time
          elif self.policy == CachePolicy.MRU:
             if line.age < age:
                to_replace = line
@@ -237,7 +250,7 @@ class Cache(base.Container):
       if (not write) or self.write_back:
 
          # Evict this entry if necessary.
-         time = start + self.latency
+         time = start + self.access_time
          if to_replace.dirty:
             time = self.mem.process(time, True, to_replace.tag, self.line_size)
             to_replace.dirty = False
@@ -261,13 +274,14 @@ class Cache(base.Container):
 
       else:
          # Write on a write-through cache.
-         return self.mem.process(start, write, addr, size) + self.latency
+         return self.mem.process(start, write, addr, size) + self.access_time
 
 def _create_cache(lexer, args):
    line_count = parser.get_argument(lexer, args, 'line_count', 1)
    line_size = parser.get_argument(lexer, args, 'line_size', 8)
    associativity = parser.get_argument(lexer, args, 'associativity', 1)
-   latency = parser.get_argument(lexer, args, 'latency', 1)
+   access_time = parser.get_argument(lexer, args, 'access_time', 1)
+   cycle_time = parser.get_argument(lexer, args, 'cycle_time', access_time)
    policy = parse_policy(parser.get_argument(lexer, args, 'policy', 'lru'))
    write_back = parser.get_argument(lexer, args, 'write_back', True)
    mem = parser.get_argument(lexer, args, 'memory')
@@ -275,7 +289,8 @@ def _create_cache(lexer, args):
                 line_count = line_count,
                 line_size = line_size,
                 associativity = associativity,
-                latency = latency,
+                access_time = access_time,
+                cycle_time = cycle_time,
                 policy = policy,
                 write_back = write_back)
 base.constructors['cache'] = _create_cache

@@ -1,6 +1,5 @@
-(machine (target simple) (word_size 4) (addr_bits 30))
+(machine (target asic) (word_size 4) (addr_bits 30))
 (include model/ddr3-1333J.model)
 (benchmarks
    (mm (size 128) (output_port 1))
-   (hash (seed 15) (input_port 1) (count 16384))
 )

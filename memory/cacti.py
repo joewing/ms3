@@ -11,13 +11,17 @@ import spm
 
 class CACTIResult:
    area = 0
-   time = 0
+   cycle_time = 0
+   access_time = 0
+
+   def get_pair(self):
+      return (self.area, self.cycle_time, self.access_time)
 
    def __eq__(self, other):
-      return (self.area, self.time) == (other.area, other.time)
+      return self.get_pair() == other.get_pair()
 
    def __hash__(self):
-      return hash((self.area, self.time))
+      return hash(self.get_pair())
 
 class CACTIParams:
    size = 0
@@ -39,7 +43,8 @@ class CACTIParams:
 
 cacti_results = dict()
 area_regex = re.compile("Data array: Area \(mm2\): ([0-9.]+)")
-time_regex = re.compile("Access time \(ns\): ([0-9.]+)")
+access_regex = re.compile("Access time \(ns\): ([0-9.]+)")
+cycle_regex = re.compile("Cycle time \(ns\): ([0-9.]+)")
 
 def generate_file(fd, params):
    """Generate the input file for CACTI."""
@@ -104,18 +109,23 @@ def run_cacti(params):
    finally:
       os.remove(file_name)
 
-   # Extract the area and time from the CACTI results.
+   # Extract the area, access time, and cycle time from the CACTI results.
    result = CACTIResult()
    m = area_regex.search(buf)
    if m == None:
       result.area = 1 << 31
    else:
       result.area = int(math.ceil(float(m.group(1)) * 1000.0 * 1000.0))
-   m = time_regex.search(buf)
+   m = access_regex.search(buf)
    if m == None:
-      result.time = 1 << 31
+      result.access_time = 1 << 31
    else:
-      result.time = int(math.ceil(float(m.group(1))))
+      result.access_time = float(m.group(1))
+   m = cycle_regex.search(buf)
+   if m == None:
+      result.cycle_time = 1 << 31
+   else:
+      result.cycle_time = float(m.group(1))
 
    cacti_results[params] = result
    return result
@@ -156,7 +166,16 @@ def get_area(machine, mem):
    """Get the area for the specified memory (shallow)."""
    return get_results(machine, mem).area
 
-def get_time(machine, mem):
-   """Get the time for the specified memory (shallow)."""
-   return get_results(machine, mem).time
+def get_cycles(machine, t):
+   """Convert from time in nanoseconds to cycles."""
+   freq_ghz = float(machine.frequency) / 1000000000.0
+   return int(math.ceil(t * freq_ghz))
+
+def get_cycle_time(machine, mem):
+   """Get the cycle time in cycles for the specified memory (shallow)."""
+   return get_cycles(machine, get_results(machine, mem).cycle_time)
+
+def get_access_time(machine, mem):
+   """Get the access time in cycles for the specified memory (shallow)."""
+   return get_cycles(machine, get_results(machine, mem).access_time)
 
