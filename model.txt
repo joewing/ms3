@@ -7,5 +7,5 @@
 )
 (include model/ddr3-1333J.model)
 (benchmarks
-   (mm (size 128) (output_port 1))
+   (mm (size 256))
 )

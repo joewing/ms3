@@ -230,7 +230,7 @@ class Cache(base.Container):
                line.dirty = line.dirty or write
                return self.access_time
             else:
-               t = self.mem.process(True, tag, self.line_size)
+               t = self.mem.process(t, True, tag, self.line_size)
                return t + self.access_time
          elif self.policy == CachePolicy.MRU:
             if line.age < age:
