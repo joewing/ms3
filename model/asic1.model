@@ -1,6 +1,8 @@
 (machine
    (word_size  4)
-   (addr_bits  30)
+   (addr_bits  32)
    (target     asic)
+   (technology 0.045)
+   (frequency  1000000000)
    (max_cost   10000)
 )
