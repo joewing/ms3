@@ -47,6 +47,10 @@ def main():
       db = database.Database()
       db.load(options.database)
       db_valid = db.has_value('valid')
+      if not db.set_instance():
+         print("ERROR: job already running")
+         sys.exit(-1)
+      db.save()
    else:
       print("Database: <none>")
       db = None
@@ -78,6 +82,7 @@ def main():
          distributions[i].save(i, db)
       o.save(db)
       db.set_value('valid', True)
+      db.clear_instance()
       db.save()
 
 if __name__ == '__main__':

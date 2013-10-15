@@ -39,6 +39,22 @@ class Database:
       except Exception as e:
          print("state not loaded: " + str(e))
 
+   def set_instance(self):
+      if 'instance' in self.data:
+         return False
+      else:
+         meta = boto.get_instance_metadata()
+         instance = meta['instance-id']
+         self.set_value('instance', instance)
+         return True
+
+   def clear_instance(self):
+      if 'instance' in self.data:
+         del self.data['instance']
+
+   def get_instance(self):
+      return self.get_value('instance')
+
    def save(self):
       """Save state."""
       if self.name == None:
@@ -57,7 +73,7 @@ class Database:
 
    def get_value(self, key):
       """Get the value associated with a key."""
-      return self.data[key]
+      return self.data.get(key)
 
    def set_value(self, key, value):
       """Set the value associated with a key."""

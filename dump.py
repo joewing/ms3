@@ -14,10 +14,13 @@ def show_database(db, name):
    if not db.has_value('valid'):
       print("  <empty>")
       return
+   instance = db.get_instance()
+   if instance == None: instance = "<none>"
    iterations = db.get_value('evaluations')
    best_name = db.get_value('best_name')
    best_value = db.get_value('best_value')
    best_cost = db.get_value('best_cost')
+   print("  Inst: " + instance)
    print("  Iter: " + str(iterations))
    print("  Best: " + best_name)
    print("  Time: " + str(best_value))
@@ -35,3 +38,4 @@ def main():
 
 if __name__ == '__main__':
    main()
+
