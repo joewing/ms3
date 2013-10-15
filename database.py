@@ -1,7 +1,10 @@
 
 import json
 import os
+import sys
 
+sys.path.insert(0,'/usr/local/lib/python2.7/dist-packages')
+sys.path.insert(0,'/usr/lib/python2.7/dist-packages')
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 

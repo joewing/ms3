@@ -3,8 +3,6 @@ import gc
 import optparse
 import sys
 
-sys.path.insert(0,'/usr/local/lib/python2.7/dist-packages')
-
 import database
 import distribution
 import lex
@@ -16,9 +14,11 @@ import process
 parser = optparse.OptionParser()
 parser.add_option('-d', '--db', dest='database', default=None,
                   help='database to use this run')
+parser.add_option('-e', '--experiment', dest='experiment', default=None,
+                  help='experiment to run')
 parser.add_option('-s', '--seed', dest='seed', default=7,
                   help='random number seed for the optimizer')
-parser.add_option('-i', '--iterations', dest='iterations', default=10000,
+parser.add_option('-i', '--iterations', dest='iterations', default=1,
                   help='number of iterations for optimization')
 parser.add_option('-m', '--model', dest='model', default='model.txt',
                   help='model to use for optimization')
@@ -37,8 +37,11 @@ def parse_model_file(file_name):
 def main():
 
    (options, args) = parser.parse_args()
-   mach, mem, bms = parse_model_file(options.model)
+   if options.experiment != None:
+      options.database = options.experiment
+      options.model = 'experiments/' + options.experiment
 
+   mach, mem, bms = parse_model_file(options.model)
    if options.database != None:
       print("Database: " + options.database)
       db = database.Database(options.database)
