@@ -44,7 +44,8 @@ def main():
    mach, mem, bms = parse_model_file(options.model)
    if options.database != None:
       print("Database: " + options.database)
-      db = database.Database(options.database)
+      db = database.Database()
+      db.load(options.database)
       db_valid = db.has_value('valid')
    else:
       print("Database: <none>")

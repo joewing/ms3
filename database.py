@@ -5,30 +5,45 @@ import sys
 
 sys.path.insert(0,'/usr/local/lib/python2.7/dist-packages')
 sys.path.insert(0,'/usr/lib/python2.7/dist-packages')
+sys.path.insert(0, '/Library/Python/2.7/site-packages')
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
 class Database:
    """Key-value store for saving state."""
 
-   def __init__(self, name):
-      """Load state from the named file."""
+   def __init__(self):
+      """Initialize."""
       self.data = dict()
+      self.name = None
       try:
-         self.name = name
          akey = os.environ['AWS_ACCESS_KEY']
          skey = os.environ['AWS_SECRET_KEY']
          self.conn = S3Connection(akey, skey)
          self.bucket = self.conn.get_bucket(os.environ['AWS_S3_BUCKET'])
+      except Exception as e:
+         print("ERROR: could not connect to the database: " + str(e))
+
+   def list(self):
+      """Get a list of named states."""
+      for n in self.bucket.list():
+         yield n
+
+   def load(self, name):
+      """Load the specified named state."""
+      self.name = name
+      try:
          k = Key(self.bucket)
-         k.key = self.name
+         k.key = name
          self.data = json.loads(k.get_contents_as_string())
       except Exception as e:
-         print("no state loaded: " + str(e))
-         pass
+         print("state not loaded: " + str(e))
 
    def save(self):
       """Save state."""
+      if self.name == None:
+         print("ERROR: no state loaded")
+         return
       try:
          k = Key(self.bucket)
          k.key = self.name
