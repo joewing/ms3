@@ -3,6 +3,9 @@ import gc
 import optparse
 import sys
 
+sys.path.insert(0,'/usr/local/lib/python2.7/dist-packages')
+
+import database
 import distribution
 import lex
 import memory
@@ -11,6 +14,8 @@ import optimizer
 import process
 
 parser = optparse.OptionParser()
+parser.add_option('-d', '--db', dest='database', default=None,
+                  help='database to use this run')
 parser.add_option('-s', '--seed', dest='seed', default=7,
                   help='random number seed for the optimizer')
 parser.add_option('-i', '--iterations', dest='iterations', default=10000,
@@ -34,34 +39,42 @@ def main():
    (options, args) = parser.parse_args()
    mach, mem, bms = parse_model_file(options.model)
 
+   if options.database != None:
+      print("Database: " + options.database)
+      db = database.Database(options.database)
+      db_valid = db.has_value('valid')
+   else:
+      print("Database: <none>")
+      db = None
+      db_valid = False
    print(mach)
 
    distributions = []
    processes = []
    memories = []
-   for b in bms:
+   for i in range(len(bms)):
       dist = distribution.Distribution(options.seed)
+      if db_valid: dist.load(i, db)
       distributions.append(dist)
-      processes.append(process.Process(dist, b))
+      processes.append(process.Process(dist, bms[i]))
       memories.append(mem)
 
-   pl = process.ProcessList(mach, processes)
+   pl = process.ProcessList(mach, processes, not db_valid)
    ml = memory.MemoryList(memories, distributions)
-   time = pl.run(ml)
    o = optimizer.Optimizer(mach, ml,
                            seed = int(options.seed),
-                           iterations = int(options.iterations),
                            use_prefetch = pl.has_delay())
-   if all(map(lambda d: d.is_empty(), distributions)):
-      print("ERROR: no valid address trace for optimization")
-      sys.exit(-1)
-   while True:
+   if db_valid: ml = o.load(db)
+   for _ in range(int(options.iterations)):
+      time = pl.run(ml)
       ml = o.optimize(time)
-      if ml != None:
-         time = pl.run(ml)
-      else:
-         break
       gc.collect()
+   if db != None:
+      for i in range(len(bms)):
+         distributions[i].save(i, db)
+      o.save(db)
+      db.set_value('valid', True)
+      db.save()
 
 if __name__ == '__main__':
    main()

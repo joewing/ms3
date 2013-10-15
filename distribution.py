@@ -1,10 +1,11 @@
 
+import cPickle
 import random
 
 class Distribution(random.Random):
 
    # Minimum range size in bytes.
-   min_size = 8
+   min_size = 16
 
    def __init__(self, seed):
       random.Random.__init__(self, seed)
@@ -18,6 +19,16 @@ class Distribution(random.Random):
       # are functions from address to # transformed address.
       # Transform entries are pairs: (True, function).
       self.limits = []
+
+   def load(self, index, db):
+      """Load the state of this distribution object."""
+      self.ranges = db.get_value('distribution' + str(index))
+      self.setstate(cPickle.loads(db.get_value('rand' + str(index))))
+
+   def save(self, index, db):
+      """Save the state of this distribution object."""
+      db.set_value('distribution' + str(index), self.ranges)
+      db.set_value('rand' + str(index), cPickle.dumps(self.getstate()))
 
    def reset(self):
       """Reset the random number generator using the original seed."""

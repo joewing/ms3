@@ -3,6 +3,7 @@ TOKEN_INVALID  = '?'
 TOKEN_OPEN     = '('
 TOKEN_CLOSE    = ')'
 TOKEN_LITERAL  = 'literal'
+TOKEN_COLON    = ':'
 TOKEN_EOF      = ''
 
 def isspace(ch):
@@ -69,6 +70,8 @@ class Lexer:
          self.current = (TOKEN_OPEN, '')
       elif ch == TOKEN_CLOSE:
          self.current = (TOKEN_CLOSE, '')
+      elif ch == TOKEN_COLON:
+         self.current = (TOKEN_COLON, '')
       elif isspace(ch):
          if ch == '\n': self.line += 1
          return self._read_next()

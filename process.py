@@ -92,7 +92,7 @@ class Process:
 class ProcessList:
    """Class to schedule a list of processes on a machine."""
 
-   def __init__(self, machine, processes):
+   def __init__(self, machine, processes, first):
       """Initialize the process list.
          machine is the MachineType instance to use.
          processes is a list of Process objects.
@@ -100,7 +100,7 @@ class ProcessList:
       self.heap = priorityqueue.PriorityQueue()
       self.machine = machine
       self.processes = processes
-      self.first = True
+      self.first = first
 
    def has_delay(self):
       """Determine if there are blocking operations.
@@ -112,7 +112,7 @@ class ProcessList:
       """Run a simulation.
          ml is the MemoryList describing the memories to use.
       """
-      print(ml.get_name())
+      print(ml)
 
       # Reset to prepare for the simulation.
       self.machine.reset()

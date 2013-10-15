@@ -1,5 +1,6 @@
 
 import copy
+import lex
 import parser
 
 # Constructors used by the parser to construct memories.
@@ -219,6 +220,13 @@ class MemoryList:
    def __len__(self):
       return len(self.memories)
 
+   def __str__(self):
+      if len(self.memories) > 0:
+         names = map(str, self.memories)
+         return reduce(lambda a, b: a + ":" + b, names)
+      else:
+         return ""
+
    def clone(self):
       return MemoryList(copy.deepcopy(self.memories), self.distributions)
 
@@ -228,13 +236,6 @@ class MemoryList:
 
    def get_max_path_length(self):
       return max(map(lambda m: m.get_path_length(), self.memories))
-
-   def get_name(self):
-      if len(self.memories) > 0:
-         names = map(str, self.memories)
-         return reduce(lambda a, b: a + ":" + b, names)
-      else:
-         return ""
 
    def reset(self, machine):
       for m in self.memories:
@@ -251,6 +252,14 @@ class MemoryList:
 
 def parse_memory(lexer):
    return parser.parse(lexer, constructors)
+
+def parse_memory_list(lexer, dists):
+   ms = []
+   ms.append(parse_memory(lexer))
+   while lexer.get_type() == lex.TOKEN_COLON:
+      lexer.match(lex.TOKEN_COLON)
+      ms.append(parse_memory(lexer))
+   return MemoryList(ms, dists)
 
 def _create_join(lexer, args):
    return Join()
