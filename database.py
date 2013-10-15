@@ -13,13 +13,13 @@ class Database:
 
    def __init__(self, name):
       """Load state from the named file."""
+      self.data = dict()
       try:
          self.name = name
          akey = os.environ['AWS_ACCESS_KEY']
          skey = os.environ['AWS_SECRET_KEY']
          self.conn = S3Connection(akey, skey)
-         self.bucket = self.conn.get_bucket('ms3.out')
-         self.data = dict()
+         self.bucket = self.conn.get_bucket(os.environ['AWS_S3_BUCKET'])
          k = Key(self.bucket)
          k.key = self.name
          self.data = json.loads(k.get_contents_as_string())
