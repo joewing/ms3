@@ -14,11 +14,10 @@ class AccessType:
 class Process:
    """A class to represent processes that perform memory accesses."""
 
-   def __init__(self, dist, benchmark, skip):
+   def __init__(self, dist, benchmark):
       """Initialize a process.
          dist is the Distribution to use.
          benchmark is the Benchmark to generate the memory accesses.
-         skip is a pair representing requests to process, requests to skip.
       """
       self.mem = None
       self.dist = dist
@@ -26,9 +25,6 @@ class Process:
       self.machine = None
       self.waiting = -1
       self.delay = False
-      self.on = skip[0]
-      self.skip = skip[1]
-      self.count = 0
 
    def has_delay(self):
       return self.delay
@@ -44,13 +40,19 @@ class Process:
       self.benchmark.reset(offset)
       self.generator = self.benchmark.run()
       self.mem.reset(machine)
-      self.count = 0
 
    def done(self):
       """Get the final simulation time for this process.
          Note that this returns an absolute time.
       """
       return self.mem.done()
+
+   def skip(self, n):
+      """Skip the next n events."""
+      if self.waiting >= 0:
+         self.machine.reset_port(self.waiting)
+      for _ in range(n):
+         next(self.generator)
 
    def step(self, first):
       """Peform the next event.
@@ -97,7 +99,7 @@ class Process:
 class ProcessList:
    """Class to schedule a list of processes on a machine."""
 
-   def __init__(self, machine, processes, first):
+   def __init__(self, machine, processes, first, on, skip):
       """Initialize the process list.
          machine is the MachineType instance to use.
          processes is a list of Process objects.
@@ -106,6 +108,8 @@ class ProcessList:
       self.machine = machine
       self.processes = processes
       self.first = first
+      self.on = on
+      self.skip = skip
 
    def has_delay(self):
       """Determine if there are blocking operations.
@@ -127,6 +131,7 @@ class ProcessList:
          self.heap.push(0, p)
 
       # Run the simulation until there are no more events to process.
+      count = 0
       while not self.heap.empty():
          self.machine.time = max(self.machine.time, self.heap.key())
          p = self.heap.value()
@@ -142,6 +147,17 @@ class ProcessList:
                sys.exit(-1)
          except StopIteration:
             pass
+         count += 1
+         if count == self.on and self.skip > 0:
+            ps = self.heap.get_values()
+            self.heap.reset()
+            for p in ps:
+               try:
+                  p.skip(self.skip)
+                  self.heap.push(0, p)
+               except StopIteration:
+                  pass
+            count = 0
 
       # Take into account any leftover time.
       for p in self.processes:

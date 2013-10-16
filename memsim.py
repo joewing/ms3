@@ -61,7 +61,6 @@ def main():
       db_valid = False
    print(mach)
 
-   skip = (options.on, options.skip)
    distributions = []
    processes = []
    memories = []
@@ -69,10 +68,11 @@ def main():
       dist = distribution.Distribution(options.seed)
       if db_valid: dist.load(i, db)
       distributions.append(dist)
-      processes.append(process.Process(dist, bms[i], skip))
+      processes.append(process.Process(dist, bms[i]))
       memories.append(mem)
 
-   pl = process.ProcessList(mach, processes, not db_valid)
+   pl = process.ProcessList(mach, processes, not db_valid,
+                            int(options.on), int(options.skip))
    ml = memory.MemoryList(memories, distributions)
    o = optimizer.Optimizer(mach, ml,
                            seed = int(options.seed),

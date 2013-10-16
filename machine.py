@@ -67,6 +67,9 @@ class MachineType:
       for i in range(len(self.ports)):
          self.ports[i] = 0
 
+   def reset_port(self, port):
+      self.ports[port] = 0
+
    def produce(self, port):
       while len(self.ports) <= port:
          self.ports.append(0)
