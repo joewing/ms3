@@ -5,9 +5,6 @@ import boto.ec2
 
 import database
 
-IMAGE_ID='ami-ece47ddc'
-SGROUP = 'launch-wizard-1'
-
 parser = optparse.OptionParser()
 parser.add_option('-i', '--iterations', dest='iterations', default=10,
                   help='total iterations requested')
@@ -17,11 +14,14 @@ parser.add_option('-s', '--start', dest='start', default=0,
 def start_instance(db, name):
    akey = os.environ['AWS_ACCESS_KEY']
    skey = os.environ['AWS_SECRET_KEY']
-   conn = boto.ec2.connect_to_region('us-west-2',
+   image = os.environ['AWS_IMAGE']
+   sgroup = os.environ['AWS_SECURITY_GROUP']
+   region = os.eniron['AWS_REGION']
+   conn = boto.ec2.connect_to_region(region,
                                      aws_access_key_id = akey,
                                      aws_secret_access_key = skey)
-   r = conn.run_instances(image_id = IMAGE_ID,
-                          security_groups = [SGROUP],
+   r = conn.run_instances(image_id = image,
+                          security_groups = [sgroup],
                           instance_type = 't1.micro',
                           instance_initiated_shutdown_behavior = 'terminate')
    for i in r.instances:
