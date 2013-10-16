@@ -14,10 +14,11 @@ class AccessType:
 class Process:
    """A class to represent processes that perform memory accesses."""
 
-   def __init__(self, dist, benchmark):
+   def __init__(self, dist, benchmark, skip):
       """Initialize a process.
          dist is the Distribution to use.
          benchmark is the Benchmark to generate the memory accesses.
+         skip is a pair representing requests to process, requests to skip.
       """
       self.mem = None
       self.dist = dist
@@ -25,6 +26,9 @@ class Process:
       self.machine = None
       self.waiting = -1
       self.delay = False
+      self.on = skip[0]
+      self.skip = skip[1]
+      self.count = 0
 
    def has_delay(self):
       return self.delay
@@ -40,6 +44,7 @@ class Process:
       self.benchmark.reset(offset)
       self.generator = self.benchmark.run()
       self.mem.reset(machine)
+      self.count = 0
 
    def done(self):
       """Get the final simulation time for this process.

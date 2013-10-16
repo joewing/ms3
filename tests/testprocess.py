@@ -17,7 +17,7 @@ class TestProcess(unittest.TestCase):
       ]
       mem = mock.MockMemory()
       mach = machine.MachineType()
-      p = process.Process(None, mock.MockBenchmark(actions))
+      p = process.Process(None, mock.MockBenchmark(actions), (1, 0))
       p.reset(mach, mem, 0)
 
       t = p.step(False)

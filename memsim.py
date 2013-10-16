@@ -22,6 +22,10 @@ parser.add_option('-i', '--iterations', dest='iterations', default=1,
                   help='number of iterations for optimization')
 parser.add_option('-m', '--model', dest='model', default='model.txt',
                   help='model to use for optimization')
+parser.add_option('-k', '--skip', dest='skip', default=0,
+                  help='number of requests to skip')
+parser.add_option('-o', '--on', dest='on', default=10000,
+                  help='number of requests to process between skips')
 
 def parse_model_file(file_name):
    try:
@@ -57,6 +61,7 @@ def main():
       db_valid = False
    print(mach)
 
+   skip = (options.on, options.skip)
    distributions = []
    processes = []
    memories = []
@@ -64,7 +69,7 @@ def main():
       dist = distribution.Distribution(options.seed)
       if db_valid: dist.load(i, db)
       distributions.append(dist)
-      processes.append(process.Process(dist, bms[i]))
+      processes.append(process.Process(dist, bms[i], skip))
       memories.append(mem)
 
    pl = process.ProcessList(mach, processes, not db_valid)
