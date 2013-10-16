@@ -6,6 +6,7 @@ import sys
 sys.path.insert(0,'/usr/local/lib/python2.7/dist-packages')
 sys.path.insert(0,'/usr/lib/python2.7/dist-packages')
 sys.path.insert(0, '/Library/Python/2.7/site-packages')
+import boto
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
