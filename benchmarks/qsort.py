@@ -15,30 +15,39 @@ class QSort(base.Benchmark):
       self.array = [0] * self.size
 
    def _sort(self, left, right):
-      yield self.read(left)
-      pivot = self.array[left]
-      a, b = left, right
-      while True:
-         while a <= right:
-            yield self.read(a)
-            if self.array[a] >= pivot: break
+      stack = [(0, self.size - 1)]
+      yield self.write(self.size + 0)
+      yield self.write(self.size + 1)
+      while len(stack) > 0:
+         left, right = stack.pop()
+         yield self.read(self.size + len(stack) + 0)
+         yield self.read(self.size + len(stack) + 1)
+         yield self.read(left)
+         pivot = self.array[left]
+         a, b = left, right
+         while True:
+            while a <= right:
+               yield self.read(a)
+               if self.array[a] >= pivot: break
+               a += 1
+            while b >= left:
+               yield self.read(b)
+               if self.array[b] <= pivot: break
+               b -= 1
+            if a > b: break
+            self.array[a], self.array[b] = self.array[b], self.array[a]
+            yield self.write(a)
+            yield self.write(b)
             a += 1
-         while b >= left:
-            yield self.read(b)
-            if self.array[b] <= pivot: break
             b -= 1
-         if a > b: break
-         self.array[a], self.array[b] = self.array[b], self.array[a]
-         yield self.write(a)
-         yield self.write(b)
-         a += 1
-         b -= 1
-      if a - 1 > left:
-         for t in self._sort(left, a - 1):
-            yield t
-      if right > a:
-         for t in self._sort(a, right):
-            yield t
+         if a - 1 > left:
+            yield self.write(self.size + len(stack) + 0)
+            yield self.write(self.size + len(stack) + 1)
+            stack.append((left, a - 1))
+         if right > a:
+            yield self.write(self.size + len(stack) + 0)
+            yield self.write(self.size + len(stack) + 1)
+            stack.append((a, right))
 
    def run(self):
       rand = random.Random(self.seed)
