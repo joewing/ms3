@@ -5,12 +5,18 @@ import machine
 import parser
 
 def random_spm(machine, nxt, rand, cost):
-   for i in range(100):
-      size = machine.word_size << rand.randint(4, 20)
-      spm = SPM(nxt, size)
+   size = machine.word_size * 16
+   spm = SPM(nxt, size)
+   spm.reset(machine)
+   while spm.get_cost() < cost:
+      spm.size *= 2
       spm.reset(machine)
-      if spm.get_cost() <= cost:
-         return spm
+      if spm.get_cost() > cost:
+         spm.size //= 2
+         spm.reset(machine)
+         break
+   if spm.get_cost() <= cost:
+      return spm
    return None
 
 class SPM(base.Container):

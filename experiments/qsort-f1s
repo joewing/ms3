@@ -9,5 +9,5 @@
    (ram (latency 100))
 )
 (benchmarks
-   (qsort (size 50000))
+   (qsort (size 1000000))
 )

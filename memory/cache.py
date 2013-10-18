@@ -32,14 +32,21 @@ def random_cache(machine, nxt, rand, cost):
    line_size = machine.word_size
    line_count = 16
    associativity = 1
-   policy = CachePolicy.LRU
-   write_back = True
+   policy = rand.randint(0, CachePolicy.MAX_POLICY)
+   write_back = rand.randbool()
    result = Cache(nxt,
                   line_count = line_count,
                   line_size = line_size,
                   associativity = associativity,
                   policy = policy,
                   write_back = write_back)
+   result.reset(machine)
+   while result.get_cost() < cost:
+      result.line_count *= 2
+      result.reset(machine)
+      if result.get_cost() > cost:
+         result.line_count //= 2
+         break
    result.reset(machine)
    if result.get_cost() <= cost:
       return result

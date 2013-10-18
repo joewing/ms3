@@ -20,5 +20,5 @@
    )
 )
 (benchmarks
-   (qsort (size 50000))
+   (qsort (size 1000000))
 )

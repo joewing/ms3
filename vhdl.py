@@ -5,6 +5,7 @@ class VHDL:
    def __init__(self):
       self.sigs = ''
       self.code = ''
+      self.indent = 0
 
    def enter(self):
       self.indent += 1
