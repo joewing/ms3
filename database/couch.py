@@ -7,7 +7,7 @@ import base
 
 class CouchDatabase(base.Database):
 
-   def __init__(self, m):
+   def __init__(self, m = ''):
       base.Database.__init__(self, m)
       self.dbname = 'ms3'
       self.model_hash = hashlib.sha1(self.model).hexdigest()
@@ -89,4 +89,8 @@ class CouchDatabase(base.Database):
    def get_value(self, key, default = None):
       """Get a value from the current state."""
       return self.state.get(key, default)
+
+   def get_states(self):
+      for r in self.db.view('ms3/state'):
+         yield json.loads(r.value['value'])
 

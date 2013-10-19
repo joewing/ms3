@@ -47,6 +47,7 @@ def main():
    else:
       db = database.simple.SimpleDatabase(m)
       print("Could not connect to database")
+   db.set_value('model', str(m))
    print(m)
 
    distributions = []
