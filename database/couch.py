@@ -10,7 +10,7 @@ class CouchDatabase(base.Database):
    def __init__(self, m = ''):
       base.Database.__init__(self, m)
       self.dbname = 'ms3'
-      self.model_hash = hashlib.sha1(self.model).hexdigest()
+      self.model_hash = self.get_hash(self.model)
       self.state = dict()
 
    def _create_views(self):
@@ -29,6 +29,11 @@ class CouchDatabase(base.Database):
                   if(d.type == 'state') {
                      emit(d.model, {'value':d.value, 'id':d._id, 'rev':d._rev});
                   }
+               }"""
+            },
+            "model_list": {
+               "map": """function(d) {
+                  emit(d.model, d._id);
                }"""
             }
          }
@@ -65,7 +70,7 @@ class CouchDatabase(base.Database):
 
    def get_result(self, mem):
       """Get a result from the database."""
-      mem_hash = hashlib.sha1(str(mem)).hexdigest()
+      mem_hash = self.get_hash(mem)
       for r in self.db.view('ms3/results', key=[self.model_hash, mem_hash]):
          return r.value
       return None
@@ -90,7 +95,15 @@ class CouchDatabase(base.Database):
       """Get a value from the current state."""
       return self.state.get(key, default)
 
+   def get_hash(self, value):
+      return hashlib.sha1(str(value)).hexdigest()
+
    def get_states(self):
       for r in self.db.view('ms3/state'):
          yield json.loads(r.value['value'])
+
+   def remove(self, h):
+      """Remove data for the specified hash."""
+      for r in self.db.view('ms3/model_list', key=h):
+         del self.db[r.value]
 
