@@ -12,7 +12,7 @@ class TestOptimizer(unittest.TestCase):
       self.machine = MachineType(word_size = 8, addr_bits = 32)
       self.rand = Distribution(1)
       self.ml = MemoryList([], self.rand)
-      self.optimizer = Optimizer(self.machine, self.ml)
+      self.optimizer = Optimizer(self.machine, self.ml, None, None)
       self.optimizer.constructors = [ self.mock_constructor ]
 
    def mock_constructor(self, machine, nxt, rand, cost):
