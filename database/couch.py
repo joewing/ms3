@@ -1,6 +1,7 @@
 
 import uuid
 import hashlib
+import json
 import couchdb.client
 import base
 
@@ -10,6 +11,7 @@ class CouchDatabase(base.Database):
       base.Database.__init__(self, m)
       self.dbname = 'ms3'
       self.model_hash = hashlib.sha1(self.model).hexdigest()
+      self.state = dict()
 
    def _create_views(self):
       doc = {
@@ -25,8 +27,7 @@ class CouchDatabase(base.Database):
             "state": {
                "map": """function(d) {
                   if(d.type == 'state') {
-                     emit([d.model, d.key],
-                          {'value':d.value, 'id':d._id, 'rev':d._rev});
+                     emit(d.model, {'value':d.value, 'id':d._id, 'rev':d._rev});
                   }
                }"""
             }
@@ -42,12 +43,25 @@ class CouchDatabase(base.Database):
          else:
             self.db = self.server.create(self.dbname)
             self._create_views()
+         for r in self.db.view('ms3/state', key=self.model_hash):
+            self.state = json.loads(r.value['value'])
+            break
          return True
       except:
          return False
 
    def save(self):
-      pass
+      doc = {
+         '_id': uuid.uuid4().hex,
+         'type': 'state',
+         'model': self.model_hash,
+         'value': json.dumps(self.state),
+      }
+      for r in self.db.view('ms3/state', key=self.model_hash):
+         doc['_id'] = r.value['id']
+         doc['_rev'] = r.value['rev']
+         break
+      self.db.save(doc)
 
    def get_result(self, mem):
       """Get a result from the database."""
@@ -70,22 +84,9 @@ class CouchDatabase(base.Database):
 
    def set_value(self, key, value):
       """Set a value for the current state."""
-      doc = {
-         '_id': uuid.uuid4().hex,
-         'type': 'state',
-         'model': self.model_hash,
-         'key': key,
-         'value': value,
-      }
-      for r in self.db.view('ms3/state', key=[self.model_hash, key]):
-         doc['_id'] = r.value['id']
-         doc['_rev'] = r.value['rev']
-         break
-      self.db.save(doc)
+      self.state[key] = value
 
    def get_value(self, key, default = None):
       """Get a value from the current state."""
-      for r in self.db.view('ms3/state', key=[self.model_hash, key]):
-         return r.value['value']
-      return default
+      return self.state.get(key, default)
 

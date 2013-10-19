@@ -67,8 +67,8 @@ def main():
    for _ in range(int(options.iterations)):
       time = pl.run(ml)
       ml = o.optimize(time, db)
+      db.save()
       gc.collect()
-   db.save()
 
 if __name__ == '__main__':
    main()
