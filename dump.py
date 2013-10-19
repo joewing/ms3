@@ -7,6 +7,9 @@ import database.couch
 parser = optparse.OptionParser()
 parser.add_option('-r', '--remove', dest='remove', default=None,
                   help='remove a model by id')
+parser.add_option('-c', '--compact', dest='compact', default=False,
+                  action="store_true",
+                  help='perform compaction')
 
 def show_state(db, state):
    if 'model' not in state: return
@@ -26,6 +29,8 @@ def main():
    (options, args) = parser.parse_args()
    db = database.couch.CouchDatabase()
    db.load()
+   if options.compact:
+      db.compact()
    if options.remove != None:
       db.remove(options.remove)
    else:

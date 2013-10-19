@@ -1,11 +1,11 @@
 
 import uuid
-import hashlib
 import json
 import couchdb.client
 import base
 
 class CouchDatabase(base.Database):
+   """CouchDB database connector."""
 
    def __init__(self, m = ''):
       base.Database.__init__(self, m)
@@ -92,18 +92,8 @@ class CouchDatabase(base.Database):
       self.db[doc_id] = doc
       self.results[mem_hash] = value
 
-   def set_value(self, key, value):
-      """Set a value for the current state."""
-      self.state[key] = value
-
-   def get_value(self, key, default = None):
-      """Get a value from the current state."""
-      return self.state.get(key, default)
-
-   def get_hash(self, value):
-      return hashlib.sha1(str(value)).hexdigest()
-
    def get_states(self):
+      """Generator to return all persisted states."""
       for r in self.db.view('ms3/state'):
          yield json.loads(r.value['value'])
 
@@ -111,4 +101,8 @@ class CouchDatabase(base.Database):
       """Remove data for the specified hash."""
       for r in self.db.view('ms3/model_list', key=h):
          del self.db[r.value]
+
+   def compact(self):
+      """Perform database compaction."""
+      self.db.compact()
 
