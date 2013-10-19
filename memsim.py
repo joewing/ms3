@@ -64,11 +64,16 @@ def main():
    o = optimizer.Optimizer(m.machine, ml, db, m.seed,
                            use_prefetch = pl.has_delay())
    ml = o.load()
-   for _ in range(int(options.iterations)):
+   while o.evaluations < int(options.iterations):
       time = pl.run(ml)
       ml = o.optimize(time, db)
       db.save()
       gc.collect()
+   else:
+      print("Iterations:  " + str(o.evaluations))
+      print("Best Memory: " + str(o.best_name))
+      print("Best Value:  " + str(o.best_value))
+      print("Best Cost:   " + str(o.best_cost))
 
 if __name__ == '__main__':
    main()
