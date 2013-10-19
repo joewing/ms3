@@ -12,6 +12,7 @@ class CouchDatabase(base.Database):
       self.dbname = 'ms3'
       self.model_hash = self.get_hash(self.model)
       self.state = dict()
+      self.results = dict()
 
    def _create_views(self):
       doc = {
@@ -71,7 +72,10 @@ class CouchDatabase(base.Database):
    def get_result(self, mem):
       """Get a result from the database."""
       mem_hash = self.get_hash(mem)
+      if mem_hash in self.results:
+         return self.results[mem_hash]
       for r in self.db.view('ms3/results', key=[self.model_hash, mem_hash]):
+         self.results[mem_hash] = r.value
          return r.value
       return None
 
@@ -86,6 +90,7 @@ class CouchDatabase(base.Database):
          'value': value
       }
       self.db[doc_id] = doc
+      self.results[mem_hash] = value
 
    def set_value(self, key, value):
       """Set a value for the current state."""
