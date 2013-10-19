@@ -5,7 +5,7 @@ import random
 class Distribution(random.Random):
 
    # Minimum range size in bytes.
-   min_size = 16
+   min_size = 1024
 
    def __init__(self, seed):
       random.Random.__init__(self, seed)
