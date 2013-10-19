@@ -13,6 +13,17 @@ class Heap(base.Benchmark):
       self.input_port = input_port
       self.output_port = output_port
 
+   def __str__(self):
+      result  = '(heap '
+      result += '(seed ' + str(self.seed) + ')'
+      result += '(size ' + str(self.size) + ')'
+      if self.input_port >= 0:
+         result += '(input_port ' + str(self.input_port) + ')'
+      if self.output_port >= 0:
+         result += '(output_port ' + str(self.output_port) + ')'
+      result += ')'
+      return result
+
    def _insert(self, heap, value):
       heap[0] += 1
       size = heap[0]

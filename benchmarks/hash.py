@@ -13,6 +13,17 @@ class Hash(base.Benchmark):
       self.input_port = input_port
       self.output_port = output_port
 
+   def __str__(self):
+      result  = '(hash '
+      result += '(seed ' + str(self.seed) + ')'
+      result += '(count ' + str(self.count) + ')'
+      if self.input_port >= 0:
+         result += '(input_port ' + str(self.input_port) + ')'
+      if self.output_port >= 0:
+         result += '(output_port ' + str(self.output_port) + ')'
+      result += ')'
+      return result
+
    def run(self):
       rand = random.Random(self.seed)
       for i in range(self.count):

@@ -14,6 +14,17 @@ class QSort(base.Benchmark):
       self.output_port = output_port
       self.array = [0] * self.size
 
+   def __str__(self):
+      result  = '(qsort '
+      result += '(seed ' + str(self.seed) + ')'
+      result += '(size ' + str(self.size) + ')'
+      if self.input_port >= 0:
+         result += '(input_port ' + str(self.input_port) + ')'
+      if self.output_port >= 0:
+         result += '(output_port ' + str(self.output_port) + ')'
+      result += ')'
+      return result
+
    def _sort(self, left, right):
       stack = [(0, self.size - 1)]
       yield self.write(self.size + 0)

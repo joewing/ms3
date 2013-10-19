@@ -5,26 +5,59 @@ import machine
 import memory
 import parser
 
-def parse_model(lexer, mach = None, mem = None, bms = []):
+class Model:
+
+   def __init__(self):
+      self.machine = None
+      self.memory = None
+      self.benchmarks = []
+      self.skip = 0
+      self.on = 1000
+      self.seed = 7
+
+   def __str__(self):
+      result  = '(machine ' + str(self.machine) + ')'
+      if self.skip > 0:
+         result += '(skip ' + str(self.skip) + ')'
+         result += '(on ' + str(self.on) + ')'
+      result += '(seed ' + str(self.seed) + ')'
+      result += '(memory ' + str(self.memory) + ')'
+      result += '(benchmarks '
+      for b in self.benchmarks:
+         result += str(b)
+      result += ')'
+      return result
+
+def parse_model(lexer, model = Model()):
    while lexer.get_type() != lex.TOKEN_EOF:
       lexer.match(lex.TOKEN_OPEN)
       name = lexer.get_value()
       lexer.match(lex.TOKEN_LITERAL)
       if name == 'machine':
-         mach = _parse_machine(lexer)
+         model.machine = _parse_machine(lexer)
       elif name == 'memory':
-         mem = memory.parse_memory(lexer)
+         model.memory = memory.parse_memory(lexer)
       elif name == 'benchmarks':
-         bms = _parse_benchmarks(lexer)
+         model.benchmarks = _parse_benchmarks(lexer)
       elif name == 'include':
          value = lexer.get_value()
          lexer.match(lex.TOKEN_LITERAL)
-         mach, mem, bms = parse_model(lex.Lexer(open(value, 'r')),
-                                      mach, mem, bms)
+         parse_model(lex.Lexer(open(value, 'r')), model)
+      elif name == 'skip':
+         model.skip = _parse_int(lexer)
+      elif name == 'on':
+         model.on = _parse_int(lexer)
+      elif name == 'seed':
+         model.seed = _parse_seed(lexer)
       else:
          lex.ParseError(lexer, "invalid top-level component: " + name)
       lexer.match(lex.TOKEN_CLOSE)
-   return mach, mem, bms
+   return model
+
+def _parse_int(lexer):
+   value = lexer.get_value()
+   lexer.match(lex.TOKEN_LITERAL)
+   return int(value)
 
 def _parse_machine(lexer):
    args = parser.parse_arguments(lexer)

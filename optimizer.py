@@ -14,7 +14,6 @@ import memory.xor as xor
 
 class Optimizer:
 
-   results = dict()
    steps = 0
    evaluations = 0
    threshold = 1024
@@ -35,8 +34,7 @@ class Optimizer:
       xor.random_xor
    ]
 
-   def __init__(self, machine, ml,
-                seed = 7,
+   def __init__(self, machine, ml, db, seed,
                 permute_only = False,
                 use_prefetch = False):
       self.current = ml
@@ -46,37 +44,42 @@ class Optimizer:
       self.current.reset(machine)
       if use_prefetch:
          self.constructors.append(prefetch.random_prefetch)
+      self.db = db
 
    def _load_memory_list(self, s):
-      dists = self.current.distributions
-      lexer = lex.Lexer(StringIO.StringIO(s))
-      ml = memory.parse_memory_list(lexer, dists)
-      ml.reset(self.machine)
-      return ml
+      if s == None:
+         return s
+      else:
+         dists = self.current.distributions
+         lexer = lex.Lexer(StringIO.StringIO(s))
+         ml = memory.parse_memory_list(lexer, dists)
+         ml.reset(self.machine)
+         return ml
 
-   def load(self, db):
+   def load(self):
       """Load state from a database."""
       dists = self.current.distributions
-      self.results = db.get_value('results')
-      self.steps = db.get_value('steps')
-      self.evaluations = db.get_value('evaluations')
-      self.threshold = db.get_value('threshold')
-      self.age = db.get_value('age')
-      self.best_name = db.get_value('best_name')
-      self.best_value = db.get_value('best_value')
-      self.best_cost = db.get_value('best_cost')
-      if db.has_value('last'):
-         self.last = self._load_memory_list(db.get_value('last'))
-      self.last_value = db.get_value('last_value')
-      self.current = self._load_memory_list(db.get_value('current'))
+      db = self.db
+      self.steps = db.get_value('steps', 0)
+      self.evaluations = db.get_value('evaluations', 0)
+      self.threshold = db.get_value('threshold', 1024)
+      self.age = db.get_value('age', 0)
+      self.best_name = db.get_value('best_name', '')
+      self.best_value = db.get_value('best_value', -1)
+      self.best_cost = db.get_value('best_cost', 0)
+      self.last = self._load_memory_list(db.get_value('last'))
+      self.last_value = db.get_value('last_value', 0)
+      temp = db.get_value('current')
+      if temp != None:
+         self.current = self._load_memory_list(temp)
       use_prefetch = db.get_value('use_prefetch')
       if use_prefetch and prefetch.random_prefetch not in self.constructors:
          self.constructors.append(prefetch.random_prefetch)
       return self.current.simplified()
 
-   def save(self, db):
+   def _save(self):
       """Save the current state to a database."""
-      db.set_value('results', self.results)
+      db = self.db
       db.set_value('steps', self.steps)
       db.set_value('evaluations', self.evaluations)
       db.set_value('threshold', self.threshold)
@@ -87,9 +90,13 @@ class Optimizer:
       if self.last != None:
          db.set_value('last', str(self.last))
       db.set_value('last_value', self.last_value)
-      db.set_value('current', str(self.current))
+      if self.current != None:
+         db.set_value('current', str(self.current))
       use_prefetch = prefetch.random_prefetch in self.constructors
       db.set_value('use_prefetch', use_prefetch)
+      for i in range(len(self.current.distributions)):
+         dist = self.current.distributions[i]
+         dist.save(i, self.db)
 
    def create_memory(self, dist, nxt, cost, in_bank):
       index = self.rand.randint(0, len(self.constructors) - 1)
@@ -244,7 +251,7 @@ class Optimizer:
       print("Best Value:  " + str(self.best_value))
       print("Best Cost:   " + str(self.best_cost))
 
-   def generate_next(self, time):
+   def generate_next(self, time, db):
       """Generate the next memory to try."""
       while True:
          self.steps += 1
@@ -270,13 +277,11 @@ class Optimizer:
                ml = simplified.get_max_path_length()
                if ml <= self.machine.max_path_length: break
                self.current = before.clone()
-            simplified_name = str(simplified)
-            if simplified_name not in self.results:
+            time = db.get_result(str(simplified))
+            if time == None:
                return self.current
-            else:
-               time = self.results[simplified_name]
 
-   def optimize(self, time):
+   def optimize(self, time, db):
       """This function is to be called after each evaluation.
          It returns the next memory list to evaluate, None when complete.
       """
@@ -284,18 +289,19 @@ class Optimizer:
 
       # Cache the simplified memory.
       simplified = self.current.simplified()
-      self.results[str(simplified)] = time
+      db.add_result(str(simplified), time)
 
       # Track the best.
       self.update_best(simplified, time)
 
       # Generate the next subsystem and display stats.
-      result = self.generate_next(time)
+      result = self.generate_next(time, db)
       temp  = "Iteration: " + str(self.evaluations + 1)
       temp += " (steps " + str(self.steps + 1)
       temp += ", threshold " + str(self.threshold)
       temp += ", age " + str(self.age)
       temp += ")"
       print(temp)
+      self._save()
       return result.simplified()
 

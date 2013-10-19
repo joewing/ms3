@@ -12,6 +12,12 @@ class Trace(base.Benchmark):
       self.file_name = file_name
       self.expr = re.compile(r'([RWMIPCX])([0-9a-fA-F]+):([0-9a-fA-F]+)')
 
+   def __str__(self):
+      result  = '(trace '
+      result += '(file ' + str(self.file_name) + ')'
+      result += ')'
+      return result
+
    def run(self):
       with open(self.file_name, 'r') as f:
          for line in f:

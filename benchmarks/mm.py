@@ -12,6 +12,17 @@ class MM(base.Benchmark):
       self.input_port = input_port
       self.output_port = output_port
 
+   def __str__(self):
+      result  = '(mm '
+      result += '(size ' + str(self.size) + ')'
+      result += '(iterations ' + str(self.iterations) + ')'
+      if self.input_port >= 0:
+         result += '(input_port ' + str(self.input_port) + ')'
+      if self.output_port >= 0:
+         result += '(output_port ' + str(self.output_port) + ')'
+      result += ')'
+      return result
+
    def run(self):
       msize = self.size * self.size
       srca = 0 * msize

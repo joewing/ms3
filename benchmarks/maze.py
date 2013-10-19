@@ -11,6 +11,14 @@ class Maze(base.Benchmark):
       self.height = height * 2 + 1
       self.seed = seed
 
+   def __str__(self):
+      result  = '(maze '
+      result += '(seed ' + str(self.seed) + ')'
+      result += '(width ' + str(self.width // 2) + ')'
+      result += '(height ' + str(self.height // 2) + ')'
+      result += ')'
+      return result
+
    def set(self, maze, x, y, value):
       index = y * self.width + x
       maze[index] = value

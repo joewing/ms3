@@ -12,6 +12,18 @@ class PCA(base.Benchmark):
       self.input_port = input_port
       self.output_port = output_port
 
+   def __str__(self):
+      result  = '(pca '
+      result += '(size ' + str(self.size) + ')'
+      result += '(count ' + str(self.count) + ')'
+      result += '(iterations ' + str(self.iterations) + ')'
+      if self.input_port >= 0:
+         result += '(input_port ' + str(self.input_port) + ')'
+      if self.output_port >= 0:
+         result += '(output_port ' + str(self.output_port) + ')'
+      result += ')'
+      return result
+
    def run(self):
       r_offset = 0
       s_offset = r_offset + self.size

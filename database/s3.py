@@ -6,10 +6,9 @@ from boto.utils import get_instance_metadata
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
-class Database:
-   """Key-value store for saving state."""
+class S3Database(Database):
 
-   def __init__(self):
+   def __init__(self, m):
       """Initialize."""
       self.data = dict()
       self.name = None

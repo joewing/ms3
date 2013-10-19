@@ -22,8 +22,10 @@ class Distribution(random.Random):
 
    def load(self, index, db):
       """Load the state of this distribution object."""
-      self.ranges = db.get_value('distribution' + str(index))
-      self.setstate(cPickle.loads(db.get_value('rand' + str(index))))
+      temp = db.get_value('distribution' + str(index))
+      if temp != None:
+         self.ranges = db.get_value('distribution' + str(index))
+         self.setstate(cPickle.loads(db.get_value('rand' + str(index))))
 
    def save(self, index, db):
       """Save the state of this distribution object."""

@@ -99,7 +99,7 @@ class Process:
 class ProcessList:
    """Class to schedule a list of processes on a machine."""
 
-   def __init__(self, machine, processes, first, on, skip):
+   def __init__(self, machine, processes, db, on, skip):
       """Initialize the process list.
          machine is the MachineType instance to use.
          processes is a list of Process objects.
@@ -107,9 +107,10 @@ class ProcessList:
       self.heap = priorityqueue.PriorityQueue()
       self.machine = machine
       self.processes = processes
-      self.first = first
+      self.first = db.get_value('first', True)
       self.on = on
       self.skip = skip
+      self.db = db
 
    def has_delay(self):
       """Determine if there are blocking operations.
@@ -166,7 +167,9 @@ class ProcessList:
             self.machine.time = t
 
       # No longer the first execution.
-      self.first = False
+      if self.first:
+         self.db.set_value('first', False)
+         self.first = False
 
       # Display the results and return.
       print("Time: " + str(self.machine.time))
