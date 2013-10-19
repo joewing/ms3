@@ -82,7 +82,7 @@ class CouchDatabase(base.Database):
    def add_result(self, mem, value):
       """Insert a result to the database."""
       doc_id = uuid.uuid4().hex
-      mem_hash = hashlib.sha1(str(mem)).hexdigest()
+      mem_hash = self.get_hash(mem)
       doc = {
          'type': 'result',
          'model': self.model_hash,
