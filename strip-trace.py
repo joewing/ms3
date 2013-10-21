@@ -7,9 +7,9 @@ from benchmarks.trace import Trace
 parser = optparse.OptionParser()
 parser.add_option('-t', '--trace', dest='trace', default=None,
                   help='the trace to process')
-parser.add_option('-k', '--skip', dest='skip', default=0,
+parser.add_option('-k', '--skip', dest='skip', default=100000,
                   help='number of requests to skip')
-parser.add_option('-o', '--on', dest='on', default=10000,
+parser.add_option('-o', '--on', dest='on', default=1000,
                   help='number of requests to process between skips')
 
 def main():
