@@ -3,11 +3,10 @@
    (addr_bits  32)
    (target     fpga)
    (max_cost   64)
-   (frequency  250000000)
 )
 (memory
    (ram (latency 100))
 )
 (benchmarks
-   (trace (file /traces/sha.trace))
+   (trace (file /data/traces/sha.trace))
 )

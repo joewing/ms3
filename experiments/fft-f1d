@@ -3,7 +3,6 @@
    (addr_bits  32)
    (target     fpga)
    (max_cost   64)
-   (frequency  250000000)
 )
 (memory
    (dram
@@ -20,5 +19,5 @@
    )
 )
 (benchmarks
-   (trace (file /traces/fft.trace))
+   (trace (file /data/traces/fft.trace))
 )
