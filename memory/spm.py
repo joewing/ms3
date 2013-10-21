@@ -39,6 +39,40 @@ class SPM(base.Container):
       result += ")"
       return result
 
+   def generate(self, gen, mach):
+      word_width = mach.word_bits * 2
+      size_bits = machine.log2(size) - 1
+      self.get_next().generate(gen, mach)
+      gen.delcare_signals(name, mach.word_size)
+      gen.add_code(name + "_inst : entity work.spm")
+      gen.enter()
+      gen.add_code("generic map (")
+      gen.enter()
+      gen.add_code("ADDR_WIDTH => ADDR_WIDTH,");
+      gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
+      gen.add_code("SIZE_BITS  => " + str(size_bits))
+      gen.leave()
+      gen.add_code(")")
+      gen.add_code("port map (")
+      gen.enter()
+      gen.add_code("clk => clk,")
+      gen.add_code("rst => rst,")
+      gen.add_code("addr => " + name + "_addr,")
+      gen.add_code("din => " + name + "_din,")
+      gen.add_code("dout => " + name + "_dout,")
+      gen.add_code("re => " + name + "_re,")
+      gen.add_code("we => " + name + "_we,")
+      gen.add_code("mask => " + name + "_mask,")
+      gen.add_code("ready => " + name + "_ready,")
+      gen.add_code("maddr => " + oname + "_addr,")
+      gen.add_code("min => " + oname + "_dout,")
+      gen.add_code("mout => " + oname + "_din,")
+      gen.add_code("mre => " + oname + "_re,")
+      gen.add_code("mwe => " + oname + "_we,")
+      gen.add_code("mmask => " + oname + "_mask,")
+      gen.add_code("mready => " + oname + "_ready")
+      gen.add_code(");")
+
    def get_cost(self):
       if self.machine.target == machine.TargetType.SIMPLE:
          return self.size * 8

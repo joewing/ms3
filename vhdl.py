@@ -1,5 +1,5 @@
 
-class VHDL:
+class VHDLGenerator:
    """Class used to generate VHDL code."""
 
    def __init__(self):
@@ -19,6 +19,23 @@ class VHDL:
 
    def add_sig(self, s):
       self.sigs += "  " * self.indent + s + '\n'
+
+   def declare_signal(self, name, width_str = None):
+      if width_str == None:
+         ts = "std_logic"
+      else:
+         ts = "std_logic_vector(" + width_str + " - 1 downto 0)"
+      self.add_code("signal " + name + " : " + ts + ";")
+
+   def declare_signals(self, name, word_size):
+      word_width = word_size * 8
+      self.declare_signal(name + "_addr", "ADDR_WIDTH")
+      self.declare_signal(name + "_din", str(word_width))
+      self.declare_signal(name + "_dout", str(word_width))
+      self.declare_signal(name + "_re")
+      self.declare_signal(name + "_we")
+      self.declare_signal(name + "_mask", str(word_width // 8))
+      self.declare_signal(name + "_ready")
 
    def generate(self, mach, mem):
       """Generate VHDL for the specified machine and memory."""

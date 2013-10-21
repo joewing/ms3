@@ -6,14 +6,29 @@ import parser
 # Constructors used by the parser to construct memories.
 constructors = dict()
 
+# Unique ID assigned to memories.
+next_memory_id = 1
+
 class Memory:
    """The abstract base class for all memory components."""
 
-   machine = None
+   def __init__(self):
+      global next_memory_id
+      self.machine = None
+      self.memory_id = next_memory_id
+      next_memory_id += 1
+
+   def generate(self, gen, mach):
+      """Generate the HDL model for this memory."""
+      pass
 
    def clone(self):
       """Create a deep copy of this memory."""
       return copy.deepcopy(self)
+
+   def get_id(self, prefix='m'):
+      """Get this memory's identifier."""
+      return prefix + str(self.memory_id)
 
    def get_next(self):
       """Get the next memory component."""
@@ -116,11 +131,15 @@ class Memory:
 class Join(Memory):
 
    def __init__(self, index = 0):
+      Memory.__init__(self)
       self.index = index
       self.parent = None
 
    def __str__(self):
       return "(join)"
+
+   def generate(self, gen, mach):
+      gen.declare_signals(self.get_id(), mach.word_size)
 
    def get_path_length(self):
       return self.parent.get_forward_path_length()
@@ -143,6 +162,7 @@ class Container(Memory):
    """A memory containing another memory (caches, etc.)."""
 
    def __init__(self, mem):
+      Memory.__init__(self)
       self.mem = mem
 
    def get_next(self):
@@ -167,6 +187,82 @@ class Transform(Container):
       Container.__init__(self, mem)
       self.bank = bank
       set_parent(bank, self)
+
+   def generate_transform(self, op, value, inverse, gen, mach):
+
+      name = self.get_id()
+      bname = self.bank.get_id()
+      oname = self.get_next().get_id()
+      jname = find_join(self.bank, self).get_id()
+      word_width = mach.word_size * 8
+
+      self.get_next().generate(gen, mach)
+      self.bank.generate(gen, mach)
+      gen.declare_signals(name, mach.word_size)
+
+      # Transform into the bank.
+      gen.add_code(name + "_inst : entity work." + op)
+      gen.enter()
+      gen.add_code("generic map (")
+      gen.enter()
+      gen.add_code("ADDR_WIDTH => ADDR_WIDTH,");
+      gen.add_code("WORD_WIDTH => " + str(word_width) + ",");
+      gen.add_code("VALUE => " + str(value))
+      gen.leave()
+      gen.add_code(")");
+      gen.add_code("port map (")
+      gen.enter()
+      gen.add_code("clk => clk,")
+      gen.add_code("rst => rst,")
+      gen.add_code("addr => " + name + "_addr,")
+      gen.add_code("din => " + name + "_din,")
+      gen.add_code("dout => " + name + "_dout,")
+      gen.add_code("re => " + name + "_re,")
+      gen.add_code("we => " + name + "_we,")
+      gen.add_code("mask => " + name + "_mask,")
+      gen.add_code("ready => " + name + "_ready,")
+      gen.add_code("maddr => " + bname + "_addr,")
+      gen.add_code("min => " + bname + "_dout,")
+      gen.add_code("mout => " + bname + "_din,")
+      gen.add_code("mre => " + bname + "_re,")
+      gen.add_code("mwe => " + bname + "_we,")
+      gen.add_code("mmask => " + bname + "_mask,")
+      gen.add_code("mready => " + bname + "_ready")
+      gen.leave()
+      gen.add_code(");");
+      gen.leave()
+
+      # Transform out of the bank.
+      gen.add_code(jname + "_inst : entity work." + op)
+      gen.enter()
+      gen.add_code("generic map (")
+      gen.enter()
+      gen.add_code("ADDR_WIDTH     => ADDR_WIDTH,")
+      gen.add_code("WORD_WIDTH     => " + str(word_width) + ",")
+      gen.add_code("VALUE          => " + str(inverse))
+      gen.leave()
+      gen.add_code(")")
+      gen.add_code("port map (")
+      gen.enter()
+      gen.add_code("clk => clk,")
+      gen.add_code("rst => rst,")
+      gen.add_code("addr => " + jname + "_addr,")
+      gen.add_code("din => " + jname + "_din,")
+      gen.add_code("dout => " + jname + "_dout,")
+      gen.add_code("re => " + jname + "_re,")
+      gen.add_code("we => " + jname + "_we,")
+      gen.add_code("mask => " + jname + "_mask,")
+      gen.add_code("ready => " + jname + "_ready,")
+      gen.add_code("maddr => " + oname + "_addr,")
+      gen.add_code("min => " + oname + "_dout,")
+      gen.add_code("mout => " + oname + "_din,")
+      gen.add_code("mre => " + oname + "_re,")
+      gen.add_code("mwe => " + oname + "_we,")
+      gen.add_code("mmask => " + oname + "_mask,")
+      gen.add_code("mready => " + oname + "_ready")
+      gen.leave()
+      gen.add_code(");")
+      gen.leave()
 
    def get_banks(self):
       return [self.bank]

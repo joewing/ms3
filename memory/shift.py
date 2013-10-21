@@ -21,6 +21,9 @@ class Shift(base.Transform):
       result += ")"
       return result
 
+   def generate(self, gen, mach):
+      self.generate_transform("shift", self.shift, -self.shift, gen, mach)
+
    def is_empty(self):
       return self.shift == 0
 

@@ -8,7 +8,7 @@ import parser
 class Model:
 
    def __init__(self):
-      self.machine = None
+      self.machine = machine.MachineType()
       self.memory = None
       self.benchmarks = []
       self.skip = 0

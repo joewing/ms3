@@ -23,6 +23,7 @@ class DRAM(base.Memory):
                 burst_size,      # Size of a burst in transfers
                 open_page,       # True for open-page, False for closed-page
                 ddr):            # True for DDR, False for SDR.
+      base.Memory.__init__(self)
       self.frequency = frequency
       self.cas_cycles = cas_cycles
       self.rcd_cycles = rcd_cycles
@@ -57,6 +58,19 @@ class DRAM(base.Memory):
          result += '(ddr false)'
       result += ')'
       return result
+
+   def generate(self, gen, mach):
+      name = self.get_id()
+      pname = self.get_id(prefix='p')
+      gen.declare_signals(name, mach.word_size)
+      gen.declare_signals(name, mach.word_size)
+      gen.add_code(pname + "_addr <= " + name + "_addr;")
+      gen.add_code(pname + "_din <= " + name + "_din;")
+      gen.add_code(name + "_dout <= " + pname + "_dout;")
+      gen.add_code(pname + "_re <= " + name + "_re;")
+      gen.add_code(pname + "_we <= " + name + "_we;")
+      gen.add_code(pname + "_mask <= " + name + "_mask;")
+      gen.add_code(name + "_ready <= " + pname + "_ready;")
 
    def reset(self, machine):
       base.Memory.reset(self, machine)

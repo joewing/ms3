@@ -96,6 +96,58 @@ class Cache(base.Container):
       result += ")"
       return result
 
+   def generate(self, gen, mach):
+      name = self.get_id()
+      oname = self.get_next().get_id()
+      word_width = mach.word_size * 8
+      line_size_bits = machine.log2(self.line_size - 1)
+      line_count_bits = machine.log2(self.line_count // self.associativity - 1)
+      assoc_bits = machine.log2(self.associativity - 1)
+      self.get_next().generate(gen, mach)
+      gen.declare_signals(name, mach.word_size)
+      gen.add_code(name + "_inst : entity work.cache")
+      gen.enter()
+      gen.add_code("generic map (")
+      gen.enter()
+      gen.add_code("ADDR_WIDTH => ADDR_WIDTH,")
+      gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
+      gen.add_code("LINE_SIZE_BITS => " + str(line_size_bits) + ",")
+      gen.add_code("LINE_COUNT_BITS => " + str(line_count_bits) + ",")
+      gen.add_code("ASSOC_BITS => " + str(assoc_bits) + ",")
+      if    self.policy == CachePolicy.LRU:  replacement = 0
+      elif  self.policy == CachePolicy.MRU:  replacement = 1
+      elif  self.policy == CachePolicy.FIFO: replacement = 2
+      elif  self.policy == CachePolicy.PLRU: replacement = 3
+      else: assert(False)
+      gen.add_code("REPLACEMENT => " + str(replacement))
+      if self.write_back:
+         gen.add_code("WRITE_POLICY => 0")
+      else:
+         gen.add_code("WRITE_POLICY => 1")
+      gen.leave()
+      gen.add_code(")")
+      gen.add_code("port map (")
+      gen.enter()
+      gen.add_code("clk => clk,")
+      gen.add_code("rst => rst,")
+      gen.add_code("addr => " + name + "_addr,")
+      gen.add_code("din => " + name + "_din,")
+      gen.add_code("dout => " + name + "_dout,")
+      gen.add_code("re => " + name + "_re,")
+      gen.add_code("we => " + name + "_we,")
+      gen.add_code("mask => " + name + "_mask,")
+      gen.add_code("ready => " + name + "_ready,")
+      gen.add_code("maddr => " + oname + "_addr,")
+      gen.add_code("min => " + oname + "_dout,")
+      gen.add_code("mout => " + oname + "_din,")
+      gen.add_code("mre => " + oname + "_re,")
+      gen.add_code("mwe => " + oname + "_we,")
+      gen.add_code("mmask => " + oname + "_mask,")
+      gen.add_code("mready => " + oname + "_ready")
+      gen.leave()
+      gen.add_code(");")
+      gen.leave()
+
    def get_cost(self):
 
       # Determine the width of the cache.
