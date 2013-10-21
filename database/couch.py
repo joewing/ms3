@@ -7,9 +7,10 @@ import base
 class CouchDatabase(base.Database):
    """CouchDB database connector."""
 
-   def __init__(self, m = ''):
+   def __init__(self, m='', url='http://127.0.0.1:5984'):
       base.Database.__init__(self, m)
       self.dbname = 'ms3'
+      self.url = url
       self.model_hash = self.get_hash(self.model)
       self.state = dict()
       self.results = dict()
@@ -42,7 +43,7 @@ class CouchDatabase(base.Database):
       self.db['_design/ms3'] = doc
 
    def load(self):
-      self.server = couchdb.client.Server()
+      self.server = couchdb.client.Server(url = self.url)
       try:
          if self.dbname in self.server:
             self.db = self.server[self.dbname]

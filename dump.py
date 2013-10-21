@@ -5,6 +5,9 @@ import sys
 import database.couch
 
 parser = optparse.OptionParser()
+parser.add_option('-u', '--url', dest='url',
+                  default='http://127.0.0.1:5984',
+                  help='database URL')
 parser.add_option('-r', '--remove', dest='remove', default=None,
                   help='remove a model by id')
 parser.add_option('-c', '--compact', dest='compact', default=False,
@@ -27,8 +30,10 @@ def show_state(db, state):
 
 def main():
    (options, args) = parser.parse_args()
-   db = database.couch.CouchDatabase()
-   db.load()
+   db = database.couch.CouchDatabase(m='', url=options.url)
+   if not db.load():
+      print("Could not connect to the database")
+      sys.exit(-1)
    if options.compact:
       db.compact()
    if options.remove != None:

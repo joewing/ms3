@@ -13,10 +13,9 @@ import optimizer
 import process
 
 parser = optparse.OptionParser()
-parser.add_option('-d', '--db', dest='database', default=None,
-                  help='database to use this run')
-parser.add_option('-e', '--experiment', dest='experiment', default=None,
-                  help='experiment to run')
+parser.add_option('-u', '--url', dest='url',
+                  default='http://127.0.0.1:5984',
+                  help='database URL')
 parser.add_option('-i', '--iterations', dest='iterations', default=1,
                   help='number of iterations for optimization')
 parser.add_option('-m', '--model', dest='model', default='model.txt',
@@ -36,12 +35,8 @@ def parse_model_file(file_name):
 def main():
 
    (options, args) = parser.parse_args()
-   if options.experiment != None:
-      options.database = options.experiment
-      options.model = 'experiments/' + options.experiment
-
    m = parse_model_file(options.model)
-   db = database.couch.CouchDatabase(m)
+   db = database.couch.CouchDatabase(m, url=options.url)
    if db.load():
       print("Connected to database")
    else:
