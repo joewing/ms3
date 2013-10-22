@@ -4,6 +4,7 @@
    (target     fpga)
    (max_cost   64)
 )
+(skip 100000)(on 10000)
 (memory
    (dram
       (frequency     400000000)
