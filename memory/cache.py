@@ -234,9 +234,8 @@ class Cache(base.Container):
          self.access_time = cacti.get_access_time(m, self)
          self.cycle_time = cacti.get_cycle_time(m, self)
       elif m.target == machine.TargetType.FPGA:
-         latency = xilinx.get_latency(m, self) * 3
-         self.access_time = latency
-         self.cycle_time = latency
+         self.access_time = 3
+         self.cycle_time = 3
       else:
          if self.policy == CachePolicy.PLRU:
             latency = 3 + self.associativity // 8

@@ -5,9 +5,6 @@ import tempfile
 import shutil
 import re
 
-import sys
-import spm
-
 import database
 import ram
 import vhdl
@@ -99,20 +96,17 @@ def run_xilinx(machine, mem):
 
    except Exception as e:
       print("ERROR: XST run failed: " + str(e))
-      failed = True
       return XilinxResult()
 
    finally:
       os.chdir(old_dir)
-      if failed: sys.exit(0)
       shutil.rmtree(dname)
-
-def get_latency(machine, mem):
-   """Get the latency for this memory component."""
-   freq = run_xilinx(machine, mem).frequency
-   return int(math.ceil(machine.frequency / freq))
 
 def get_bram_count(machine, mem):
    """Get the number of BRAMs for this memory component."""
-   return run_xilinx(machine, mem).bram_count
+   result = run_xilinx(machine, mem)
+   if result.frequency >= machine.frequency:
+      return result.bram_count
+   else:
+      return 1 << 31
 

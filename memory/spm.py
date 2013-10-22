@@ -117,8 +117,8 @@ class SPM(base.Container):
          self.access_time = cacti.get_access_time(m, self)
          self.cycle_time = cacti.get_cycle_time(m, self)
       elif m.target == machine.TargetType.FPGA:
-         self.access_time = xilinx.get_latency(m, self) * 2
-         self.cycle_time = self.access_time
+         self.access_time = 2
+         self.cycle_time = 2
 
    def push_transform(self, index, rand):
       assert(index == -1)
