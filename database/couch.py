@@ -43,7 +43,9 @@ class CouchDatabase(base.Database):
             },
             "model_list": {
                "map": """function(d) {
-                  emit(d.model, d._id);
+                  if(d.model) {
+                     emit(d.model, d._id);
+                  }
                }"""
             }
          }
