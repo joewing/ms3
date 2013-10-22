@@ -1,6 +1,6 @@
 
+import os
 import optparse
-import sys
 import boto.ec2
 
 import database

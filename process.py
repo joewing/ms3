@@ -1,5 +1,7 @@
 
 import sys
+
+import database
 import priorityqueue
 
 class AccessType:
@@ -99,11 +101,12 @@ class Process:
 class ProcessList:
    """Class to schedule a list of processes on a machine."""
 
-   def __init__(self, machine, processes, db, on, skip):
+   def __init__(self, machine, processes, on, skip):
       """Initialize the process list.
          machine is the MachineType instance to use.
          processes is a list of Process objects.
       """
+      db = database.get_instance()
       self.heap = priorityqueue.PriorityQueue()
       self.machine = machine
       self.processes = processes
@@ -111,6 +114,7 @@ class ProcessList:
       self.on = on
       self.skip = skip
       self.db = db
+      self.trace_length = 0
 
    def has_delay(self):
       """Determine if there are blocking operations.
@@ -118,7 +122,7 @@ class ProcessList:
       """
       return any(map(lambda p: p.has_delay(), self.processes))
 
-   def run(self, ml):
+   def run(self, ml, limit):
       """Run a simulation.
          ml is the MemoryList describing the memories to use.
       """
@@ -132,6 +136,7 @@ class ProcessList:
          self.heap.push(0, p)
 
       # Run the simulation until there are no more events to process.
+      current_length = 0
       count = 0
       while not self.heap.empty():
          self.machine.time = max(self.machine.time, self.heap.key())
@@ -148,6 +153,7 @@ class ProcessList:
                sys.exit(-1)
          except StopIteration:
             pass
+         current_length += 1
          count += 1
          if count == self.on and self.skip > 0:
             ps = self.heap.get_values()
@@ -159,6 +165,11 @@ class ProcessList:
                except StopIteration:
                   pass
             count = 0
+         if current_length > self.trace_length:
+            self.trace_length = current_length
+         elif current_length > limit and limit > 0:
+            print("Prune")
+            self.machine.time *= self.trace_length - current_length
 
       # Take into account any leftover time.
       for p in self.processes:

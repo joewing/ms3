@@ -3,8 +3,7 @@ import gc
 import optparse
 import sys
 
-import database.couch
-import database.simple
+import database
 import distribution
 import lex
 import memory
@@ -36,12 +35,7 @@ def main():
 
    (options, args) = parser.parse_args()
    m = parse_model_file(options.model)
-   db = database.couch.CouchDatabase(m, url=options.url)
-   if db.load():
-      print("Connected to database")
-   else:
-      db = database.simple.SimpleDatabase(m)
-      print("Could not connect to database")
+   db = database.get_instance(m, options.url)
    db.set_value('model', str(m))
    print(m)
 
@@ -50,19 +44,20 @@ def main():
    memories = []
    for i in range(len(m.benchmarks)):
       dist = distribution.Distribution(m.seed)
-      dist.load(i, db)
+      dist.load(i)
       distributions.append(dist)
       processes.append(process.Process(dist, m.benchmarks[i]))
       memories.append(m.memory)
 
-   pl = process.ProcessList(m.machine, processes, db, m.on, m.skip)
+   pl = process.ProcessList(m.machine, processes, m.on, m.skip)
    ml = memory.MemoryList(memories, distributions)
-   o = optimizer.Optimizer(m.machine, ml, db, m.seed,
+   o = optimizer.Optimizer(m.machine, ml, m.seed,
                            use_prefetch = pl.has_delay())
    ml = o.load()
+   limit = o.best_value * 4
    while o.evaluations < int(options.iterations):
-      time = pl.run(ml)
-      ml = o.optimize(time, db)
+      time = pl.run(ml, limit)
+      ml = o.optimize(time)
       db.save()
       gc.collect()
    else:

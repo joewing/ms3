@@ -59,18 +59,15 @@ class DRAM(base.Memory):
       result += ')'
       return result
 
+   def get_ports(self, mach):
+      name = self.get_id()
+      word_size = mach.word_size
+      addr_width = mach.addr_bits
+      return [base.MemoryPort(name, word_size, addr_width)]
+
    def generate(self, gen, mach):
       name = self.get_id()
-      pname = self.get_id(prefix='p')
       gen.declare_signals(name, mach.word_size)
-      gen.declare_signals(name, mach.word_size)
-      gen.add_code(pname + "_addr <= " + name + "_addr;")
-      gen.add_code(pname + "_din <= " + name + "_din;")
-      gen.add_code(name + "_dout <= " + pname + "_dout;")
-      gen.add_code(pname + "_re <= " + name + "_re;")
-      gen.add_code(pname + "_we <= " + name + "_we;")
-      gen.add_code(pname + "_mask <= " + name + "_mask;")
-      gen.add_code(name + "_ready <= " + pname + "_ready;")
 
    def reset(self, machine):
       base.Memory.reset(self, machine)

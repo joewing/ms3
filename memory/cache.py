@@ -4,6 +4,7 @@ import cacti
 import lex
 import machine
 import parser
+import xilinx
 
 class CachePolicy:
    LRU = 0
@@ -64,8 +65,8 @@ class Cache(base.Container):
                 line_count = 1,
                 line_size = 8,
                 associativity = 1,
-                access_time = 1,
-                cycle_time = 1,
+                access_time = 0,
+                cycle_time = 0,
                 policy = CachePolicy.LRU,
                 write_back = True):
       base.Container.__init__(self, mem)
@@ -84,8 +85,10 @@ class Cache(base.Container):
       result += "(line_count " + str(self.line_count) + ")"
       result += "(line_size " + str(self.line_size) + ")"
       result += "(associativity " + str(self.associativity) + ")"
-      result += "(access_time " + str(self.access_time) + ")"
-      result += "(cycle_time " + str(self.cycle_time) + ")"
+      if self.access_time > 0:
+         result += "(access_time " + str(self.access_time) + ")"
+      if self.cycle_time > 0:
+         result += "(cycle_time " + str(self.cycle_time) + ")"
       if self.associativity > 1:
          result += "(policy " + show_policy(self.policy) + ")"
       if self.write_back:
@@ -100,7 +103,7 @@ class Cache(base.Container):
       name = self.get_id()
       oname = self.get_next().get_id()
       word_width = mach.word_size * 8
-      line_size_bits = machine.log2(self.line_size - 1)
+      line_size_bits = machine.log2(8 * self.line_size // word_width - 1)
       line_count_bits = machine.log2(self.line_count // self.associativity - 1)
       assoc_bits = machine.log2(self.associativity - 1)
       self.get_next().generate(gen, mach)
@@ -119,7 +122,7 @@ class Cache(base.Container):
       elif  self.policy == CachePolicy.FIFO: replacement = 2
       elif  self.policy == CachePolicy.PLRU: replacement = 3
       else: assert(False)
-      gen.add_code("REPLACEMENT => " + str(replacement))
+      gen.add_code("REPLACEMENT => " + str(replacement) + ",")
       if self.write_back:
          gen.add_code("WRITE_POLICY => 0")
       else:
@@ -175,7 +178,7 @@ class Cache(base.Container):
       elif self.machine.target == machine.TargetType.ASIC:
          return cacti.get_area(self.machine, self)
       elif self.machine.target == machine.TargetType.FPGA:
-         return machine.get_bram_count(width, depth)
+         return xilinx.get_bram_count(self.machine, self)
 
    def permute(self, rand, max_cost):
       param_count = 8
@@ -230,6 +233,10 @@ class Cache(base.Container):
       if m.target == machine.TargetType.ASIC:
          self.access_time = cacti.get_access_time(m, self)
          self.cycle_time = cacti.get_cycle_time(m, self)
+      elif m.target == machine.TargetType.FPGA:
+         latency = xilinx.get_latency(m, self) * 3
+         self.access_time = latency
+         self.cycle_time = latency
       else:
          if self.policy == CachePolicy.PLRU:
             latency = 3 + self.associativity // 8

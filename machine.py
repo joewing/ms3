@@ -115,21 +115,3 @@ def round_power2(n):
    """Round n up to the next highest power of 2."""
    return 1 << log2(n - 1)
 
-def get_bram_count(width, depth):
-   """Get the number of BRAMs needed for the specified aspect ratio."""
-
-   # Handle the portion that is less than a BRAM wide.
-   result = 0
-   small_width = width % BRAM_WIDTH
-   if small_width != 0:
-      max_width = BRAM_WIDTH * BRAM_DEPTH
-      rounded = round_power2(small_width)
-      small_depth = max_width // rounded
-      result = (depth + small_depth - 1) // small_depth
-
-   # Handle the portion that is at least as wide as a BRAM.
-   big_count = width // BRAM_WIDTH
-   big_depth = (depth + BRAM_DEPTH - 1) // BRAM_DEPTH
-   result += big_depth * big_count
-   return result
-

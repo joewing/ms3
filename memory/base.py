@@ -9,6 +9,12 @@ constructors = dict()
 # Unique ID assigned to memories.
 next_memory_id = 1
 
+class MemoryPort:
+   def __init__(self, name, word_size, addr_width):
+      self.name = name
+      self.word_size = word_size
+      self.addr_width = addr_width
+
 class Memory:
    """The abstract base class for all memory components."""
 
@@ -29,6 +35,14 @@ class Memory:
    def get_id(self, prefix='m'):
       """Get this memory's identifier."""
       return prefix + str(self.memory_id)
+
+   def get_ports(self, mach):
+      """Get a list of main memory ports for this subsystem."""
+      n = self.get_next()
+      if n != None:
+         return n.get_ports(mach)
+      else:
+         return []
 
    def get_next(self):
       """Get the next memory component."""

@@ -3,6 +3,7 @@ import base
 import cacti
 import machine
 import parser
+import xilinx
 
 def random_spm(machine, nxt, rand, cost):
    size = machine.word_size * 16
@@ -22,8 +23,8 @@ def random_spm(machine, nxt, rand, cost):
 class SPM(base.Container):
 
    def __init__(self, mem, size = 0,
-                access_time = 2,
-                cycle_time = 2):
+                access_time = 0,
+                cycle_time = 0):
       base.Container.__init__(self, mem)
       self.size = size
       self.access_time = access_time
@@ -33,17 +34,21 @@ class SPM(base.Container):
    def __str__(self):
       result  = "(spm "
       result += "(size " + str(self.size) + ")"
-      result += "(access_time " + str(self.access_time) + ")"
-      result += "(cycle_time " + str(self.cycle_time) + ")"
+      if self.access_time > 0:
+         result += "(access_time " + str(self.access_time) + ")"
+      if self.cycle_time > 0:
+         result += "(cycle_time " + str(self.cycle_time) + ")"
       result += "(memory " + str(self.mem) + ")"
       result += ")"
       return result
 
    def generate(self, gen, mach):
-      word_width = mach.word_bits * 2
-      size_bits = machine.log2(size) - 1
+      name = self.get_id()
+      oname = self.get_next().get_id()
+      word_width = mach.word_size * 8
+      size_bits = machine.log2(self.size) - 1
       self.get_next().generate(gen, mach)
-      gen.delcare_signals(name, mach.word_size)
+      gen.declare_signals(name, mach.word_size)
       gen.add_code(name + "_inst : entity work.spm")
       gen.enter()
       gen.add_code("generic map (")
@@ -71,7 +76,9 @@ class SPM(base.Container):
       gen.add_code("mwe => " + oname + "_we,")
       gen.add_code("mmask => " + oname + "_mask,")
       gen.add_code("mready => " + oname + "_ready")
+      gen.leave()
       gen.add_code(");")
+      gen.leave()
 
    def get_cost(self):
       if self.machine.target == machine.TargetType.SIMPLE:
@@ -79,9 +86,7 @@ class SPM(base.Container):
       elif self.machine.target == machine.TargetType.ASIC:
          return cacti.get_area(self.machine, self)
       elif self.machine.target == machine.TargetType.FPGA:
-         width = self.machine.word_size * 8
-         depth = self.size // self.machine.word_size
-         return machine.get_bram_count(width, depth)
+         return xilinx.get_bram_count(self.machine, self)
       else:
          assert(False)
 
@@ -108,6 +113,9 @@ class SPM(base.Container):
       if m.target == machine.TargetType.ASIC:
          self.access_time = cacti.get_access_time(m, self)
          self.cycle_time = cacti.get_cycle_time(m, self)
+      elif m.target == machine.TargetType.FPGA:
+         self.access_time = xilinx.get_latency(m, self) * 2
+         self.cycle_time = self.access_time
 
    def push_transform(self, index, rand):
       assert(index == -1)

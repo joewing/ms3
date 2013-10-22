@@ -14,6 +14,7 @@ class CouchDatabase(base.Database):
       self.model_hash = self.get_hash(self.model)
       self.state = dict()
       self.results = dict()
+      self.fpga_results = dict()
 
    def _create_views(self):
       doc = {
@@ -24,12 +25,19 @@ class CouchDatabase(base.Database):
                   if(d.type == 'result') {
                      emit([d.model, d.memory], d.value);
                   }
-               }""",
+               }"""
             },
             "state": {
                "map": """function(d) {
                   if(d.type == 'state') {
                      emit(d.model, {'value':d.value, 'id':d._id, 'rev':d._rev});
+                  }
+               }"""
+            },
+            "fpga_results": {
+               "map": """function(d) {
+                  if(d.type == 'fpga') {
+                     emit(d.key, [d.frequency, d.bram_count]);
                   }
                }"""
             },
@@ -92,6 +100,30 @@ class CouchDatabase(base.Database):
       }
       self.db[doc_id] = doc
       self.results[mem_hash] = value
+
+   def get_fpga_result(self, name):
+      """Get FPGA timing data from the database."""
+      key_hash = self.get_hash(name)
+      if key_hash in self.fpga_results:
+         return self.fpga_results[key_hash]
+      for r in self.db.view('ms3/fpga_results', key=key_hash):
+         self.fpga_results[key_hash] = r.value
+         return r.value
+      return None
+
+   def add_fpga_result(self, name, frequency, bram_count):
+      """Add FPGA timing data to the database."""
+      key_hash = self.get_hash(name)
+      doc_id = uuid.uuid4().hex
+      doc = {
+         'type': 'fpga',
+         'key': key_hash,
+         'frequency': frequency,
+         'bram_count': bram_count,
+         'memory': name
+      }
+      self.db[doc_id] = doc
+      self.fpga_results[key_hash] = (frequency, bram_count)
 
    def get_states(self):
       """Generator to return all persisted states."""

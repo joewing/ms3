@@ -25,6 +25,14 @@ class Database:
       """Insert a result to the database."""
       pass
 
+   def get_fpga_result(self, key):
+      """Load FPGA timing data."""
+      return None
+
+   def add_fpga_result(self, key, frequency, bram_count):
+      """Save FPGA timing data."""
+      pass
+
    def set_value(self, key, value):
       """Set a value for the current state."""
       self.state[key] = value

@@ -1,8 +1,7 @@
 
 import optparse
-import sys
 
-import database.couch
+import database
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url',
@@ -30,10 +29,7 @@ def show_state(db, state):
 
 def main():
    (options, args) = parser.parse_args()
-   db = database.couch.CouchDatabase(m='', url=options.url)
-   if not db.load():
-      print("Could not connect to the database")
-      sys.exit(-1)
+   db = database.get_instance('', options.url)
    if options.compact:
       db.compact()
    if options.remove != None:

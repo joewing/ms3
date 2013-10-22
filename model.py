@@ -48,7 +48,7 @@ def parse_model(lexer, model = Model()):
       elif name == 'on':
          model.on = _parse_int(lexer)
       elif name == 'seed':
-         model.seed = _parse_seed(lexer)
+         model.seed = _parse_int(lexer)
       else:
          lex.ParseError(lexer, "invalid top-level component: " + name)
       lexer.match(lex.TOKEN_CLOSE)

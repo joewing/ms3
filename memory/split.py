@@ -1,5 +1,6 @@
 
 import base
+import machine
 import parser
 
 def random_split(machine, nxt, rand, cost):
@@ -37,6 +38,8 @@ class Split(base.Memory):
       self.bank0.generate(gen, mach)
       self.bank1.generate(gen, mach)
 
+      name = self.get_id()
+      oname = self.get_next().get_id()
       word_width = mach.word_size * 8
       boffset = machine.log2(self.offset) - 1
       b0name = self.bank0.get_id()
