@@ -12,8 +12,6 @@ import database
 import ram
 import vhdl
 
-part_name = "xc7v585t"
-
 freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")
 bram_regex = re.compile("Block RAM/FIFO: +([0-9]+)")
 
@@ -43,7 +41,7 @@ def run_xilinx(machine, mem):
 
    # Determine if we've already processed this memory.
    db = database.get_instance()
-   name = str(component)
+   name = machine.part + str(component)
    temp = db.get_fpga_result(name)
    if temp != None:
       return XilinxResult(temp[0], temp[1])
@@ -56,6 +54,8 @@ def run_xilinx(machine, mem):
    script_file = dname + "/mem.scr"
    ngc_file = dname + "/mem.ngc"
    result_file = dname + "/mem.srp"
+
+   failed = False
 
    try:
 
@@ -75,7 +75,7 @@ def run_xilinx(machine, mem):
       # Generate the XST script file.
       with open(script_file, 'w') as f:
          f.write("run -ifn " + project_file + " -ifmt mixed -top mem" +
-                 " -ofn " + ngc_file + " -ofmt NGC -p " + part_name +
+                 " -ofn " + ngc_file + " -ofmt NGC -p " + machine.part +
                  " -opt_level 2 -register_balancing yes -keep_hierarchy no")
 
       # Run XST.
@@ -98,11 +98,13 @@ def run_xilinx(machine, mem):
       return result
 
    except Exception as e:
-      print("WARN: XST run failed: " + str(e))
+      print("ERROR: XST run failed: " + str(e))
+      failed = True
       return XilinxResult()
 
    finally:
       os.chdir(old_dir)
+      if failed: sys.exit(0)
       shutil.rmtree(dname)
 
 def get_latency(machine, mem):

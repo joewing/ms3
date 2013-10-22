@@ -65,6 +65,7 @@ def _parse_machine(lexer):
    addr_bits = parser.get_argument(lexer, args, 'addr_bits', 32)
    frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
    technology = parser.get_argument(lexer, args, 'technology', 0.045)
+   part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
    max_path = parser.get_argument(lexer, args, 'max_path', 64)
    max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
    tstr = parser.get_argument(lexer, args, 'target', 'simple')
@@ -77,7 +78,8 @@ def _parse_machine(lexer):
                               addr_bits = addr_bits,
                               max_path_length = max_path,
                               max_cost = max_cost,
-                              technology = technology)
+                              technology = technology,
+                              part = part)
 
 def _parse_benchmarks(lexer):
    bms = []

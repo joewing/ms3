@@ -24,10 +24,6 @@ def show_target(t):
    else:
       return "?"
 
-# Size of an FPGA BRAM.
-BRAM_WIDTH  = 72
-BRAM_DEPTH  = 512
-
 class MachineType:
    def __init__(self,
                 target = TargetType.SIMPLE,
@@ -36,8 +32,10 @@ class MachineType:
                 addr_bits = 32,
                 max_path_length = 64,
                 max_cost = 10000,
-                technology = 0.045):
+                technology = 0.045,
+                part = 'xc7v585t'):
       self.target = target
+      self.part = part
       self.frequency = frequency
       self.technology = technology
       self.word_size = word_size
@@ -53,8 +51,11 @@ class MachineType:
    def __str__(self):
       result  = "(machine "
       result += "(target " + show_target(self.target) + ")"
+      if self.target == TargetType.FPGA:
+         result += "(part " + str(self.part) + ")"
+      elif self.target == TargetType.ASIC:
+         result += "(technology " + str(self.technology) + ")"
       result += "(frequency " + str(self.frequency) + ")"
-      result += "(technology " + str(self.technology) + ")"
       result += "(word_size " + str(self.word_size) + ")"
       result += "(addr_bits " + str(self.addr_bits) + ")"
       result += "(max_path " + str(self.max_path_length) + ")"

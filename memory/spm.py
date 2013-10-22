@@ -5,8 +5,11 @@ import machine
 import parser
 import xilinx
 
+# Minimum SPM size in bytes.
+MIN_SPM_SIZE = 512
+
 def random_spm(machine, nxt, rand, cost):
-   size = machine.word_size * 16
+   size = MIN_SPM_SIZE
    spm = SPM(nxt, size)
    spm.reset(machine)
    while spm.get_cost() < cost:

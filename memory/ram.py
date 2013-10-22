@@ -10,11 +10,14 @@ class RAM(base.Memory):
       self.burst = burst
 
    def __str__(self):
-      result  = '(ram '
+      result = '(ram'
+      space = ' '
       if self.latency > 0:
-         result += '(latency ' + str(self.latency) + ')'
+         result += space + '(latency ' + str(self.latency) + ')'
+         space = ''
       if self.burst != 0:
-         result += '(burst ' + str(self.burst) + ')'
+         result += space + '(burst ' + str(self.burst) + ')'
+         space = ''
       result += ')'
       return result
 
