@@ -2,6 +2,7 @@
    (word_size  4)
    (addr_bits  32)
    (target     fpga)
+   (frequency  250000000)
    (max_cost   64)
 )
 (memory
