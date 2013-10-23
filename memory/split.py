@@ -16,6 +16,7 @@ def random_split(machine, nxt, rand, cost):
 class Split(base.Memory):
 
    def __init__(self, bank0, bank1, mem, offset):
+      base.Memory.__init__(self)
       self.bank0 = bank0
       self.bank1 = bank1
       self.mem = mem
