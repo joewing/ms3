@@ -143,8 +143,13 @@ class CouchDatabase(base.Database):
 
    def remove_fpga(self):
       """Remove invalid FPGA results."""
+      last_key = ''
       for r in self.db.view('ms3/fpga_results'):
          if r.value[0] == 1:
-            print("Removing " + str(r.id))
+            print("Removing invalid: " + str(r.id))
             del self.db[r.id]
+         elif r.key == last_key:
+            print("Removing duplicate: " + str(r.id))
+         else:
+            last_key = r.key
 
