@@ -150,6 +150,7 @@ class CouchDatabase(base.Database):
             del self.db[r.id]
          elif r.key == last_key:
             print("Removing duplicate: " + str(r.id))
+            del self.db[r.id]
          else:
             last_key = r.key
 
