@@ -12,12 +12,11 @@ import optimizer
 import process
 
 parser = optparse.OptionParser()
-parser.add_option('-u', '--url', dest='url',
-                  default='http://127.0.0.1:5984',
+parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
 parser.add_option('-i', '--iterations', dest='iterations', default=1,
                   help='number of iterations for optimization')
-parser.add_option('-m', '--model', dest='model', default='model.txt',
+parser.add_option('-m', '--model', dest='model', default=None,
                   help='model to use for optimization')
 
 def parse_model_file(file_name):
@@ -34,6 +33,9 @@ def parse_model_file(file_name):
 def main():
 
    (options, args) = parser.parse_args()
+   if options.model == None:
+      print("ERROR: no model specified")
+      sys.exit(-1)
    m = parse_model_file(options.model)
    db = database.get_instance(m, options.url)
    db.set_value('model', str(m))
