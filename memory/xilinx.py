@@ -58,7 +58,7 @@ def run_xilinx(machine, mem, keep=False):
 
       # Generate the HDL for the component.
       gen = vhdl.VHDLGenerator()
-      hdl = gen.generate(machine, mem)
+      hdl = gen.generate(machine, component)
       with open(vhdl_file, 'w') as f:
          f.write(hdl)
 
