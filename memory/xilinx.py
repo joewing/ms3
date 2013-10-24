@@ -27,7 +27,7 @@ class XilinxResult:
    def __hash__(self):
       return hash(self.get_pair())
 
-def run_xilinx(machine, mem):
+def run_xilinx(machine, mem, keep=False):
    """Get the results of running XST on the specified memory."""
 
    # Get the individual memory component with a simple main memory.
@@ -100,7 +100,10 @@ def run_xilinx(machine, mem):
 
    finally:
       os.chdir(old_dir)
-      shutil.rmtree(dname)
+      if keep:
+         print("XST working directory: " + dname)
+      else:
+         shutil.rmtree(dname)
 
 def get_bram_count(machine, mem):
    """Get the number of BRAMs for this memory component."""
