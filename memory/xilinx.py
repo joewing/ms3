@@ -96,7 +96,7 @@ def run_xilinx(machine, mem):
 
    except Exception as e:
       print("ERROR: XST run failed: " + str(e))
-      return XilinxResult()
+      sys.exit(-1)
 
    finally:
       os.chdir(old_dir)
