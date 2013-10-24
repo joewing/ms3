@@ -5,7 +5,7 @@ import sys
 
 import lex
 import model
-import xilinx
+import memory.xilinx as xilinx
 
 parser = optparse.OptionParser()
 parser.add_option('-m', '--model', dest='model', default=None,
@@ -18,6 +18,7 @@ def main():
       sys.exit(-1)
    with open(options.model) as f:
       m = model.parse_model(lex.Lexer(f))
+      m.machine.frequency = 1 << 31
       frequency = xilinx.get_frequency(m.machine, m.memory)
       bram_count = xilinx.get_bram_count(m.machine, m.memory)
       print("Frequency: " + str(frequency))

@@ -73,6 +73,7 @@ def run_xilinx(machine, mem):
       with open(script_file, 'w') as f:
          f.write("run -ifn " + project_file + " -ifmt mixed -top mem" +
                  " -ofn " + ngc_file + " -ofmt NGC -p " + machine.part +
+                 " -ram_style block" +
                  " -opt_level 2 -register_balancing yes -keep_hierarchy no")
 
       # Run XST.
@@ -101,6 +102,10 @@ def run_xilinx(machine, mem):
    finally:
       os.chdir(old_dir)
       shutil.rmtree(dname)
+
+def get_frequency(machine, mem):
+   """Get the frequency of the specified memory."""
+   return run_xilinx(machine, mem).frequency
 
 def get_bram_count(machine, mem):
    """Get the number of BRAMs for this memory component."""
