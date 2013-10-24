@@ -65,7 +65,13 @@ def run_xilinx(machine, mem, keep=False):
       # Generate the XST project file.
       with open(project_file, 'w') as f:
          f.write("vhdl work " + old_dir + "/hdl/cache.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/combine.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/eor.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/offset.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/prefetch.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/shift.vhdl\n")
          f.write("vhdl work " + old_dir + "/hdl/spm.vhdl\n")
+         f.write("vhdl work " + old_dir + "/hdl/split.vhdl\n")
          f.write("vhdl work " + old_dir + "/hdl/ram.vhdl\n")
          f.write("vhdl work " + vhdl_file + "\n")
 
