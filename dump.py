@@ -12,6 +12,9 @@ parser.add_option('-r', '--remove', dest='remove', default=None,
 parser.add_option('-c', '--compact', dest='compact', default=False,
                   action="store_true",
                   help='perform compaction')
+parser.add_option('-f', '--fpga', dest='fpga', default=False,
+                  action="store_true",
+                  help='remove invalid FPGA results')
 
 def show_state(db, state):
    if 'model' not in state: return
@@ -30,6 +33,8 @@ def show_state(db, state):
 def main():
    (options, args) = parser.parse_args()
    db = database.get_instance('', options.url)
+   if options.fpga:
+      db.remove_fpga()
    if options.compact:
       db.compact()
    if options.remove != None:

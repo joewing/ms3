@@ -141,3 +141,10 @@ class CouchDatabase(base.Database):
       """Perform database compaction."""
       self.db.compact()
 
+   def remove_fpga(self):
+      """Remove invalid FPGA results."""
+      for r in self.db.view('ms3/fpga_results'):
+         if r.value[0] == 1:
+            print("Removing " + str(r.id))
+            del self.db[r.id]
+
