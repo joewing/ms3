@@ -195,8 +195,7 @@ class Optimizer:
       """Modify the memory subsystem."""
 
       # Loop until we successfully modify the memory subsystem.
-      total_cost = self.current.get_cost()
-      max_cost = self.machine.max_cost - total_cost
+      max_cost = self.machine.max_cost - self.current.get_cost()
       stat = False
       while not stat:
 
@@ -222,7 +221,18 @@ class Optimizer:
                if stat:
                   self.current.memories[mindex] = temp
                   break
-         elif action <= 2 and count > 1: # Remove
+         elif action == 1: # Replace
+            for i in range(100):
+               before = str(mem)
+               index = self.rand.randint(0, count - 1)
+               temp = self.remove(dist, mem, index)
+               stat = temp != None and str(temp) != before
+               if stat:
+                  max_cost = self.machine.max_cost - self.current.get_cost()
+                  temp = self.insert(dist, temp, index, max_cost)
+                  self.current.memories[mindex] = temp
+                  break
+         elif action == 2 and count > 1: # Remove
             for i in range(100):
                before = str(mem)
                index = self.rand.randint(0, count - 1)
