@@ -221,18 +221,7 @@ class Optimizer:
                if stat:
                   self.current.memories[mindex] = temp
                   break
-         elif action == 1: # Replace
-            for i in range(100):
-               before = str(mem)
-               index = self.rand.randint(0, count - 1)
-               temp = self.remove(dist, mem, index)
-               stat = temp != None and str(temp) != before
-               if stat:
-                  max_cost = self.machine.max_cost - self.current.get_cost()
-                  temp = self.insert(dist, temp, index, max_cost)
-                  self.current.memories[mindex] = temp
-                  break
-         elif action == 2 and count > 1: # Remove
+         elif action <= 2 and count > 1: # Remove
             for i in range(100):
                before = str(mem)
                index = self.rand.randint(0, count - 1)
@@ -290,6 +279,8 @@ class Optimizer:
             time = db.get_result(str(simplified))
             if time == None:
                return self.current
+            else:
+               self.age += 1
 
    def optimize(self, time):
       """This function is to be called after each evaluation.
