@@ -1,6 +1,7 @@
 
 import gc
 import optparse
+import os
 import sys
 
 import database
@@ -36,8 +37,12 @@ def main():
    if options.model == None:
       print("ERROR: no model specified")
       sys.exit(-1)
+   if options.url == None:
+      url = os.environ.get('COUCHDB_URL')
+   else:
+      url = options.url
    m = parse_model_file(options.model)
-   db = database.get_instance(m, options.url)
+   db = database.get_instance(m, url)
    db.set_value('model', str(m))
    print(m)
 

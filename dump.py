@@ -1,11 +1,11 @@
 
 import optparse
+import os
 
 import database
 
 parser = optparse.OptionParser()
-parser.add_option('-u', '--url', dest='url',
-                  default='http://127.0.0.1:5984',
+parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
 parser.add_option('-r', '--remove', dest='remove', default=None,
                   help='remove a model by id')
@@ -32,7 +32,11 @@ def show_state(db, state):
 
 def main():
    (options, args) = parser.parse_args()
-   db = database.get_instance('', options.url)
+   if options.url == None:
+      url = os.environ.get('COUCHDB_URL')
+   else:
+      url = options.url
+   db = database.get_instance('', url)
    if options.fpga:
       db.remove_fpga()
    if options.compact:

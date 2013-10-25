@@ -7,7 +7,7 @@ import base
 class CouchDatabase(base.Database):
    """CouchDB database connector."""
 
-   def __init__(self, m='', url='http://127.0.0.1:5984'):
+   def __init__(self, m='', url=None):
       base.Database.__init__(self, m)
       self.dbname = 'ms3'
       self.url = url
@@ -15,6 +15,10 @@ class CouchDatabase(base.Database):
       self.state = dict()
       self.results = dict()
       self.fpga_results = dict()
+      if url == None:
+         self.url = 'http://127.0.0.1:5984'
+      else:
+         self.url = url
 
    def _create_views(self):
       doc = {
@@ -53,6 +57,7 @@ class CouchDatabase(base.Database):
       self.db['_design/ms3'] = doc
 
    def load(self):
+      print("Trying " + self.url)
       self.server = couchdb.client.Server(url = self.url)
       try:
          if self.dbname in self.server:
