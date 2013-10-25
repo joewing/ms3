@@ -15,6 +15,7 @@ class CouchDatabase(base.Database):
       self.state = dict()
       self.results = dict()
       self.fpga_results = dict()
+      self.cacti_results = dict()
       if url == None:
          self.url = 'http://127.0.0.1:5984'
       else:
@@ -42,6 +43,13 @@ class CouchDatabase(base.Database):
                "map": """function(d) {
                   if(d.type == 'fpga') {
                      emit(d.key, [d.frequency, d.bram_count]);
+                  }
+               }"""
+            },
+            "cacti_results": {
+               "map": """function(d) {
+                  if(d.type == 'cacti') {
+                     emit(d.key, [d.access_time, d.cycle_time, d.area]);
                   }
                }"""
             },
@@ -131,6 +139,31 @@ class CouchDatabase(base.Database):
       }
       self.db[doc_id] = doc
       self.fpga_results[key_hash] = (frequency, bram_count)
+
+   def get_cacti_result(self, name):
+      """Get CACTI timing information from the database."""
+      key_hash = self.get_hash(name)
+      if key_hash in self.cacti_results:
+         return self.cacti_results[key_hash]
+      for r in self.db.view('ms3/cacti_results', key=key_hash):
+         self.cacti_results[key_hash] = r.value
+         return r.value
+      return None
+
+   def add_cacti_result(self, name, access_time, cycle_time, area):
+      """Add CACTI timing information to the database."""
+      key_hash = self.get_hash(name)
+      doc_id = uuid.uuid4().hex
+      doc = {
+         'type': 'cacti',
+         'key': key_hash,
+         'access_time': access_time,
+         'cycle_time': cycle_time,
+         'area': area,
+         'parameters': name
+      }
+      self.db[doc_id] = doc
+      self.cacti_results[key_hash] = (access_time, cycle_time, area)
 
    def get_states(self):
       """Generator to return all persisted states."""
