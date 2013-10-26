@@ -14,7 +14,7 @@ parser.add_option('-o', '--on', dest='on', default=10000,
 
 def main():
    (options, args) = parser.parse_args()
-   if options.trace == None:
+   if options.trace is None:
       print('ERROR: no trace specified')
       sys.exit(-1)
    trace = Trace(options.trace)

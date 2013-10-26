@@ -23,7 +23,7 @@ def parse(lexer, constructors):
    lexer.match(lex.TOKEN_CLOSE)
    return result
 
-def parse_arguments(lexer, constructors = None):
+def parse_arguments(lexer, constructors=None):
    """Parse arguments to a constructor.
       lexer is the Lexer instance to use.
       constructors is a dictionary of contructors to use (see parse).
@@ -42,7 +42,7 @@ def parse_arguments(lexer, constructors = None):
       lexer.match(lex.TOKEN_CLOSE)
    return result
 
-def get_argument(lexer, args, name, default = None):
+def get_argument(lexer, args, name, default=None):
    """Get an argument from a dictionary of arguments.
       args should be a dictionary of arguments returned from parse_arguments.
       name is the name of the argument.
@@ -67,7 +67,7 @@ def get_argument(lexer, args, name, default = None):
             return args[name]
       except ValueError:
          raise lex.ParseError(lexer, "invalid value for '" + name + "'")
-   elif default != None:
+   elif default is not None:
       return default
    else:
       raise lex.ParseError(lexer, "no value specified for '" + name + "'")

@@ -26,7 +26,7 @@ class Distribution(random.Random):
       """Load the state of this distribution object."""
       db = database.get_instance()
       temp = db.get_value('distribution' + str(index))
-      if temp != None:
+      if temp is not None:
          self.ranges = db.get_value('distribution' + str(index))
          self.setstate(cPickle.loads(db.get_value('rand' + str(index))))
 

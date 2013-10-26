@@ -70,7 +70,7 @@ def _parse_machine(lexer):
    max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
    tstr = parser.get_argument(lexer, args, 'target', 'simple')
    target = machine.parse_target(tstr)
-   if target == None:
+   if target is None:
       lex.ParseError(lexer, "invalid target: " + tstr)
    return machine.MachineType(target = target,
                               frequency = frequency,

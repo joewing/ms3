@@ -47,7 +47,7 @@ class Optimizer:
          self.constructors.append(prefetch.random_prefetch)
 
    def _load_memory_list(self, s):
-      if s == None:
+      if s is None:
          return s
       else:
          dists = self.current.distributions
@@ -69,7 +69,7 @@ class Optimizer:
       self.last = self._load_memory_list(db.get_value('last'))
       self.last_value = db.get_value('last_value', 0)
       temp = db.get_value('current')
-      if temp != None:
+      if temp is not None:
          self.current = self._load_memory_list(temp)
       use_prefetch = db.get_value('use_prefetch')
       if use_prefetch and prefetch.random_prefetch not in self.constructors:
@@ -86,10 +86,10 @@ class Optimizer:
       db.set_value('best_name', self.best_name)
       db.set_value('best_value', self.best_value)
       db.set_value('best_cost', self.best_cost)
-      if self.last != None:
+      if self.last is not None:
          db.set_value('last', str(self.last))
       db.set_value('last_value', self.last_value)
-      if self.current != None:
+      if self.current is not None:
          db.set_value('current', str(self.current))
       use_prefetch = prefetch.random_prefetch in self.constructors
       db.set_value('use_prefetch', use_prefetch)
@@ -101,7 +101,7 @@ class Optimizer:
       index = self.rand.randint(0, len(self.constructors) - 1)
       constructor = self.constructors[index]
       result = constructor(self.machine, nxt, dist, cost)
-      if result != None:
+      if result is not None:
          result.reset(self.machine)
          return result
       else:
@@ -167,7 +167,7 @@ class Optimizer:
       assert(index >= 0)
       n = mem.get_next()
       if index == 0:
-         if n == None: return mem
+         if n is None: return mem
          for b in mem.get_banks():
             if not isinstance(b, memory.Join):
                return mem
@@ -217,7 +217,7 @@ class Optimizer:
                before = str(mem)
                index = self.rand.randint(0, count - 1)
                temp = self.insert(dist, mem, index, max_cost)
-               stat = temp != None and str(temp) != before
+               stat = temp is not None and str(temp) != before
                if stat:
                   self.current.memories[mindex] = temp
                   break
@@ -226,7 +226,7 @@ class Optimizer:
                before = str(mem)
                index = self.rand.randint(0, count - 1)
                temp = self.remove(dist, mem, index)
-               stat = temp != None and str(temp) != before
+               stat = temp is not None and str(temp) != before
                if stat:
                   self.current.memories[mindex] = temp
                   break
@@ -254,7 +254,7 @@ class Optimizer:
       db = database.get_instance()
       while True:
          self.steps += 1
-         if self.last == None:
+         if self.last is None:
             self.last = self.current.clone()
          else:
             diff = time - self.last_value
@@ -277,7 +277,7 @@ class Optimizer:
                if ml <= self.machine.max_path_length: break
                self.current = before.clone()
             time = db.get_result(str(simplified))
-            if time == None:
+            if time is None:
                return self.current
             else:
                self.age += 1

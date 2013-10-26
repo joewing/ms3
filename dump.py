@@ -32,7 +32,7 @@ def show_state(db, state):
 
 def main():
    (options, args) = parser.parse_args()
-   if options.url == None:
+   if options.url is None:
       url = os.environ.get('COUCHDB_URL')
    else:
       url = options.url
@@ -41,7 +41,7 @@ def main():
       db.remove_fpga()
    if options.compact:
       db.compact()
-   if options.remove != None:
+   if options.remove is not None:
       db.remove(options.remove)
    else:
       for state in db.get_states():

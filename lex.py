@@ -53,7 +53,7 @@ class Lexer:
 
    def _read_next(self):
       """Read the next token."""
-      if self.last == None:
+      if self.last is None:
          ch = self.f.read(1)
       else:
          ch = self.last

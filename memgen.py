@@ -19,7 +19,7 @@ def generate(f):
 
 def main():
    (options, args) = parser.parse_args()
-   if options.model != None:
+   if options.model is not None:
       with open(options.model) as f:
          generate(f)
    else:

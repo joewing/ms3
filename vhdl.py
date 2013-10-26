@@ -29,9 +29,9 @@ class VHDLGenerator:
       """Append to the result (clients should use add_code or add_sig)."""
       self.result += "  " * self.indent + s + '\n'
 
-   def declare_signal(self, name, width_str = None):
+   def declare_signal(self, name, width_str=None):
       """Declare a signal."""
-      if width_str == None:
+      if width_str is None:
          ts = "std_logic"
       else:
          ts = "std_logic_vector(" + width_str + " - 1 downto 0)"

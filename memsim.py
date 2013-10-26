@@ -34,10 +34,10 @@ def parse_model_file(file_name):
 def main():
 
    (options, args) = parser.parse_args()
-   if options.model == None:
+   if options.model is None:
       print("ERROR: no model specified")
       sys.exit(-1)
-   if options.url == None:
+   if options.url is None:
       url = os.environ.get('COUCHDB_URL')
    else:
       url = options.url

@@ -16,7 +16,7 @@ parser.add_option('-k', '--keep', dest='keep', default=False,
 
 def main():
    (options, args) = parser.parse_args()
-   if options.model == None:
+   if options.model is None:
       print("ERROR: no model specified")
       sys.exit(-1)
    with open(options.model) as f:
