@@ -11,4 +11,3 @@ import shift
 import split
 import spm
 import xor
-

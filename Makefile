@@ -4,6 +4,7 @@ SELECT_PROG=$(if $(shell which $(1)),$(1),$(2))
 PYTHON=$(call SELECT_PROG,pypy,python)
 COVERAGE=$(call SELECT_PROG,coverage,python-coverage)
 FLAKES=pyflakes
+PEP8=pep8
 
 all:
 	$(PYTHON) -O memsim.py
@@ -13,6 +14,9 @@ test:
 
 lint:
 	$(FLAKES) .
+
+pep8:
+	$(PEP8) .
 
 coverage:
 	$(COVERAGE) run test.py
