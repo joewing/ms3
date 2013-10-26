@@ -285,7 +285,7 @@ class Optimizer:
                 if time is None:
                     return self.current
                 else:
-                    self.age += 1
+                    self.age += 2
 
     def optimize(self, time):
         """This function is to be called after each evaluation.
