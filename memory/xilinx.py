@@ -1,5 +1,4 @@
 
-import math
 import os
 import tempfile
 import shutil
@@ -54,8 +53,6 @@ def run_xilinx(machine, mem, keep=False):
     script_file = dname + "/mem.scr"
     ngc_file = dname + "/mem.ngc"
     result_file = dname + "/mem.srp"
-
-    failed = False
 
     try:
 
