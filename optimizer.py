@@ -256,6 +256,7 @@ class Optimizer:
     def generate_next(self, time):
         """Generate the next memory to try."""
         db = database.get_instance()
+        tries = 0
         while True:
             self.steps += 1
             if self.last is None:
@@ -285,7 +286,8 @@ class Optimizer:
                 if time is None:
                     return self.current
                 else:
-                    self.age += 2
+                    self.age += tries
+                    tries += 1
 
     def optimize(self, time):
         """This function is to be called after each evaluation.
