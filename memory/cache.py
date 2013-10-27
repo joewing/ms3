@@ -1,6 +1,7 @@
 
 import base
 import cacti
+import container
 import lex
 import machine
 import parser
@@ -66,7 +67,7 @@ class CacheLine:
     dirty = False
 
 
-class Cache(base.Container):
+class Cache(container.Container):
 
     def __init__(self, mem,
                  line_count=1,
@@ -76,7 +77,7 @@ class Cache(base.Container):
                  cycle_time=0,
                  policy=CachePolicy.LRU,
                  write_back=True):
-        base.Container.__init__(self, mem)
+        container.Container.__init__(self, mem)
         self.line_count = line_count
         self.line_size = line_size
         self.associativity = associativity
@@ -246,7 +247,7 @@ class Cache(base.Container):
         return False
 
     def reset(self, m):
-        base.Container.reset(self, m)
+        container.Container.reset(self, m)
         self.pending = 0
         self.lines = list()
         for i in range(self.line_count):

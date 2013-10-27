@@ -1,2 +1,5 @@
-from base import *
-from instance import *
+from base import Database
+assert Database
+
+from instance import get_instance
+assert get_instance

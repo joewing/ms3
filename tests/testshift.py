@@ -1,5 +1,7 @@
 
 import unittest
+
+import memory.join as join
 import lex
 import machine
 import memory
@@ -12,7 +14,7 @@ class TestShift(unittest.TestCase):
     def setUp(self):
         self.machine = machine.MachineType()
         self.main = mock.MockMemory()
-        self.join = memory.Join()
+        self.join = join.Join()
         self.bank = mock.MockMemory(self.join)
 
     def test_positive(self):

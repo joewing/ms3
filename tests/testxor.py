@@ -1,10 +1,12 @@
 
 import unittest
-import machine
-import mock
+
+import memory.join as join
 import lex
+import machine
 import memory
 from memory.xor import XOR
+import mock
 
 
 class TestXOR(unittest.TestCase):
@@ -12,7 +14,7 @@ class TestXOR(unittest.TestCase):
     def setUp(self):
         self.machine = machine.MachineType()
         self.main = mock.MockMemory()
-        self.join = memory.Join()
+        self.join = join.Join()
         self.bank = mock.MockMemory(self.join)
 
     def test_xor16(self):

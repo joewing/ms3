@@ -1,5 +1,6 @@
 
 import base
+import container
 import parser
 
 
@@ -13,10 +14,10 @@ def random_prefetch(machine, nxt, rand, cost):
         return None
 
 
-class Prefetch(base.Container):
+class Prefetch(container.Container):
 
     def __init__(self, mem, stride):
-        base.Container.__init__(self, mem)
+        container.Container.__init__(self, mem)
         self.stride = stride
         self.time = 0
 
@@ -39,7 +40,7 @@ class Prefetch(base.Container):
             return self
 
     def reset(self, m):
-        base.Container.reset(self, m)
+        container.Container.reset(self, m)
         self.time = 0
 
     def done(self):

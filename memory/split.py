@@ -1,13 +1,14 @@
 
 import base
+import join
 import machine
 import parser
 
 
 def random_split(machine, nxt, rand, cost):
     offset = rand.random_address(machine.word_size)
-    bank0 = base.Join(0)
-    bank1 = base.Join(1)
+    bank0 = join.Join(0)
+    bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
     if result.get_cost() <= cost:
         return result
@@ -23,8 +24,8 @@ class Split(base.Memory):
         self.bank1 = bank1
         self.mem = mem
         self.offset = offset
-        base.set_parent(bank0, self)
-        base.set_parent(bank1, self)
+        join.set_parent(bank0, self)
+        join.set_parent(bank1, self)
 
     def __str__(self):
         result = "(split "
@@ -148,8 +149,8 @@ class Split(base.Memory):
         self.bank0 = self.bank0.simplify()
         self.bank1 = self.bank1.simplify()
         self.mem = self.mem.simplify()
-        if isinstance(self.bank0, base.Join) and \
-           isinstance(self.bank1, base.Join):
+        if isinstance(self.bank0, join.Join) and \
+           isinstance(self.bank1, join.Join):
             return self.mem
         return self
 

@@ -1,6 +1,7 @@
 
 import base
 import cacti
+import container
 import machine
 import parser
 import xilinx
@@ -26,12 +27,12 @@ def random_spm(machine, nxt, rand, cost):
     return None
 
 
-class SPM(base.Container):
+class SPM(container.Container):
 
     def __init__(self, mem, size=0,
                  access_time=0,
                  cycle_time=0):
-        base.Container.__init__(self, mem)
+        container.Container.__init__(self, mem)
         self.size = size
         self.access_time = access_time
         self.cycle_time = cycle_time
@@ -114,7 +115,7 @@ class SPM(base.Container):
             return self
 
     def reset(self, m):
-        base.Container.reset(self, m)
+        container.Container.reset(self, m)
         self.pending = 0
         if m.target == machine.TargetType.ASIC:
             self.access_time = cacti.get_access_time(m, self)

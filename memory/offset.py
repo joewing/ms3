@@ -1,6 +1,8 @@
 
 import base
 import parser
+import join
+import transform
 
 
 def random_offset(machine, nxt, rand, cost):
@@ -8,13 +10,13 @@ def random_offset(machine, nxt, rand, cost):
         offset = rand.randint(-machine.word_size, machine.word_size)
     else:
         offset = rand.random_address(machine.word_size)
-    return Offset(base.Join(), nxt, offset)
+    return Offset(join.Join(), nxt, offset)
 
 
-class Offset(base.Transform):
+class Offset(transform.Transform):
 
     def __init__(self, bank, mem, offset):
-        base.Transform.__init__(self, bank, mem)
+        transform.Transform.__init__(self, bank, mem)
         self.offset = offset
 
     def __str__(self):

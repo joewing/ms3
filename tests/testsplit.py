@@ -1,5 +1,7 @@
 
 import unittest
+
+import memory.join as join
 import lex
 import machine
 import memory
@@ -14,8 +16,8 @@ class TestSplit(unittest.TestCase):
                                            word_size=8,
                                            addr_bits=32)
         self.main = mock.MockMemory()
-        self.join0 = memory.Join(0)
-        self.join1 = memory.Join(1)
+        self.join0 = join.Join(0)
+        self.join1 = join.Join(1)
         self.bank0 = mock.MockMemory(self.join0)
         self.bank1 = mock.MockMemory(self.join1)
 

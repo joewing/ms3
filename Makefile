@@ -2,25 +2,21 @@
 SELECT_PROG=$(if $(shell which $(1)),$(1),$(2))
 
 PYTHON=$(call SELECT_PROG,pypy,python)
-COVERAGE=$(call SELECT_PROG,coverage,python-coverage)
 FLAKES=pyflakes
 PEP8=pep8
+NOSETESTS=nosetests
 
-all:
-	$(PYTHON) -O memsim.py
+all: lint
+	$(MAKE) test
 
 test:
-	$(PYTHON) test.py
+	cd tests && nosetests --with-coverage
 
 lint:
-	$(FLAKES) .
-
-pep8:
-	$(PEP8) .
-
-coverage:
-	$(COVERAGE) run test.py
-	$(COVERAGE) report -m
+	$(PEP8) . ;\
+	if [ $$? -eq 0 ] ; then \
+		$(FLAKES) . ;\
+	fi
 
 clean:
 	find . -name "*.py[oc]" -exec rm {} \;

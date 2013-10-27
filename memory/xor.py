@@ -1,17 +1,19 @@
 
 import base
+import join
 import parser
+import transform
 
 
 def random_xor(machine, nxt, rand, cost):
     value = 1 << rand.randint(0, machine.addr_bits - 1)
-    return XOR(base.Join(), nxt, value)
+    return XOR(join.Join(), nxt, value)
 
 
-class XOR(base.Transform):
+class XOR(transform.Transform):
 
     def __init__(self, bank, mem, value):
-        base.Transform.__init__(self, bank, mem)
+        transform.Transform.__init__(self, bank, mem)
         self.value = value
 
     def __str__(self):

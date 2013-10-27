@@ -1,18 +1,20 @@
 
 import base
+import join
 import parser
+import transform
 
 
 def random_shift(machine, nxt, rand, cost):
     bits = machine.addr_bits - machine.word_bits - 1
     shift = rand.randint(-bits, bits)
-    return Shift(base.Join(), nxt, shift)
+    return Shift(join.Join(), nxt, shift)
 
 
-class Shift(base.Transform):
+class Shift(transform.Transform):
 
     def __init__(self, bank, mem, shift):
-        base.Transform.__init__(self, bank, mem)
+        transform.Transform.__init__(self, bank, mem)
         self.shift = shift
 
     def __str__(self):

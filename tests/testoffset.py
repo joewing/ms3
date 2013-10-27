@@ -1,5 +1,7 @@
 
 import unittest
+
+import memory.join as join
 import lex
 import machine
 import memory
@@ -12,7 +14,7 @@ class TestOffset(unittest.TestCase):
     def setUp(self):
         self.machine = machine.MachineType()
         self.main = mock.MockMemory()
-        self.bank = mock.MockMemory(memory.Join())
+        self.bank = mock.MockMemory(join.Join())
 
     def test_positive(self):
         offset = Offset(self.bank, self.main, 3)
@@ -74,7 +76,7 @@ class TestOffset(unittest.TestCase):
         self.assertEqual(self.bank.last_size, 8)
 
     def test_simplify1(self):
-        offset = Offset(memory.Join(), self.main, 0)
+        offset = Offset(join.Join(), self.main, 0)
         offset.reset(self.machine)
         simplified = offset.simplify()
         self.assertEqual(str(simplified), "(mock)")
