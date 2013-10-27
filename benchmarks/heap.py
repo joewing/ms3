@@ -29,6 +29,7 @@ class Heap(base.Benchmark):
         heap[0] += 1
         size = heap[0]
         index = size
+        yield self.read(0)
         yield self.write(0)
         while index > 1:
             parent = index >> 1
@@ -44,6 +45,8 @@ class Heap(base.Benchmark):
     def _remove(self, heap):
         size = heap[0]
         heap[0] -= 1
+        yield self.read(0)
+        yield self.write(0)
         yield self.read(size)
         displaced = heap[size]
         yield self.read(1)
@@ -80,6 +83,7 @@ class Heap(base.Benchmark):
     def run(self):
         rand = random.Random(self.seed)
         heap = [0] * (self.size + 1)
+        yield self.write(0)
         for i in range(self.size):
             yield self.consume(self.input_port)
             value = rand.randint(0, 1 << 30)

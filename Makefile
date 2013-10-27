@@ -13,7 +13,7 @@ all: lint
 
 test:
 	@echo "[NOSE]"
-	@cd tests && nosetests --with-coverage \
+	@cd tests && nosetests --with-coverage --nocapture \
 		$(foreach p,$(COVER_PACKAGES), --cover-package $p)
 
 lint:
