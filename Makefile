@@ -5,12 +5,14 @@ PYTHON=$(call SELECT_PROG,pypy,python)
 FLAKES=pyflakes
 PEP8=pep8
 NOSETESTS=nosetests
+COVER_PACKAGES=benchmarks database memory
 
 all: lint
 	$(MAKE) test
 
 test:
-	cd tests && nosetests --with-coverage
+	cd tests && nosetests --with-coverage \
+		$(foreach p,$(COVER_PACKAGES), --cover-package $p)
 
 lint:
 	$(PEP8) . ;\
