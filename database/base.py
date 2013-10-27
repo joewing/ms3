@@ -34,6 +34,14 @@ class Database:
         """Save FPGA timing data."""
         pass
 
+    def get_cacti_result(self, key):
+        """Load CACTI timing data."""
+        pass
+
+    def add_cacti_result(self, key, access_time, cycle_time, area):
+        """Save CACTI timing data."""
+        pass
+
     def set_value(self, key, value):
         """Set a value for the current state."""
         self.state[key] = value

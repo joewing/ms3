@@ -7,16 +7,19 @@ import sys
 import tempfile
 
 import cache
+import database
 import spm
 
 
 class CACTIResult:
-    area = 0
-    cycle_time = 0
-    access_time = 0
+
+    def __init__(self, access_time=0, cycle_time=0, area=0):
+        self.access_time = access_time
+        self.cycle_time = cycle_time
+        self.area = area
 
     def get_pair(self):
-        return (self.area, self.cycle_time, self.access_time)
+        return (self.access_time, self.cycle_time, self.area)
 
     def __eq__(self, other):
         return self.get_pair() == other.get_pair()
@@ -33,6 +36,20 @@ class CACTIParams:
     associativity = 1
     is_cache = False
     technology = 0.045
+
+    def __str__(self):
+        result = "("
+        if self.is_cache:
+            result += "cache "
+            result += "(associativity " + str(self.associativity) + ")"
+        else:
+            result += "sram "
+        result += "(size " + str(self.size) + ")"
+        result += "(block_size " + str(self.block_size) + ")"
+        result += "(bus_bits " + str(self.bus_bits) + ")"
+        result += "(technology " + str(self.technology) + ")"
+        result += ")"
+        return result
 
     def get_pair(self):
         p = (self.size, self.block_size, self.bus_bits,
@@ -88,8 +105,12 @@ def run_cacti(params):
     """Get the result of running CACTI with the specified parameters."""
 
     # Check if we already tried a memory with these parameters.
-    if params in cacti_results:
-        return cacti_results[params]
+    db = database.get_instance()
+    temp = db.get_cacti_result(params)
+    if temp is not None:
+        return CACTIResult(access_time=temp[0],
+                           cycle_time=temp[1],
+                           area=temp[2])
 
     # Make sure the cacti program exists and is executable.
     cacti_exe = './cacti'
@@ -134,7 +155,10 @@ def run_cacti(params):
     else:
         result.cycle_time = float(m.group(1))
 
-    cacti_results[params] = result
+    db.add_cacti_result(params,
+                        result.access_time,
+                        result.cycle_time,
+                        result.area)
     return result
 
 
