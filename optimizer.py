@@ -6,6 +6,7 @@ import database
 import lex
 import memory
 import memory.cache as cache
+import memory.join as join
 import memory.offset as offset
 import memory.prefetch as prefetch
 import memory.spm as spm
@@ -172,7 +173,7 @@ class Optimizer:
             if n is None:
                 return mem
             for b in mem.get_banks():
-                if not isinstance(b, memory.Join):
+                if not isinstance(b, join.Join):
                     return mem
             return n
         nc = n.count()
