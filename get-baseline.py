@@ -36,9 +36,9 @@ def run_simulation(mem, experiment):
     print "  Running ", experiment
     with open(experiment, 'r') as f:
         l = lex.Lexer(f)
-    m = model.parse_model(l)
+        m = model.parse_model(l)
     dist = distribution.Distribution(m.seed)
-    procs = [process.Process(dist, m.bm)]
+    procs = [process.Process(dist, m.benchmarks[0])]
     pl = process.ProcessList(mach, procs, 1000000, 0)
     ml = memory.MemoryList([mem], [dist])
     return pl.run(ml, 0)
@@ -99,7 +99,7 @@ def main():
     max_brams = 64
     bram_size = 512 * 72 / 8
     word_size = 4
-    line_count = 1
+    line_count = 256
     while line_count <= max_brams * bram_size // word_size:
         line_size = word_size
         while line_size * line_count <= max_brams * bram_size:
