@@ -30,8 +30,9 @@ class Model:
         return result
 
 
-def parse_model(lexer, model=Model()):
-
+def parse_model(lexer, model=None):
+    if model is None:
+        model = Model()
     while lexer.get_type() != lex.TOKEN_EOF:
         lexer.match(lex.TOKEN_OPEN)
         name = lexer.get_value()
