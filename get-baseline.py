@@ -40,6 +40,7 @@ def run_simulation(mem, experiment):
     dist = distribution.Distribution(m.seed)
     procs = [process.Process(dist, m.benchmarks[0])]
     pl = process.ProcessList(mach, procs, 1000000, 0)
+    pl.first = False
     ml = memory.MemoryList([mem], [dist])
     return pl.run(ml, 0)
 
@@ -76,12 +77,10 @@ def generate_cache(line_count,
                     write_back=write_back)
     c.reset(mach)
     cost = c.get_cost()
-    print cost
     if cost <= 64:
         global total
         total += 1
         run_simulations(c, experiments)
-        print total
 
 
 def main():
@@ -104,7 +103,7 @@ def main():
         line_size = word_size
         while line_size * line_count <= max_brams * bram_size:
             associativity = 1
-            while associativity <= line_count:
+            while associativity <= min(line_count, 8):
                 for policy in range(0, cache.CachePolicy.MAX_POLICY):
                     generate_cache(line_count, line_size, associativity,
                                    policy, True, experiments)
