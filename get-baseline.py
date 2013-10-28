@@ -1,0 +1,122 @@
+
+import math
+import optparse
+import os
+import sys
+
+import database
+import distribution
+import lex
+import machine
+import memory
+import memory.cache as cache
+import memory.ram as ram
+import model
+import process
+
+
+parser = optparse.OptionParser()
+parser.add_option('-u', '--url', dest='url', default=None,
+                  help='database URL')
+
+
+db = None
+total = 0
+mach = machine.MachineType(target=machine.TargetType.FPGA,
+                           frequency=250000000,
+                           word_size=4,
+                           addr_bits=32,
+                           max_path_length=64)
+best_name = ''
+best_cost = 0
+best_time = 1 << 31
+
+
+def run_simulation(mem, experiment):
+    print "  Running ", experiment
+    with open(experiment, 'r') as f:
+        l = lex.Lexer(f)
+    m = model.parse_model(l)
+    dist = distribution.Distribution(m.seed)
+    procs = [process.Process(dist, m.bm)]
+    pl = process.ProcessList(mach, procs, 1000000, 0)
+    ml = memory.MemoryList([mem], [dist])
+    return pl.run(ml, 0)
+
+
+def run_simulations(mem, experiments):
+    print "Evaluating ", mem
+    lsum = 0.0
+    for e in experiments:
+        result = run_simulation(mem, e)
+        lsum += math.log(result)
+    gmean = math.exp(lsum / len(experiments))
+    print "Geometric mean: ", gmean
+    cost = mem.get_cost()
+    global best_time, best_cost, best_name
+    if gmean < best_time or \
+       (gmean == best_time and cost < best_cost):
+        best_time = gmean
+        best_cost = cost
+        best_name = str(mem)
+    return gmean
+
+
+def generate_cache(line_count,
+                   line_size,
+                   associativity,
+                   policy,
+                   write_back,
+                   experiments):
+    c = cache.Cache(mem=ram.RAM(),
+                    line_count=line_count,
+                    line_size=line_size,
+                    associativity=associativity,
+                    policy=policy,
+                    write_back=write_back)
+    c.reset(mach)
+    cost = c.get_cost()
+    print cost
+    if cost <= 64:
+        global total
+        total += 1
+        run_simulations(c, experiments)
+        print total
+
+
+def main():
+    (options, args) = parser.parse_args()
+    if len(args) == 0:
+        print "no experiments provided"
+        sys.exit(0)
+    experiments = args
+    if options.url is None:
+        url = os.environ.get('COUCHDB_URL')
+    else:
+        url = options.url
+    global db
+    db = database.get_instance('', url)
+    max_brams = 64
+    bram_size = 512 * 72 / 8
+    word_size = 4
+    line_count = 1
+    while line_count <= max_brams * bram_size // word_size:
+        line_size = word_size
+        while line_size * line_count <= max_brams * bram_size:
+            associativity = 1
+            while associativity <= line_count:
+                for policy in range(0, cache.CachePolicy.MAX_POLICY):
+                    generate_cache(line_count, line_size, associativity,
+                                   policy, True, experiments)
+                    generate_cache(line_count, line_size, associativity,
+                                   policy, False, experiments)
+                associativity *= 2
+            line_size *= 2
+        line_count *= 2
+    print "Total: ", total
+    print "Best Cost:   ", best_cost
+    print "Best Memory: ", best_name
+
+
+if __name__ == '__main__':
+    main()
