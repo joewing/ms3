@@ -33,6 +33,10 @@ class Offset(transform.Transform):
     def is_empty(self):
         return self.offset == 0
 
+    def combine(self, other):
+        assert(isinstance(other, Offset))
+        self.offset += other.offset
+
     def permute(self, rand, max_cost):
         word_size = self.machine.word_size
         if rand.randbool():

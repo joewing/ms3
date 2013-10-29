@@ -110,11 +110,20 @@ class Transform(container.Container):
     def is_empty(self):
         return False
 
+    def combine(self, other):
+        """Combine this transform with another transform of the same type."""
+        assert(False)
+
     def simplify(self):
         self.bank = self.bank.simplify()
         self.mem = self.mem.simplify()
         if isinstance(self.bank, join.Join):
             return self.mem
+        if self.__class__ is self.bank.__class__:
+            self.combine(self.bank)
+            j = join.find_join(self.bank.bank, self.bank)
+            self.bank = self.bank.bank
+            j.parent = self
         if self.is_empty():
             last, t = None, self.bank
             while (not isinstance(t, join.Join)) or t.parent is not self:

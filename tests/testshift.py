@@ -150,6 +150,21 @@ class TestShift(unittest.TestCase):
         simplified = shift.simplify()
         self.assertEqual(simplified, self.main)
 
+    def test_simplify4(self):
+        shift1 = Shift(self.bank, join.Join(), 1)
+        shift2 = Shift(shift1, self.main, 2)
+        simplified = shift2.simplify()
+        s = "(shift (value 3)(bank (mock (join)))(memory (mock)))"
+        self.assertEqual(str(simplified), s)
+
+    def test_simplify5(self):
+        shift1 = Shift(self.bank, join.Join(), -10)
+        shift2 = Shift(shift1, self.main, -25)
+        simplified = shift2.simplify()
+        simplified.reset(self.machine)
+        s = "(shift (value 23)(bank (mock (join)))(memory (mock)))"
+        self.assertEqual(str(simplified), s)
+
     def test_parse(self):
         s = "(shift (value 2)(bank (join))(memory (ram (latency 100))))"
         l = lex.Lexer(mock.MockFile(s))

@@ -48,6 +48,19 @@ class TestXOR(unittest.TestCase):
         simplified = xor.simplify()
         self.assertEqual(simplified, self.main)
 
+    def test_simplify4(self):
+        xor1 = XOR(self.bank, join.Join(), 8)
+        xor2 = XOR(xor1, self.main, 16)
+        simplified = xor2.simplify()
+        s = "(xor (value 24)(bank (mock (join)))(memory (mock)))"
+        self.assertEqual(str(simplified), s)
+
+    def test_simplify5(self):
+        xor1 = XOR(self.bank, join.Join(), 8)
+        xor2 = XOR(xor1, self.main, 8)
+        simplified = xor2.simplify()
+        self.assertEqual(str(simplified), "(mock (mock))")
+
     def test_parse(self):
         s = "(xor (value 1024)(bank (join))(memory (ram (latency 100))))"
         l = lex.Lexer(mock.MockFile(s))

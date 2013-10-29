@@ -28,8 +28,18 @@ class Shift(transform.Transform):
     def generate(self, gen, mach):
         self.generate_transform("shift", self.shift, -self.shift, gen, mach)
 
+    def reset(self, machine):
+        transform.Transform.reset(self, machine)
+        bits = machine.addr_bits - machine.word_bits
+        while self.shift < 0:
+            self.shift += bits
+        self.shift %= bits
+
     def is_empty(self):
         return self.shift == 0
+
+    def combine(self, other):
+        self.shift += other.shift
 
     def permute(self, rand, max_cost):
         bits = self.machine.addr_bits - self.machine.word_bits - 1

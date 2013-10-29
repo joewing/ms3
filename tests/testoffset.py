@@ -94,6 +94,14 @@ class TestOffset(unittest.TestCase):
         self.assertEqual(str(simplified), "(offset (value 1)" +
                          "(bank (mock (join)))(memory (mock)))")
 
+    def test_simplify4(self):
+        offset1 = Offset(self.bank, join.Join(), 1)
+        offset2 = Offset(offset1, self.main, 2)
+        offset2.reset(self.machine)
+        simplified = offset2.simplify()
+        s = "(offset (value 3)(bank (mock (join)))(memory (mock)))"
+        self.assertEqual(str(simplified), s)
+
     def test_parse(self):
         s = "(offset (value 8)(bank (join))(memory (ram (latency 100))))"
         l = lex.Lexer(mock.MockFile(s))
