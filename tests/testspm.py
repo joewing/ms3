@@ -61,6 +61,7 @@ class TestSPM(unittest.TestCase):
         s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
         gen = vhdl.VHDLGenerator()
         result = gen.generate(self.machine, s)
+        self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
 
     def test_parse(self):
