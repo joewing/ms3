@@ -5,6 +5,7 @@ import machine
 import memory
 import mock
 from memory.cache import Cache, CachePolicy
+import vhdl
 
 
 class TestCache(unittest.TestCase):
@@ -115,7 +116,23 @@ class TestCache(unittest.TestCase):
                       access_time=1,
                       cycle_time=1,
                       write_back=True)
+        cache.reset(self.machine)
         self.assertEqual(cache.get_path_length(), 0)
+        self.assertEqual(cache.get_cost(), 4 * 2 * 8 + 4 * 17)
+
+    def test_generate(self):
+        cache = Cache(self.main,
+                      line_count=4,
+                      line_size=2,
+                      associativity=2,
+                      policy=CachePolicy.LRU,
+                      access_time=1,
+                      cycle_time=1,
+                      write_back=True)
+        gen = vhdl.VHDLGenerator()
+        result = gen.generate(self.machine, cache)
+        self.assertNotEqual(result, None)
+        self.assertEqual(self.main.generated, 1)
 
     def test_parse(self):
         s = "(cache (line_count 2)(line_size 4)(associativity 2)"

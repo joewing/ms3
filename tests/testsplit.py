@@ -7,6 +7,7 @@ import machine
 import memory
 import mock
 from memory.split import Split
+import vhdl
 
 
 class TestSplit(unittest.TestCase):
@@ -128,6 +129,15 @@ class TestSplit(unittest.TestCase):
         l = lex.Lexer(mock.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
+
+    def test_generate(self):
+        split = Split(self.bank0, self.bank1, self.main, offset=128)
+        gen = vhdl.VHDLGenerator()
+        result = gen.generate(self.machine, split)
+        self.assertNotEqual(result, None)
+        self.assertEqual(self.main.generated, 1)
+        self.assertEqual(self.bank0.generated, 1)
+        self.assertEqual(self.bank1.generated, 1)
 
     def test_cost(self):
         split = Split(self.bank0, self.bank1, self.main, offset=8)

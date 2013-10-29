@@ -48,8 +48,8 @@ class Split(base.Memory):
         boffset = machine.log2(self.offset) - 1
         b0name = self.bank0.get_id()
         b1name = self.bank1.get_id()
-        j0name = base.find_join(self.bank0, self).get_id()
-        j1name = base.find_join(self.bank1, self).get_id()
+        j0name = join.find_join(self.bank0, self).get_id()
+        j1name = join.find_join(self.bank1, self).get_id()
 
         gen.add_code(name + "_combine : entity work.combine")
         gen.enter()
@@ -124,6 +124,7 @@ class Split(base.Memory):
         gen.add_code("mmask1 => " + b1name + "_mask,")
         gen.add_code("mready1 => " + b1name + "_ready")
         gen.add_code(");")
+        gen.leave()
 
     def get_next(self):
         return self.mem
