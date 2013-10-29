@@ -10,7 +10,7 @@ import mock
 
 class TestHeap(unittest.TestCase):
 
-    def test_heap(self):
+    def test_heap1(self):
         h = Heap(1, 2, 3, 4)
         h.reset(1024)
         gen = h.run()
@@ -129,6 +129,28 @@ class TestHeap(unittest.TestCase):
         self.assertEqual(t, AccessType.PRODUCE)
         self.assertEqual(addr, 4)
         self.assertEqual(size, 0)
+
+    def test_heap2(self):
+        h = Heap(1, 1, -1, -1)
+        h.reset(1024)
+        gen = h.run()
+
+        expected = [
+            (AccessType.WRITE, 1024, 4),    # initialize
+            (AccessType.IDLE, 0, 0),        # 'consume'
+            (AccessType.READ, 1024, 4),     # read size
+            (AccessType.WRITE, 1024, 4),    # increment size
+            (AccessType.WRITE, 1028, 4),    # write first
+            (AccessType.READ, 1024, 4),     # read size
+            (AccessType.WRITE, 1024, 4),    # decrement size
+            (AccessType.READ, 1028, 4),     # read result
+            (AccessType.READ, 1028, 4),     # read for over-write
+            (AccessType.WRITE, 1028, 4),    # overwrite
+            (AccessType.IDLE, 0, 0),        # 'produce'
+        ]
+        for e in expected:
+            actual = next(gen)
+            self.assertEqual(actual, e)
 
     def test_parse(self):
         s = "(heap (seed 1)(size 2)(input_port 3)(output_port 4))"
