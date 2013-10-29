@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import optparse
 import sys
 import process
@@ -25,17 +26,17 @@ def main():
     for at, addr, size in trace.run():
         if count < on:
             if at == process.AccessType.READ:
-                print('R' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('R', hex(addr)[2:], ":", hex(size)[2:])
             elif at == process.AccessType.WRITE:
-                print('W' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('W', hex(addr)[2:], ":", hex(size)[2:])
             elif at == process.AccessType.IDLE:
-                print('I' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('I', hex(addr)[2:], ":", hex(size)[2:])
             elif at == process.AccessType.CONSUME:
-                print('C' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('C', hex(addr)[2:], ":", hex(size)[2:])
             elif at == process.AccessType.PRODUCE:
-                print('P' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('P', hex(addr)[2:], ":", hex(size)[2:])
             elif at == process.AccessType.END:
-                print('X' + hex(addr)[2:] + ":" + hex(size)[2:])
+                print('X', hex(addr)[2:], ":", hex(size)[2:])
             else:
                 assert(False)
         count += 1

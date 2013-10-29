@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import os
 import optparse
 import boto.ec2
@@ -26,16 +27,16 @@ def start_instance(db, name):
                            instance_type='t1.micro',
                            instance_initiated_shutdown_behavior='terminate')
     for i in r.instances:
-        print("  started " + str(i.id))
+        print("  started ", i.id)
 
 
 def check(db, name, iterations, can_start):
     db.load(name)
     instance = db.get_instance()
     current = db.get_value('evaluations')
-    print(name.name + ": " + str(current) + " / " + str(iterations))
+    print(name.name, ": ", current, " / ", iterations)
     if instance is not None:
-        print("  running: " + instance)
+        print("  running: ", instance)
         return False
     elif current >= iterations:
         print("  done")
@@ -58,7 +59,7 @@ def main():
     for n in db.list():
         if check(db, n, iterations, started < to_start):
             started += 1
-        print
+        print()
 
 if __name__ == '__main__':
     main()

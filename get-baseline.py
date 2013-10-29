@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import math
 import optparse
 import os
@@ -33,7 +34,7 @@ best_time = 1 << 31
 
 
 def run_simulation(mem, experiment):
-    print "  Running ", experiment
+    print("  Running ", experiment)
     with open(experiment, 'r') as f:
         l = lex.Lexer(f)
         m = model.parse_model(l)
@@ -47,13 +48,13 @@ def run_simulation(mem, experiment):
 
 
 def run_simulations(mem, experiments):
-    print "Evaluating ", mem
+    print("Evaluating ", mem)
     lsum = 0.0
     for e in experiments:
         result = run_simulation(mem, e)
         lsum += math.log(result)
     gmean = math.exp(lsum / len(experiments))
-    print "Geometric mean: ", gmean
+    print("Geometric mean: ", gmean)
     cost = mem.get_cost()
     global best_time, best_cost, best_name
     if gmean < best_time or \
@@ -94,7 +95,7 @@ def get_policies(associativity):
 def main():
     (options, args) = parser.parse_args()
     if len(args) == 0:
-        print "no experiments provided"
+        print("no experiments provided")
         sys.exit(0)
     experiments = args
     if options.url is None:
@@ -120,9 +121,9 @@ def main():
                 associativity *= 2
             line_size *= 2
         line_count *= 2
-    print "Total: ", total
-    print "Best Cost:   ", best_cost
-    print "Best Memory: ", best_name
+    print("Total: ", total)
+    print("Best Cost:   ", best_cost)
+    print("Best Memory: ", best_name)
 
 
 if __name__ == '__main__':

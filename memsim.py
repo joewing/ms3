@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import gc
 import optparse
 import os
@@ -26,10 +27,10 @@ def parse_model_file(file_name):
         with open(file_name, 'r') as f:
             return model.parse_model(lex.Lexer(f))
     except IOError as e:
-        print("ERROR: could not open model: " + str(e))
+        print("ERROR: could not open model: ", e)
         sys.exit(-1)
     except lex.ParseError as e:
-        print("ERROR: " + str(e))
+        print("ERROR: ", e)
         sys.exit(-1)
 
 
@@ -65,15 +66,15 @@ def main():
     ml = o.load()
     limit = o.best_value * 4
     while o.evaluations < int(options.iterations):
-        print("Iteration: " + str(o.evaluations + 1) +
-              " (steps: " + str(o.steps + 1) +
-              ", threshold: " + str(o.threshold) +
-              ", age: " + str(o.age) + ")")
+        print("Iteration: ", (o.evaluations + 1),
+              " (steps: ", (o.steps + 1),
+              ", threshold: ", o.threshold,
+              ", age: ", o.age, ")")
         time = pl.run(ml, limit)
         ml = o.optimize(time)
-        print("Best Memory: " + str(o.best_name))
-        print("Best Value:  " + str(o.best_value))
-        print("Best Cost:    " + str(o.best_cost))
+        print("Best Memory: ", o.best_name)
+        print("Best Value:  ", o.best_value)
+        print("Best Cost:    ", o.best_cost)
         db.save()
         gc.collect()
 

@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import sys
 
 import database
@@ -186,6 +187,6 @@ class ProcessList:
             self.first = False
 
         # Display the results and return.
-        print("Time: " + str(self.machine.time))
-        print("Cost: " + str(ml.get_cost()))
+        print("Time: ", self.machine.time)
+        print("Cost: ", ml.get_cost())
         return self.machine.time

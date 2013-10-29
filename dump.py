@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import optparse
 import os
 
@@ -32,11 +33,11 @@ def show_state(db, state):
     best_name = state['best_name']
     best_value = state['best_value']
     best_cost = state['best_cost']
-    print("  Hash: " + db.get_hash(m))
-    print("  Iter: " + str(iterations))
-    print("  Best: " + best_name)
-    print("  Time: " + str(best_value))
-    print("  Cost: " + str(best_cost))
+    print("  Hash: ", db.get_hash(m))
+    print("  Iter: ", iterations)
+    print("  Best: ", best_name)
+    print("  Time: ", best_value)
+    print("  Cost: ", best_cost)
 
 
 def show_pending(db):
@@ -58,7 +59,7 @@ def show_pending(db):
         name = models[key]
         i = iterations.get(key, 0)
         pad = max(16 - len(name), 0)
-        print(name + ":" + (" " * pad) + str(i))
+        print(name, ":", (" " * pad), i)
 
 
 def main():
@@ -77,7 +78,7 @@ def main():
     if options.show:
         for state in db.get_states():
             show_state(db, state)
-            print
+            print()
     if options.pending:
         show_pending(db)
 
