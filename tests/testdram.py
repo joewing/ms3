@@ -6,7 +6,6 @@ from machine import MachineType
 import memory
 from memory.dram import DRAM
 import mock
-import vhdl
 
 
 class TestDRAM(unittest.TestCase):
