@@ -1,10 +1,13 @@
 
 import unittest
+
+import distribution
 import machine
 import mock
 import memory
 import lex
-from memory.spm import SPM
+from memory.spm import SPM, random_spm
+import vhdl
 
 
 class TestSPM(unittest.TestCase):
@@ -40,6 +43,25 @@ class TestSPM(unittest.TestCase):
         t = spm.process(0, True, 8192, 16)
         self.assertEqual(t, 1600)
         self.machine.time += t
+
+    def test_random(self):
+        s = random_spm(self.machine, self.main, None, 8193)
+        self.assertEqual(str(s), "(spm (size 1024)(memory (mock)))")
+
+    def test_permute(self):
+        s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
+        s.reset(self.machine)
+        dist = distribution.Distribution(1)
+        result = s.permute(dist, 5)
+        self.assertEqual(result, False)
+        result = s.permute(dist, 10000)
+        self.assertEqual(result, True)
+
+    def test_generate(self):
+        s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
+        gen = vhdl.VHDLGenerator()
+        result = gen.generate(self.machine, s)
+        self.assertEqual(self.main.generated, 1)
 
     def test_parse(self):
         s = "(spm (size 1024)(access_time 3)(cycle_time 4)"

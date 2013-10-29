@@ -35,8 +35,10 @@ class MockMemory(memory.Memory):
     last_size = 0
     reads = 0
     writes = 0
+    generated = 0
 
     def __init__(self, mem=None, *banks):
+        memory.Memory.__init__(self)
         self.mem = mem
         self.banks = list(banks)
 
@@ -61,6 +63,9 @@ class MockMemory(memory.Memory):
     def set_bank(self, i, b):
         assert(i < len(self.banks))
         self.banks[i] = b
+
+    def generate(self, gen, mach):
+        self.generated += 1
 
     def process(self, start, write, addr, size):
         self.last_addr = addr
