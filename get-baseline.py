@@ -41,6 +41,7 @@ def run_simulation(mem, experiment):
     procs = [process.Process(dist, m.benchmarks[0])]
     pl = process.ProcessList(mach, procs, 1000000, 0)
     pl.first = False
+    mem.set_next(m.memory)
     ml = memory.MemoryList([mem], [dist])
     return pl.run(ml, 0)
 
@@ -69,7 +70,7 @@ def generate_cache(line_count,
                    policy,
                    write_back,
                    experiments):
-    c = cache.Cache(mem=ram.RAM(),
+    c = cache.Cache(mem=ram.RAM(latency=0),
                     line_count=line_count,
                     line_size=line_size,
                     associativity=associativity,
