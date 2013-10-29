@@ -83,6 +83,13 @@ def generate_cache(line_count,
         run_simulations(c, experiments)
 
 
+def get_policies(associativity):
+    if associativity == 1:
+        return [0]
+    else:
+        return range(0, cache.CachePolicy.MAX_POLICY)
+
+
 def main():
     (options, args) = parser.parse_args()
     if len(args) == 0:
@@ -104,7 +111,7 @@ def main():
         while line_size * line_count <= max_brams * bram_size:
             associativity = 1
             while associativity <= min(line_count, 8):
-                for policy in range(0, cache.CachePolicy.MAX_POLICY):
+                for policy in get_policies(associativity):
                     generate_cache(line_count, line_size, associativity,
                                    policy, True, experiments)
                     generate_cache(line_count, line_size, associativity,
