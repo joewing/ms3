@@ -1,7 +1,12 @@
 
 import unittest
+
+import lex
 from machine import MachineType
+import memory
 from memory.dram import DRAM
+import mock
+import vhdl
 
 
 class TestDRAM(unittest.TestCase):
@@ -103,3 +108,28 @@ class TestDRAM(unittest.TestCase):
                     ddr=False)
         simplified = dram.simplify()
         self.assertEqual(dram, simplified)
+
+    def test_ports(self):
+        dram = DRAM(frequency=1e9 / 2,
+                    cas_cycles=2,
+                    rcd_cycles=3,
+                    rp_cycles=4,
+                    wb_cycles=1,
+                    page_size=1024,
+                    page_count=2048,
+                    width=2,
+                    burst_size=2,
+                    open_page=False,
+                    ddr=False)
+        ports = dram.get_ports(self.machine)
+        self.assertEqual(len(ports), 1)
+        self.assertEqual(ports[0].word_size, self.machine.word_size)
+        self.assertEqual(ports[0].addr_width, self.machine.addr_bits)
+
+    def test_parse(self):
+        s = "(dram (frequency 1024)(cas_cycles 1)(rcd_cycles 2)"
+        s += "(rp_cycles 3)(wb_cycles 4)(page_size 8)(page_count 16)"
+        s += "(width 2)(burst_size 2)(open_page false)(ddr false))"
+        l = lex.Lexer(mock.MockFile(s))
+        result = memory.parse_memory(l)
+        self.assertEqual(str(result), s)

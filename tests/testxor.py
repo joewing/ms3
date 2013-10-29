@@ -7,6 +7,7 @@ import machine
 import memory
 from memory.xor import XOR
 import mock
+import vhdl
 
 
 class TestXOR(unittest.TestCase):
@@ -52,6 +53,14 @@ class TestXOR(unittest.TestCase):
         l = lex.Lexer(mock.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
+
+    def test_generate(self):
+        xor = XOR(self.bank, self.main, 16)
+        gen = vhdl.VHDLGenerator()
+        result = gen.generate(self.machine, xor)
+        self.assertNotEqual(result, None)
+        self.assertEqual(self.main.generated, 1)
+        self.assertEqual(self.bank.generated, 1)
 
     def test_cost(self):
         xor = XOR(self.bank, self.main, 8)

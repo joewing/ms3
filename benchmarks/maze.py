@@ -37,13 +37,15 @@ class Maze(base.Benchmark):
 
     def carve(self, rand, maze):
         stack_offset = self.width * self.width
+        stack_offset += 4 - stack_offset % 4
         item_size = 4 * 3
         dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
         stack = [(2, 2, 0), (2, 2, 2)]
-        yield self.write(stack_offset + 0 * item_size)
-        yield self.write(stack_offset + 1 * item_size)
+        yield self.write(stack_offset)
+        stack_offset += item_size
         while len(stack) > 0:
-            yield self.read(stack_offset + len(stack) * item_size)
+            stack_offset -= item_size
+            yield self.read(stack_offset)
             x, y, d = stack.pop()
             yield self.set(maze, x, y, 0)
             dx, dy = dirs[d & 3]
@@ -55,7 +57,8 @@ class Maze(base.Benchmark):
                     yield self.set(maze, nx, ny, 0)
                     d = rand.randint(0, 3)
                     for i in range(4):
-                        yield self.write(stack_offset + len(stack) * item_size)
+                        yield self.write(stack_offset)
+                        stack_offset += item_size
                         stack.append((nx2, ny2, (d + i) & 3))
 
     def show(self, maze):
