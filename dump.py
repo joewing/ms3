@@ -1,7 +1,6 @@
 
 import optparse
 import os
-import re
 
 import database
 import lex
@@ -27,13 +26,13 @@ parser.add_option('-p', '--pending', default=False, action='store_true',
 def show_state(db, state):
     if 'model' not in state:
         return
-    model = state['model']
-    print(model)
+    m = state['model']
+    print(m)
     iterations = state['evaluations']
     best_name = state['best_name']
     best_value = state['best_value']
     best_cost = state['best_cost']
-    print("  Hash: " + db.get_hash(model))
+    print("  Hash: " + db.get_hash(m))
     print("  Iter: " + str(iterations))
     print("  Best: " + best_name)
     print("  Time: " + str(best_value))
@@ -60,6 +59,7 @@ def show_pending(db):
         i = iterations.get(key, 0)
         pad = max(16 - len(name), 0)
         print(name + ":" + (" " * pad) + str(i))
+
 
 def main():
     (options, args) = parser.parse_args()
