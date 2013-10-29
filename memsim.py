@@ -65,15 +65,17 @@ def main():
     ml = o.load()
     limit = o.best_value * 4
     while o.evaluations < int(options.iterations):
+        print("Iteration: " + str(o.evaluations + 1) +
+              " (steps: " + str(o.steps + 1) +
+              ", threshold: " + str(o.threshold) +
+              ", age: " + str(o.age) + ")")
         time = pl.run(ml, limit)
         ml = o.optimize(time)
-        db.save()
-        gc.collect()
-    else:
-        print("Iterations:  " + str(o.evaluations))
         print("Best Memory: " + str(o.best_name))
         print("Best Value:  " + str(o.best_value))
         print("Best Cost:    " + str(o.best_cost))
+        db.save()
+        gc.collect()
 
 if __name__ == '__main__':
     main()

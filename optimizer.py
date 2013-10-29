@@ -250,9 +250,6 @@ class Optimizer:
             self.best_name = name
             self.best_cost = cost
             self.best_value = time
-        print("Best Memory: " + str(self.best_name))
-        print("Best Value:  " + str(self.best_value))
-        print("Best Cost:    " + str(self.best_cost))
 
     def generate_next(self, time):
         """Generate the next memory to try."""
@@ -306,11 +303,5 @@ class Optimizer:
 
         # Generate the next subsystem and display stats.
         result = self.generate_next(time)
-        temp = "Iteration: " + str(self.evaluations + 1)
-        temp += " (steps " + str(self.steps + 1)
-        temp += ", threshold " + str(self.threshold)
-        temp += ", age " + str(self.age)
-        temp += ")"
-        print(temp)
         self._save()
         return result.simplified()
