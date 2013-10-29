@@ -1,7 +1,11 @@
 
 import unittest
+
+import benchmarks
 from benchmarks.hash import Hash
+import lex
 from process import AccessType
+import mock
 
 
 class TestHash(unittest.TestCase):
@@ -36,3 +40,9 @@ class TestHash(unittest.TestCase):
         t, addr, size = next(gen)
         self.assertEqual(t, AccessType.PRODUCE)
         self.assertEqual(addr, 2)
+
+    def test_parse(self):
+        s = "(hash (seed 3)(count 10)(input_port 5)(output_port 6))"
+        l = lex.Lexer(mock.MockFile(s))
+        result = benchmarks.parse_benchmark(l)
+        self.assertEqual(str(result), s)
