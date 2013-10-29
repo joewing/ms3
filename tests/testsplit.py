@@ -5,7 +5,7 @@ import memory.join as join
 import lex
 import machine
 import memory
-import mock
+from . import mocks
 from memory.split import Split
 import vhdl
 
@@ -16,11 +16,11 @@ class TestSplit(unittest.TestCase):
         self.machine = machine.MachineType(frequency=1e9,
                                            word_size=8,
                                            addr_bits=32)
-        self.main = mock.MockMemory()
+        self.main = mocks.MockMemory()
         self.join0 = join.Join(0)
         self.join1 = join.Join(1)
-        self.bank0 = mock.MockMemory(self.join0)
-        self.bank1 = mock.MockMemory(self.join1)
+        self.bank0 = mocks.MockMemory(self.join0)
+        self.bank1 = mocks.MockMemory(self.join1)
 
     def test_split256(self):
         split = Split(self.bank0, self.bank1,
@@ -126,7 +126,7 @@ class TestSplit(unittest.TestCase):
     def test_parse(self):
         s = "(split (offset 128)(bank0 (join))(bank1 (join))(memory "
         s += "(ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 

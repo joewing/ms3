@@ -2,7 +2,7 @@
 import unittest
 import machine
 import memory
-import mock
+from . import mocks
 import lex
 from memory.prefetch import Prefetch
 
@@ -12,7 +12,7 @@ class TestPrefetch(unittest.TestCase):
     def setUp(self):
         self.machine = machine.MachineType()
         self.machine.reset()
-        self.main = mock.MockMemory()
+        self.main = mocks.MockMemory()
 
     def test_positive(self):
         pf = Prefetch(self.main, 8)
@@ -48,7 +48,7 @@ class TestPrefetch(unittest.TestCase):
 
     def test_parse(self):
         s = "(prefetch (stride -8)(memory (ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 

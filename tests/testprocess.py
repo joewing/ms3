@@ -1,7 +1,7 @@
 
 import unittest
 import machine
-import mock
+from . import mocks
 import process
 
 
@@ -16,9 +16,9 @@ class TestProcess(unittest.TestCase):
             (process.AccessType.PRODUCE, 2, 0),
             (process.AccessType.END, 3, 0)
         ]
-        mem = mock.MockMemory()
+        mem = mocks.MockMemory()
         mach = machine.MachineType()
-        p = process.Process(None, mock.MockBenchmark(actions))
+        p = process.Process(None, mocks.MockBenchmark(actions))
         p.reset(mach, mem, 0)
 
         t = p.step(False)

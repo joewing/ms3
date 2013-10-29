@@ -5,7 +5,7 @@ import lex
 from machine import MachineType
 import memory
 from memory.dram import DRAM
-import mock
+from . import mocks
 
 
 class TestDRAM(unittest.TestCase):
@@ -129,6 +129,6 @@ class TestDRAM(unittest.TestCase):
         s = "(dram (frequency 1024)(cas_cycles 1)(rcd_cycles 2)"
         s += "(rp_cycles 3)(wb_cycles 4)(page_size 8)(page_count 16)"
         s += "(width 2)(burst_size 2)(open_page false)(ddr false))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)

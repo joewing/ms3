@@ -5,7 +5,7 @@ import benchmarks
 from benchmarks.mm import MM
 import lex
 from process import AccessType
-import mock
+from . import mocks
 
 
 class TestMM(unittest.TestCase):
@@ -69,6 +69,6 @@ class TestMM(unittest.TestCase):
 
     def test_parse(self):
         s = "(mm (size 2)(iterations 1)(input_port 3)(output_port 4))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

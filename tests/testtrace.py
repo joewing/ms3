@@ -6,7 +6,7 @@ import unittest
 import benchmarks
 from benchmarks.trace import Trace
 import lex
-import mock
+from . import mocks
 from process import AccessType
 
 
@@ -68,6 +68,6 @@ class TestTrace(unittest.TestCase):
 
     def test_parse(self):
         s = "(trace (file test_file))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

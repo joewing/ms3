@@ -5,7 +5,7 @@ import benchmarks
 from benchmarks.hash import Hash
 import lex
 from process import AccessType
-import mock
+from . import mocks
 
 
 class TestHash(unittest.TestCase):
@@ -43,6 +43,6 @@ class TestHash(unittest.TestCase):
 
     def test_parse(self):
         s = "(hash (seed 3)(count 10)(input_port 5)(output_port 6))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

@@ -4,7 +4,7 @@ import unittest
 import benchmarks
 from benchmarks.maze import Maze
 import lex
-import mock
+from . import mocks
 from process import AccessType
 
 
@@ -58,6 +58,6 @@ class TestMaze(unittest.TestCase):
 
     def test_parse(self):
         s = "(maze (seed 1)(width 2)(height 3))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

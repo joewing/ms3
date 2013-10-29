@@ -5,7 +5,7 @@ import benchmarks
 from benchmarks.heap import Heap
 import lex
 from process import AccessType
-import mock
+from . import mocks
 
 
 class TestHeap(unittest.TestCase):
@@ -154,6 +154,6 @@ class TestHeap(unittest.TestCase):
 
     def test_parse(self):
         s = "(heap (seed 1)(size 2)(input_port 3)(output_port 4))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

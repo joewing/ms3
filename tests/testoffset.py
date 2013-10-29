@@ -5,7 +5,7 @@ import memory.join as join
 import lex
 import machine
 import memory
-import mock
+from . import mocks
 from memory.offset import Offset
 
 
@@ -13,8 +13,8 @@ class TestOffset(unittest.TestCase):
 
     def setUp(self):
         self.machine = machine.MachineType()
-        self.main = mock.MockMemory()
-        self.bank = mock.MockMemory(join.Join())
+        self.main = mocks.MockMemory()
+        self.bank = mocks.MockMemory(join.Join())
 
     def test_positive(self):
         offset = Offset(self.bank, self.main, 3)
@@ -104,7 +104,7 @@ class TestOffset(unittest.TestCase):
 
     def test_parse(self):
         s = "(offset (value 8)(bank (join))(memory (ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 

@@ -3,7 +3,7 @@ import unittest
 import lex
 import machine
 import memory
-import mock
+from . import mocks
 from memory.cache import Cache, CachePolicy
 import vhdl
 
@@ -12,7 +12,7 @@ class TestCache(unittest.TestCase):
 
     def setUp(self):
         self.machine = machine.MachineType()
-        self.main = mock.MockMemory()
+        self.main = mocks.MockMemory()
 
     def test_direct(self):
         cache = Cache(self.main,
@@ -138,6 +138,6 @@ class TestCache(unittest.TestCase):
         s = "(cache (line_count 2)(line_size 4)(associativity 2)"
         s += "(access_time 2)(cycle_time 3)"
         s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)

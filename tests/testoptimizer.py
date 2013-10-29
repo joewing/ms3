@@ -1,6 +1,6 @@
 
 import unittest
-from mock import MockMemory
+from mocks import MockMemory
 from distribution import Distribution
 from optimizer import Optimizer
 from machine import MachineType
@@ -14,9 +14,9 @@ class TestOptimizer(unittest.TestCase):
         self.rand = Distribution(1)
         self.ml = MemoryList([], self.rand)
         self.optimizer = Optimizer(self.machine, self.ml, None, None)
-        self.optimizer.constructors = [self.mock_constructor]
+        self.optimizer.constructors = [self.mocks_constructor]
 
-    def mock_constructor(self, machine, nxt, rand, cost):
+    def mocks_constructor(self, machine, nxt, rand, cost):
         return MockMemory(nxt)
 
     def test_insert1(self):
@@ -34,5 +34,5 @@ class TestOptimizer(unittest.TestCase):
                           MockMemory(MockMemory(MockMemory()), MockMemory()),
                           MockMemory(MockMemory()))
         result = self.optimizer.remove(self.rand, main, 3)
-        self.assertEqual(str(result),
-                         "(mock (mock)(mock (mock)(mock))(mock (mock)))")
+        s = "(mock (mock)(mock (mock)(mock))(mock (mock)))"
+        self.assertEqual(str(result), s)

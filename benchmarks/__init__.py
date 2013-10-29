@@ -1,28 +1,28 @@
-from base import Benchmark, parse_benchmark
+from .base import Benchmark, parse_benchmark
 assert Benchmark
 assert parse_benchmark
 
 # Import all benchmarks to register them with the parser.
-import cholesky
+from . import cholesky
 assert cholesky
 
-import hash
+from . import hash
 assert hash
 
-import heap
+from . import heap
 assert heap
 
-import maze
+from . import maze
 assert maze
 
-import mm
+from . import mm
 assert mm
 
-import pca
+from . import pca
 assert pca
 
-import qsort
+from . import qsort
 assert qsort
 
-import trace
+from . import trace
 assert trace

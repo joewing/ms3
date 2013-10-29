@@ -6,7 +6,7 @@ import lex
 import machine
 import memory
 from memory.xor import XOR
-import mock
+from . import mocks
 import vhdl
 
 
@@ -14,9 +14,9 @@ class TestXOR(unittest.TestCase):
 
     def setUp(self):
         self.machine = machine.MachineType()
-        self.main = mock.MockMemory()
+        self.main = mocks.MockMemory()
         self.join = join.Join()
-        self.bank = mock.MockMemory(self.join)
+        self.bank = mocks.MockMemory(self.join)
 
     def test_xor16(self):
         xor = XOR(self.bank, self.main, 16)
@@ -63,7 +63,7 @@ class TestXOR(unittest.TestCase):
 
     def test_parse(self):
         s = "(xor (value 1024)(bank (join))(memory (ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 

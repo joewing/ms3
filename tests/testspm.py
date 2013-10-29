@@ -3,7 +3,7 @@ import unittest
 
 import distribution
 import machine
-import mock
+from . import mocks
 import memory
 import lex
 from memory.spm import SPM, random_spm
@@ -14,7 +14,7 @@ class TestSPM(unittest.TestCase):
 
     def setUp(self):
         self.machine = machine.MachineType()
-        self.main = mock.MockMemory()
+        self.main = mocks.MockMemory()
 
     def test_spm1(self):
         spm = SPM(self.main, size=1024, access_time=1, cycle_time=1)
@@ -67,7 +67,7 @@ class TestSPM(unittest.TestCase):
     def test_parse(self):
         s = "(spm (size 1024)(access_time 3)(cycle_time 4)"
         s += "(memory (ram (latency 100))))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 

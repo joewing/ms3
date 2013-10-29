@@ -4,7 +4,7 @@ import unittest
 import benchmarks
 from benchmarks.qsort import QSort
 import lex
-import mock
+from . import mocks
 from process import AccessType
 
 
@@ -45,6 +45,6 @@ class TestQSort(unittest.TestCase):
 
     def test_parse(self):
         s = "(qsort (seed 3)(size 16)(input_port 1)(output_port 2))"
-        l = lex.Lexer(mock.MockFile(s))
+        l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)
