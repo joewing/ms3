@@ -31,3 +31,9 @@ def get_instance(model='', url=None):
     db = simple.SimpleDatabase(model)
     _db_instance = db
     return db
+
+
+def set_instance(db):
+    """Set the database instance to use (for debugging)."""
+    global _db_instance
+    _db_instance = db

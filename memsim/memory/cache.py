@@ -167,28 +167,22 @@ class Cache(container.Container):
         gen.leave()
 
     def get_cost(self):
-
-        # Determine the width of the cache.
-        index_bits = machine.log2(self.line_count - 1)
-        word_size = self.machine.word_size
-        line_words = (self.line_size + word_size - 1) // word_size
-        ls_bits = machine.log2(line_words - 1)
-        tag_bits = max(self.machine.addr_bits - index_bits - ls_bits, 0)
-        width = 1 + tag_bits
-        if self.associativity > 1:
-            if self.policy == CachePolicy.PLRU:
-                width += 1
-            else:
-                width += machine.log2(self.associativity - 1)
-        if self.write_back:
-            width += 1
-        width *= self.associativity
-
-        # Determine the depth of the cache.
-        depth = self.line_count // self.associativity
-
-        # Get the cost.
         if self.machine.target == machine.TargetType.SIMPLE:
+            index_bits = machine.log2(self.line_count - 1)
+            word_size = self.machine.word_size
+            line_words = (self.line_size + word_size - 1) // word_size
+            ls_bits = machine.log2(line_words - 1)
+            tag_bits = max(self.machine.addr_bits - index_bits - ls_bits, 0)
+            width = 1 + tag_bits
+            if self.associativity > 1:
+                if self.policy == CachePolicy.PLRU:
+                    width += 1
+                else:
+                    width += machine.log2(self.associativity - 1)
+            if self.write_back:
+                width += 1
+            width *= self.associativity
+            depth = self.line_count // self.associativity
             return width * depth
         elif self.machine.target == machine.TargetType.ASIC:
             return cacti.get_area(self.machine, self)

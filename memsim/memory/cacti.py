@@ -68,7 +68,7 @@ access_regex = re.compile("Access time \(ns\): +([0-9.]+)")
 cycle_regex = re.compile("Cycle time \(ns\): +([0-9.]+)")
 
 
-def generate_file(fd, params):
+def _generate_file(fd, params):
     """Generate the input file for CACTI."""
     fd.write("-size (bytes) " + str(params.size) + "\n")
     fd.write("-block size (bytes) " + str(params.block_size) + "\n")
@@ -100,7 +100,7 @@ def generate_file(fd, params):
     fd.write("-internal prefetch width 8\n")
 
 
-def run_cacti(params):
+def _run_cacti(params):
     """Get the result of running CACTI with the specified parameters."""
 
     # Check if we already tried a memory with these parameters.
@@ -126,7 +126,7 @@ def run_cacti(params):
                                      dir=None,
                                      text=True)
     with os.fdopen(fd, 'w') as f:
-        generate_file(f, params)
+        _generate_file(f, params)
 
     # Run CACTI.
     try:
@@ -161,7 +161,7 @@ def run_cacti(params):
     return result
 
 
-def get_cache_params(machine, mem):
+def _get_cache_params(machine, mem):
     """Get the CACTI parameters for a cache."""
     params = CACTIParams()
     params.technology = machine.technology
@@ -173,7 +173,7 @@ def get_cache_params(machine, mem):
     return params
 
 
-def get_spm_params(machine, mem):
+def _get_spm_params(machine, mem):
     """Get the CACTI parameters for an SPM."""
     params = CACTIParams()
     params.technology = machine.technology
@@ -184,24 +184,24 @@ def get_spm_params(machine, mem):
     return params
 
 
-def get_params(machine, mem):
+def _get_params(machine, mem):
     """Get the CACTI parameters for a memory."""
     if mem.__class__.__name__ == 'Cache':
-        return get_cache_params(machine, mem)
+        return _get_cache_params(machine, mem)
     elif mem.__class__.__name__ == 'SPM':
-        return get_spm_params(machine, mem)
+        return _get_spm_params(machine, mem)
     else:
         assert(False)
 
 
-def get_results(machine, mem):
+def _get_results(machine, mem):
     """Get the results of a CACTI run for the specified memory."""
-    return run_cacti(get_params(machine, mem))
+    return _run_cacti(_get_params(machine, mem))
 
 
 def get_area(machine, mem):
     """Get the area for the specified memory (shallow)."""
-    return get_results(machine, mem).area
+    return _get_results(machine, mem).area
 
 
 def get_cycles(machine, t):
@@ -212,9 +212,9 @@ def get_cycles(machine, t):
 
 def get_cycle_time(machine, mem):
     """Get the cycle time in cycles for the specified memory (shallow)."""
-    return get_cycles(machine, get_results(machine, mem).cycle_time)
+    return get_cycles(machine, _get_results(machine, mem).cycle_time)
 
 
 def get_access_time(machine, mem):
     """Get the access time in cycles for the specified memory (shallow)."""
-    return get_cycles(machine, get_results(machine, mem).access_time)
+    return get_cycles(machine, _get_results(machine, mem).access_time)
