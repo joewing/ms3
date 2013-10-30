@@ -5,13 +5,13 @@ import optparse
 import os
 import sys
 
-import database
-import distribution
-import lex
-import memory
-import model
-import optimizer
-import process
+from memsim import database
+from memsim import distribution
+from memsim import lex
+from memsim import memory
+from memsim import model
+from memsim import optimizer
+from memsim import process
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,

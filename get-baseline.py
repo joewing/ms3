@@ -5,15 +5,15 @@ import optparse
 import os
 import sys
 
-import database
-import distribution
-import lex
-import machine
-import memory
-import memory.cache as cache
-import memory.ram as ram
-import model
-import process
+from memsim import database
+from memsim import distribution
+from memsim import lex
+from memsim import machine
+from memsim import memory
+from memsim.memory import cache
+from memsim.memory import ram
+from memsim import model
+from memsim import process
 
 
 parser = optparse.OptionParser()

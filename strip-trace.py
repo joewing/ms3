@@ -2,8 +2,9 @@
 from __future__ import print_function
 import optparse
 import sys
-import process
-from benchmarks.trace import Trace
+
+from memsim import process
+from memsim.benchmarks.trace import Trace
 
 parser = optparse.OptionParser()
 parser.add_option('-t', '--trace', dest='trace', default=None,

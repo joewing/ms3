@@ -2,9 +2,9 @@
 import optparse
 import sys
 
-import lex
-import model
-import vhdl
+from memsim import lex
+from memsim import model
+from memsim import vhdl
 
 parser = optparse.OptionParser()
 parser.add_option('-m', '--model', dest='model', default=None,
