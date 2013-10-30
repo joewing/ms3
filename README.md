@@ -6,5 +6,6 @@ The following main files are included:
 * memgen.py - Generate the HDL model for a memory subsystem.
 * dump.py - A utility to communicate with the database.
 * strip-trace.py - A tool to reduce the size of an address trace.
-* test.py - Runs the unit tests.
+* get-freq.py - Get the resouce usage and frequecy of a memory model.
+* get-baseline.py - Get the best single-level baseline cache.
 
