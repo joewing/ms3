@@ -24,8 +24,8 @@ def main():
         m = model.parse_model(lex.Lexer(f))
         m.machine.frequency = 1 << 31
         result = xilinx.run_xilinx(m.machine, m.memory, options.keep)
-        print("Frequency: ", result.frequency)
-        print("BRAMs:      ", result.bram_count)
+        print("Frequency:", result.frequency)
+        print("BRAMs:     ", result.bram_count)
 
 if __name__ == '__main__':
     main()

@@ -33,11 +33,11 @@ def show_state(db, state):
     best_name = state['best_name']
     best_value = state['best_value']
     best_cost = state['best_cost']
-    print("  Hash: ", db.get_hash(m))
-    print("  Iter: ", iterations)
-    print("  Best: ", best_name)
-    print("  Time: ", best_value)
-    print("  Cost: ", best_cost)
+    print("  Hash:", db.get_hash(m))
+    print("  Iter:", iterations)
+    print("  Best:", best_name)
+    print("  Time:", best_value)
+    print("  Cost:", best_cost)
 
 
 def show_pending(db):
@@ -59,7 +59,7 @@ def show_pending(db):
         name = models[key]
         i = iterations.get(key, 0)
         pad = max(16 - len(name), 0)
-        print(name, ":", (" " * pad), i)
+        print("{0}: {1}{2}".format(name, " " * pad, i))
 
 
 def main():

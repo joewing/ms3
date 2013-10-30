@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import os
 import tempfile
 import shutil
@@ -102,13 +103,13 @@ def run_xilinx(machine, mem, keep=False):
         return result
 
     except Exception as e:
-        print("ERROR: XST run failed: " + str(e))
+        print("ERROR: XST run failed:", e)
         raise
 
     finally:
         os.chdir(old_dir)
         if keep:
-            print("XST working directory: " + dname)
+            print("XST working directory:", dname)
         else:
             shutil.rmtree(dname)
 

@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import uuid
 import json
 import couchdb.client
@@ -69,7 +70,7 @@ class CouchDatabase(base.Database):
         self.db['_design/ms3'] = doc
 
     def load(self):
-        print("Trying " + self.url)
+        print("Trying", self.url)
         self.server = couchdb.client.Server(url=self.url)
         try:
             if self.dbname in self.server:
@@ -190,14 +191,14 @@ class CouchDatabase(base.Database):
         last_bram_count = 0
         for r in self.db.view('ms3/fpga_results'):
             if r.value[0] == 1:
-                print("Removing invalid: " + str(r.id))
+                print("Removing invalid:", r.id)
                 del self.db[r.id]
             elif r.key == last_key:
-                print("Removing duplicate: " + str(r.id))
+                print("Removing duplicate:", r.id)
                 if last_frequency != r.value[0]:
-                    print("WARN: frequency mismatch; key: " + str(r.key))
+                    print("WARN: frequency mismatch; key:", r.key)
                 elif last_bram_count != r.value[1]:
-                    print("WARN: bram_count mismatch; key: " + str(r.key))
+                    print("WARN: bram_count mismatch; key:", r.key)
                 else:
                     del self.db[r.id]
             else:

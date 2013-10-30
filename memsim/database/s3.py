@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import json
 import os
 
@@ -21,7 +22,7 @@ class S3Database(base.Database):
             self.conn = S3Connection(akey, skey)
             self.bucket = self.conn.get_bucket(os.environ['AWS_S3_BUCKET'])
         except Exception as e:
-            print("ERROR: could not connect to the database: " + str(e))
+            print("ERROR: could not connect to the database:", e)
 
     def list(self):
         """Get a list of named states."""
@@ -36,7 +37,7 @@ class S3Database(base.Database):
             k.key = name
             self.data = json.loads(k.get_contents_as_string())
         except Exception as e:
-            print("state not loaded: " + str(e))
+            print("state not loaded:", e)
 
     def set_instance(self):
         if 'instance' in self.data:
@@ -64,7 +65,7 @@ class S3Database(base.Database):
             k.key = self.name
             k.set_contents_from_string(json.dumps(self.data))
         except Exception as e:
-            print("ERROR: could not save state: " + str(e))
+            print("ERROR: could not save state: ", e)
 
     def has_value(self, key):
         """Determine if the specified key exists."""

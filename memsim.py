@@ -66,15 +66,13 @@ def main():
     ml = o.load()
     limit = o.best_value * 4
     while o.evaluations < int(options.iterations):
-        print("Iteration: ", (o.evaluations + 1),
-              " (steps: ", (o.steps + 1),
-              ", threshold: ", o.threshold,
-              ", age: ", o.age, ")")
+        print("Iteration: {0} (steps: {1}, threshold: {2}, age: {3})"
+              .format(o.evaluations + 1, o.steps + 1, o.threshold, o.age))
         time = pl.run(ml, limit)
         ml = o.optimize(time)
-        print("Best Memory: ", o.best_name)
-        print("Best Value:  ", o.best_value)
-        print("Best Cost:    ", o.best_cost)
+        print("Best Memory:", o.best_name)
+        print("Best Value: ", o.best_value)
+        print("Best Cost:   ", o.best_cost)
         db.save()
         gc.collect()
 

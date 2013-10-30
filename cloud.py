@@ -36,7 +36,7 @@ def check(db, name, iterations, can_start):
     current = db.get_value('evaluations')
     print(name.name, ": ", current, " / ", iterations)
     if instance is not None:
-        print("  running: ", instance)
+        print("  running:", instance)
         return False
     elif current >= iterations:
         print("  done")

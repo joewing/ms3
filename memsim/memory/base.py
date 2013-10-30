@@ -1,5 +1,6 @@
 
 import copy
+from functools import reduce
 
 from .. import lex
 from .. import parser
