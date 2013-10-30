@@ -3,9 +3,9 @@ from __future__ import print_function
 import optparse
 import os
 
-import database
-import lex
-import model
+from memsim import database
+from memsim import lex
+from memsim import model
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
