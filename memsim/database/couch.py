@@ -2,9 +2,16 @@
 from __future__ import print_function
 import uuid
 import json
-import couchdb.client
 
 from . import base
+
+
+global couchdb
+try:
+    import couchdb.client
+except ImportError:
+    couchdb = lambda: None
+    couchdb.client = None
 
 
 class CouchDatabase(base.Database):
@@ -70,6 +77,9 @@ class CouchDatabase(base.Database):
         self.db['_design/ms3'] = doc
 
     def load(self):
+        if couchdb.client is None:
+            print("Could not load couchdb.client")
+            return False
         print("Trying", self.url)
         self.server = couchdb.client.Server(url=self.url)
         try:
