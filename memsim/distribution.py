@@ -86,6 +86,22 @@ class Distribution(random.Random):
         # Insert the new range.
         self.ranges.append(new)
 
+    def get_min_address(self):
+        """Get the minimum address encountered."""
+        return self.ranges[0][0]
+
+    def get_max_address(self):
+        """Get the maximum address encountered."""
+        r = self.ranges[-1]
+        return r[0] + r[1]
+
+    def get_size(self):
+        """Get the total size of accesses."""
+        total = 0
+        for r in self.ranges:
+            total += r[1]
+        return total
+
     def push_limit(self, lower, upper):
         """Push an address limit on to the stack.
             This is done when evaluating a part of a split or scratchpad

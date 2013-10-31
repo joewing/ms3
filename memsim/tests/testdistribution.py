@@ -37,6 +37,10 @@ class TestDistribution(unittest.TestCase):
         a = dist.random_address(4)
         self.assertEqual(a, 8)
 
+        self.assertEqual(dist.get_min_address(), 8)
+        self.assertEqual(dist.get_max_address(), 24)
+        self.assertEqual(dist.get_size(), 16)
+
     def test_transform(self):
         dist = MockDistribution()
         dist.insert_range(0, 16)
