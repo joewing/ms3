@@ -17,7 +17,7 @@ class AccessType:
 
 
 class Process:
-    """A class to represent processes that perform memory accesses."""
+    """Class to represent processes that perform memory accesses."""
 
     def __init__(self, dist, benchmark):
         """Initialize a process.

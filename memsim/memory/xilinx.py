@@ -92,8 +92,9 @@ def run_xilinx(machine, mem, keep=False):
         with open(result_file, "r") as f:
             buf = f.read()
         m = freq_regex.search(buf)
-        if m is not None:
-            result.frequency = float(m.group(1)) * 1000000.0
+        if m is None:
+            raise Exception("Could not determine frequency")
+        result.frequency = float(m.group(1)) * 1000000.0
         m = bram_regex.search(buf)
         if m is not None:
             result.bram_count = max(1, int(m.group(1)))

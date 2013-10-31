@@ -2,16 +2,9 @@
 from __future__ import print_function
 import uuid
 import json
+import couchdb.client
 
 from . import base
-
-
-global couchdb
-try:
-    import couchdb.client
-except ImportError:
-    couchdb = lambda: None
-    couchdb.client = None
 
 
 class CouchDatabase(base.Database):
