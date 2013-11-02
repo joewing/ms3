@@ -1,12 +1,9 @@
 
 import unittest
 
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.cache import Cache, CachePolicy
-from .. import vhdl
-from . import mocks
+from memsim import lex, machine, memory, vhdl
+from memsim.memory.cache import Cache, CachePolicy
+from memsim.tests import mocks
 
 
 class TestCache(unittest.TestCase):

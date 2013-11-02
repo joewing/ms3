@@ -1,11 +1,10 @@
 
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.mm import MM
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks, lex
+from memsim.benchmarks.mm import MM
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestMM(unittest.TestCase):

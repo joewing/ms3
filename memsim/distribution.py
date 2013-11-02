@@ -2,7 +2,7 @@
 import cPickle
 import random
 
-from . import database
+from memsim import database
 
 
 class Distribution(random.Random):

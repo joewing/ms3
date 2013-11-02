@@ -1,11 +1,10 @@
 
 import unittest
 
-from .. import lex
-from ..machine import MachineType
-from .. import memory
-from ..memory.dram import DRAM
-from . import mocks
+from memsim import lex, memory
+from memsim.machine import MachineType
+from memsim.memory.dram import DRAM
+from memsim.tests import mocks
 
 
 class TestDRAM(unittest.TestCase):

@@ -1,11 +1,9 @@
 
 import unittest
 
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.option import Option
-from . import mocks
+from memsim import lex, machine, memory
+from memsim.memory.option import Option
+from memsim.tests import mocks
 
 
 class TestOption(unittest.TestCase):

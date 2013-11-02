@@ -7,7 +7,7 @@ from boto.utils import get_instance_metadata
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
 
-from . import base
+from memsim.database import base
 
 
 class S3Database(base.Database):

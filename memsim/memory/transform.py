@@ -1,6 +1,6 @@
 
-from . import container
-from . import join
+from memsim.memory import container
+from memsim.memory import join
 
 
 class Transform(container.Container):

@@ -1,6 +1,6 @@
 
-from .. import parser
-from . import base
+from memsim import parser
+from memsim.benchmarks import base
 
 
 class Cholesky(base.Benchmark):

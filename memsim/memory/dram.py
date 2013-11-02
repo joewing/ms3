@@ -1,8 +1,8 @@
 
 import math
 
-from .. import parser
-from . import base
+from memsim import parser
+from memsim.memory import base
 
 
 class DRAMBank:

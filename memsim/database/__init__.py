@@ -1,5 +1,5 @@
-from .base import Database
+from memsim.database.base import Database
 assert Database
 
-from .instance import get_instance
+from memsim.database.instance import get_instance
 assert get_instance

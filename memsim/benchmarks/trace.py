@@ -1,9 +1,9 @@
 
 import re
 
-from .. import parser
-from ..process import AccessType
-from . import base
+from memsim import parser
+from memsim.process import AccessType
+from memsim.benchmarks import base
 
 
 class Trace(base.Benchmark):

@@ -1,28 +1,28 @@
-from .base import Benchmark, parse_benchmark
+from memsim.benchmarks.base import Benchmark, parse_benchmark
 assert Benchmark
 assert parse_benchmark
 
 # Import all benchmarks to register them with the parser.
-from . import cholesky
+from memsim.benchmarks import cholesky
 assert cholesky
 
-from . import hash
+from memsim.benchmarks import hash
 assert hash
 
-from . import heap
+from memsim.benchmarks import heap
 assert heap
 
-from . import maze
+from memsim.benchmarks import maze
 assert maze
 
-from . import mm
+from memsim.benchmarks import mm
 assert mm
 
-from . import pca
+from memsim.benchmarks import pca
 assert pca
 
-from . import qsort
+from memsim.benchmarks import qsort
 assert qsort
 
-from . import trace
+from memsim.benchmarks import trace
 assert trace

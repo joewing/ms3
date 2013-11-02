@@ -4,7 +4,7 @@ import uuid
 import json
 import couchdb.client
 
-from . import base
+from memsim.database import base
 
 
 class CouchDatabase(base.Database):

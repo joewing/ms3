@@ -1,8 +1,8 @@
 
 import random
 
-from .. import parser
-from . import base
+from memsim import parser
+from memsim.benchmarks import base
 
 
 class QSort(base.Benchmark):

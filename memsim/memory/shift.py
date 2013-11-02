@@ -1,8 +1,8 @@
 
-from .. import parser
-from . import base
-from . import join
-from . import transform
+from memsim import parser
+from memsim.memory import base
+from memsim.memory import join
+from memsim.memory import transform
 
 
 def random_shift(machine, nxt, rand, cost):

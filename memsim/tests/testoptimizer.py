@@ -1,11 +1,11 @@
 
 import unittest
 
-from ..distribution import Distribution
-from ..optimizer import Optimizer
-from ..machine import MachineType
-from ..memory import MemoryList
-from .mocks import MockMemory
+from memsim.distribution import Distribution
+from memsim.optimizer import Optimizer
+from memsim.machine import MachineType
+from memsim.memory import MemoryList
+from memsim.tests.mocks import MockMemory
 
 
 class TestOptimizer(unittest.TestCase):

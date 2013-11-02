@@ -1,7 +1,7 @@
 
-from .. import parser
-from . import base
-from . import container
+from memsim import parser
+from memsim.memory import base
+from memsim.memory import container
 
 
 def random_prefetch(machine, nxt, rand, cost):

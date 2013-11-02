@@ -1,13 +1,9 @@
 
 import unittest
 
-from .. import distribution
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.spm import SPM, random_spm
-from .. import vhdl
-from . import mocks
+from memsim import distribution, lex, machine, memory, vhdl
+from memsim.memory.spm import SPM, random_spm
+from memsim.tests import mocks
 
 
 class TestSPM(unittest.TestCase):

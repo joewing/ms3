@@ -1,13 +1,10 @@
 
 import unittest
 
-from ..memory import join
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.split import Split
-from .. import vhdl
-from . import mocks
+from memsim import lex, machine, memory, vhdl
+from memsim.memory import join
+from memsim.memory.split import Split
+from memsim.tests import mocks
 
 
 class TestSplit(unittest.TestCase):

@@ -2,17 +2,17 @@
 import random
 import StringIO
 
-from . import database
-from . import lex
-from . import memory
-from .memory import cache
-from .memory import join
-from .memory import offset
-from .memory import prefetch
-from .memory import spm
-from .memory import shift
-from .memory import split
-from .memory import xor
+from memsim import database
+from memsim import lex
+from memsim import memory
+from memsim.memory import cache
+from memsim.memory import join
+from memsim.memory import offset
+from memsim.memory import prefetch
+from memsim.memory import spm
+from memsim.memory import shift
+from memsim.memory import split
+from memsim.memory import xor
 
 
 class Optimizer:

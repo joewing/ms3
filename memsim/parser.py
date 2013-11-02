@@ -1,5 +1,5 @@
 
-from . import lex
+from memsim import lex
 
 
 def parse(lexer, constructors):

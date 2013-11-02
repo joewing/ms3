@@ -1,7 +1,7 @@
 
 import unittest
 
-from .. import priorityqueue
+from memsim import priorityqueue
 
 
 class TestPriorityQueue(unittest.TestCase):

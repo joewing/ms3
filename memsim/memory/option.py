@@ -1,6 +1,6 @@
 
-from .. import lex
-from . import base
+from memsim import lex
+from memsim.memory import base
 
 
 class Option(base.Memory):

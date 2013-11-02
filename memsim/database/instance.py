@@ -1,8 +1,8 @@
 
 import sys
 
-from . import couch
-from . import simple
+from memsim.database import couch
+from memsim.database import simple
 
 
 _db_instance = None

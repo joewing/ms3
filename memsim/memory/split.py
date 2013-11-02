@@ -1,8 +1,8 @@
 
-from .. import machine
-from .. import parser
-from . import base
-from . import join
+from memsim import machine
+from memsim import parser
+from memsim.memory import base
+from memsim.memory import join
 
 
 def random_split(machine, nxt, rand, cost):

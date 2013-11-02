@@ -1,6 +1,6 @@
 
-from ..process import AccessType
-from .. import parser
+from memsim.process import AccessType
+from memsim import parser
 
 
 class Benchmark:

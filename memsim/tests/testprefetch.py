@@ -1,11 +1,9 @@
 
 import unittest
 
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.prefetch import Prefetch
-from . import mocks
+from memsim import lex, machine, memory
+from memsim.memory.prefetch import Prefetch
+from memsim.tests import mocks
 
 
 class TestPrefetch(unittest.TestCase):

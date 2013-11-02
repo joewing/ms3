@@ -1,11 +1,11 @@
 
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.hash import Hash
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks
+from memsim.benchmarks.hash import Hash
+from memsim import lex
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestHash(unittest.TestCase):

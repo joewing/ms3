@@ -1,8 +1,8 @@
 
 import unittest
 
-from .. import lex
-from . import mocks
+from memsim import lex
+from memsim.tests import mocks
 
 
 class TestLexer(unittest.TestCase):

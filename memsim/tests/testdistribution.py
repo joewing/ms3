@@ -1,7 +1,7 @@
 
 import unittest
 
-from ..distribution import Distribution
+from memsim.distribution import Distribution
 
 
 class MockDistribution(Distribution):

@@ -1,5 +1,5 @@
 
-from . import base
+from memsim.memory import base
 
 
 class Join(base.Memory):

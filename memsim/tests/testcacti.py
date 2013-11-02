@@ -1,13 +1,13 @@
 
 import unittest
 
-from ..database import simple
-from ..database.instance import set_instance
-from ..machine import MachineType, TargetType
-from ..memory import cache
-from ..memory import cacti
-from ..memory import spm
-from .mocks import MockMemory
+from memsim.database import simple
+from memsim.database.instance import set_instance
+from memsim.machine import MachineType, TargetType
+from memsim.memory import cache
+from memsim.memory import cacti
+from memsim.memory import spm
+from memsim.tests.mocks import MockMemory
 
 
 class TestCACTI(unittest.TestCase):

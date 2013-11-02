@@ -7,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 
-from .. import database
+from memsim import database
 
 
 class CACTIResult:

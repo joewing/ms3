@@ -1,7 +1,7 @@
 
 
 import unittest
-from ..machine import MachineType, TargetType, log2, round_power2
+from memsim.machine import MachineType, TargetType, log2, round_power2
 
 
 class TestMachine(unittest.TestCase):

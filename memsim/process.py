@@ -2,8 +2,8 @@
 from __future__ import print_function
 import sys
 
-from . import database
-from . import priorityqueue
+from memsim import database
+from memsim import priorityqueue
 
 
 class AccessType:

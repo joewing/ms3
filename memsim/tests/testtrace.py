@@ -3,11 +3,10 @@ import os
 import tempfile
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.trace import Trace
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks, lex
+from memsim.benchmarks.trace import Trace
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestTrace(unittest.TestCase):

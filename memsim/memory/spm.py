@@ -1,10 +1,10 @@
 
-from .. import machine
-from .. import parser
-from . import base
-from . import cacti
-from . import container
-from . import xilinx
+from memsim import machine
+from memsim import parser
+from memsim.memory import base
+from memsim.memory import cacti
+from memsim.memory import container
+from memsim.memory import xilinx
 
 
 # Minimum SPM size in bytes.

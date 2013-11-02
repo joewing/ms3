@@ -1,9 +1,8 @@
 
 import unittest
 
-from .. import lex
-from .. import memory
-from . import mocks
+from memsim import lex, memory
+from memsim.tests import mocks
 
 
 class TestParser(unittest.TestCase):

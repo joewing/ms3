@@ -1,11 +1,10 @@
 
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.maze import Maze
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks, lex
+from memsim.benchmarks.maze import Maze
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestMaze(unittest.TestCase):

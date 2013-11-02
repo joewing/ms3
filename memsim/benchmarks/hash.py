@@ -1,8 +1,8 @@
 
 import random
 
-from . import base
-from .. import parser
+from memsim.benchmarks import base
+from memsim import parser
 
 
 class Hash(base.Benchmark):

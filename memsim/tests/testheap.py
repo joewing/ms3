@@ -1,11 +1,11 @@
 
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.heap import Heap
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks
+from memsim.benchmarks.heap import Heap
+from memsim import lex
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestHeap(unittest.TestCase):

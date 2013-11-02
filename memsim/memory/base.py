@@ -2,8 +2,8 @@
 import copy
 from functools import reduce
 
-from .. import lex
-from .. import parser
+from memsim import lex
+from memsim import parser
 
 
 # Constructors used by the parser to construct memories.

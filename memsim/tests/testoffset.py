@@ -1,12 +1,10 @@
 
 import unittest
 
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory import join
-from ..memory.offset import Offset
-from . import mocks
+from memsim import lex, machine, memory
+from memsim.memory import join
+from memsim.memory.offset import Offset
+from memsim.tests import mocks
 
 
 class TestOffset(unittest.TestCase):

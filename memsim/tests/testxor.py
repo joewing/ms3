@@ -1,13 +1,10 @@
 
 import unittest
 
-from ..memory import join
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.xor import XOR
-from .. import vhdl
-from . import mocks
+from memsim import lex, machine, memory, vhdl
+from memsim.memory import join
+from memsim.memory.xor import XOR
+from memsim.tests import mocks
 
 
 class TestXOR(unittest.TestCase):

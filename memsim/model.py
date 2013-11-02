@@ -1,9 +1,9 @@
 
-from . import benchmarks
-from . import lex
-from . import machine
-from . import memory
-from . import parser
+from memsim import benchmarks
+from memsim import lex
+from memsim import machine
+from memsim import memory
+from memsim import parser
 
 
 class Model:

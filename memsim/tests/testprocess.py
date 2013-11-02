@@ -1,9 +1,8 @@
 
 import unittest
 
-from .. import machine
-from .. import process
-from . import mocks
+from memsim import machine, process
+from memsim.tests import mocks
 
 
 class TestProcess(unittest.TestCase):

@@ -5,9 +5,9 @@ import tempfile
 import shutil
 import re
 
-from .. import database
-from .. import vhdl
-from . import ram
+from memsim import database
+from memsim import vhdl
+from memsim.memory import ram
 
 
 freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")

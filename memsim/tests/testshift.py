@@ -1,12 +1,10 @@
 
 import unittest
 
-from ..memory import join
-from .. import lex
-from .. import machine
-from .. import memory
-from ..memory.shift import Shift
-from . import mocks
+from memsim import lex, machine, memory
+from memsim.memory import join
+from memsim.memory.shift import Shift
+from memsim.tests import mocks
 
 
 class TestShift(unittest.TestCase):

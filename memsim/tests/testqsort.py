@@ -1,11 +1,10 @@
 
 import unittest
 
-from .. import benchmarks
-from ..benchmarks.qsort import QSort
-from .. import lex
-from ..process import AccessType
-from . import mocks
+from memsim import benchmarks, lex
+from memsim.benchmarks.qsort import QSort
+from memsim.process import AccessType
+from memsim.tests import mocks
 
 
 class TestQSort(unittest.TestCase):

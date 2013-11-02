@@ -1,5 +1,5 @@
 
-from . import base
+from memsim.database import base
 
 
 class SimpleDatabase(base.Database):

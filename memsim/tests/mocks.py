@@ -1,6 +1,5 @@
 
-from .. import benchmarks
-from .. import memory
+from memsim import benchmarks, memory
 
 
 class MockFile:

@@ -2,8 +2,8 @@
 from __future__ import print_function
 import random
 
-from .. import parser
-from . import base
+from memsim import parser
+from memsim.benchmarks import base
 
 
 class Maze(base.Benchmark):
