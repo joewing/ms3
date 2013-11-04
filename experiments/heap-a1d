@@ -4,7 +4,7 @@
    (target     asic)
    (frequency  1000000000)
    (technology 0.045)
-   (max_cost   64)
+   (max_cost   1000000)
 )
 (skip 100000)(on 10000)
 (memory
