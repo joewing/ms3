@@ -168,7 +168,7 @@ class CouchDatabase(base.Database):
             'access_time': access_time,
             'cycle_time': cycle_time,
             'area': area,
-            'parameters': name
+            'parameters': str(name)
         }
         self.db[doc_id] = doc
         self.cacti_results[key_hash] = (access_time, cycle_time, area)
