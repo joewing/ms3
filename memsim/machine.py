@@ -1,4 +1,8 @@
 
+from memsim import lex
+from memsim import parser
+
+
 class TargetType:
     SIMPLE = 0
     ASIC = 1
@@ -37,7 +41,8 @@ class MachineType:
                  max_path_length=64,
                  max_cost=10000,
                  technology=0.045,
-                 part='xc7v585t'):
+                 part='xc7v585t',
+                 id=0):
         self.target = target
         self.part = part
         self.frequency = frequency
@@ -49,6 +54,7 @@ class MachineType:
         self.addr_mask = (1 << addr_bits) - 1
         self.max_path_length = max_path_length
         self.max_cost = max_cost
+        self.id = 0
         self.time = 0
         self.ports = []
 
@@ -64,6 +70,8 @@ class MachineType:
         result += "(addr_bits " + str(self.addr_bits) + ")"
         result += "(max_path " + str(self.max_path_length) + ")"
         result += "(max_cost " + str(self.max_cost) + ")"
+        if self.id != 0:
+            result += "(id " + str(self.id) + ")"
         result += ")"
         return result
 
@@ -121,3 +129,28 @@ def log2(n):
 def round_power2(n):
     """Round n up to the next highest power of 2."""
     return 1 << log2(n - 1)
+
+
+def parse_machine(lexer):
+    args = parser.parse_arguments(lexer)
+    word_size = parser.get_argument(lexer, args, 'word_size', 8)
+    addr_bits = parser.get_argument(lexer, args, 'addr_bits', 32)
+    frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
+    technology = parser.get_argument(lexer, args, 'technology', 0.045)
+    part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
+    max_path = parser.get_argument(lexer, args, 'max_path', 64)
+    max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
+    id = parser.get_argument(lexer, args, 'id', 0)
+    tstr = parser.get_argument(lexer, args, 'target', 'simple')
+    target = parse_target(tstr)
+    if target is None:
+        lex.ParseError(lexer, "invalid target: " + tstr)
+    return MachineType(target=target,
+                       frequency=frequency,
+                       word_size=word_size,
+                       addr_bits=addr_bits,
+                       max_path_length=max_path,
+                       max_cost=max_cost,
+                       technology=technology,
+                       part=part,
+                       id=id)

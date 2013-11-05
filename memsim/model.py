@@ -3,7 +3,6 @@ from memsim import benchmarks
 from memsim import lex
 from memsim import machine
 from memsim import memory
-from memsim import parser
 
 
 class Model:
@@ -38,7 +37,7 @@ def parse_model(lexer, model=None):
         name = lexer.get_value()
         lexer.match(lex.TOKEN_LITERAL)
         if name == 'machine':
-            model.machine = _parse_machine(lexer)
+            model.machine = machine.parse_machine(lexer)
         elif name == 'memory':
             model.memory = memory.parse_memory(lexer)
         elif name == 'benchmarks':
@@ -63,29 +62,6 @@ def _parse_int(lexer):
     value = lexer.get_value()
     lexer.match(lex.TOKEN_LITERAL)
     return int(value)
-
-
-def _parse_machine(lexer):
-    args = parser.parse_arguments(lexer)
-    word_size = parser.get_argument(lexer, args, 'word_size', 8)
-    addr_bits = parser.get_argument(lexer, args, 'addr_bits', 32)
-    frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
-    technology = parser.get_argument(lexer, args, 'technology', 0.045)
-    part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
-    max_path = parser.get_argument(lexer, args, 'max_path', 64)
-    max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
-    tstr = parser.get_argument(lexer, args, 'target', 'simple')
-    target = machine.parse_target(tstr)
-    if target is None:
-        lex.ParseError(lexer, "invalid target: " + tstr)
-    return machine.MachineType(target=target,
-                               frequency=frequency,
-                               word_size=word_size,
-                               addr_bits=addr_bits,
-                               max_path_length=max_path,
-                               max_cost=max_cost,
-                               technology=technology,
-                               part=part)
 
 
 def _parse_benchmarks(lexer):
