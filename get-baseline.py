@@ -3,7 +3,6 @@ from __future__ import print_function
 import math
 import optparse
 import os
-import sys
 
 from memsim import database
 from memsim import distribution
@@ -19,6 +18,8 @@ from memsim import process
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
+parser.add_option('-c', '--cost', dest='cost', default=64,
+                  help='max cost')
 
 
 db = None
@@ -31,6 +32,7 @@ mach = machine.MachineType(target=machine.TargetType.FPGA,
 best_name = ''
 best_cost = 0
 best_time = 1 << 31
+max_cost = 64
 
 
 def run_simulation(mem, experiment):
@@ -49,6 +51,10 @@ def run_simulation(mem, experiment):
 
 def run_simulations(mem, experiments):
     print("Evaluating", mem)
+    if experiments is None:
+        global total
+        print("  Total:", str(total))
+        return
     lsum = 0.0
     for e in experiments:
         result = run_simulation(mem, e)
@@ -62,7 +68,6 @@ def run_simulations(mem, experiments):
         best_time = gmean
         best_cost = cost
         best_name = str(mem)
-    return gmean
 
 
 def generate_cache(line_count,
@@ -79,7 +84,8 @@ def generate_cache(line_count,
                     write_back=write_back)
     c.reset(mach)
     cost = c.get_cost()
-    if cost <= 64:
+    global max_cost
+    if cost <= max_cost:
         global total
         total += 1
         run_simulations(c, experiments)
@@ -93,16 +99,17 @@ def get_policies(associativity):
 
 
 def main():
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     if len(args) == 0:
-        print("no experiments provided")
-        sys.exit(0)
-    experiments = args
+        experiments = None
+    else:
+        experiments = args
     if options.url is None:
         url = os.environ.get('COUCHDB_URL')
     else:
         url = options.url
-    global db
+    global db, max_cost
+    max_cost = options.cost
     db = database.get_instance('', url)
     max_brams = 64
     bram_size = 512 * 72 / 8
