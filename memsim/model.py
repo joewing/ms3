@@ -5,7 +5,7 @@ from memsim import machine
 from memsim import memory
 
 
-class Model:
+class Model(object):
 
     def __init__(self):
         self.machine = machine.MachineType()

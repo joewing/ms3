@@ -14,7 +14,7 @@ freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")
 bram_regex = re.compile("Block RAM/FIFO: +([0-9]+)")
 
 
-class XilinxResult:
+class XilinxResult(object):
 
     def __init__(self, frequency=1.0, bram_count=1 << 31):
         self.frequency = frequency

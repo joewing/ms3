@@ -15,7 +15,7 @@ from memsim.memory import split
 from memsim.memory import xor
 
 
-class Optimizer:
+class Optimizer(object):
 
     steps = 0
     evaluations = 0

@@ -6,7 +6,7 @@ from memsim import database
 from memsim import priorityqueue
 
 
-class AccessType:
+class AccessType(object):
     """Enumeration of possible memory access types."""
     READ = 0         # Read from memory
     WRITE = 1        # Write to memory
@@ -16,7 +16,7 @@ class AccessType:
     END = 5          # Produce a value indicating the end of a stream
 
 
-class Process:
+class Process(object):
     """Class to represent processes that perform memory accesses."""
 
     def __init__(self, dist, benchmark):
@@ -102,7 +102,7 @@ class Process:
         return 0
 
 
-class ProcessList:
+class ProcessList(object):
     """Class to schedule a list of processes on a machine."""
 
     def __init__(self, machine, processes, on, skip):

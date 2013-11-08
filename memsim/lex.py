@@ -26,7 +26,7 @@ class ParseError(Exception):
         return self.fname + "[" + str(self.line) + "]: " + self.message
 
 
-class Lexer:
+class Lexer(object):
     """Lexer for parsing s-expressions."""
 
     def __init__(self, f):

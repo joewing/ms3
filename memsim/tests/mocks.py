@@ -2,7 +2,7 @@
 from memsim import benchmarks, memory
 
 
-class MockFile:
+class MockFile(object):
 
     def __init__(self, value):
         self.value = value

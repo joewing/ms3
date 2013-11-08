@@ -14,14 +14,14 @@ constructors = dict()
 next_memory_id = 1
 
 
-class MemoryPort:
+class MemoryPort(object):
     def __init__(self, name, word_size, addr_width):
         self.name = name
         self.word_size = word_size
         self.addr_width = addr_width
 
 
-class Memory:
+class Memory(object):
     """The abstract base class for all memory components."""
 
     def __init__(self):
@@ -150,7 +150,7 @@ class Memory:
         return 0
 
 
-class MemoryList:
+class MemoryList(object):
 
     memories = []
 

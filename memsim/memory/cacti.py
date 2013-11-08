@@ -10,7 +10,7 @@ import tempfile
 from memsim import database
 
 
-class CACTIResult:
+class CACTIResult(object):
 
     def __init__(self, access_time=0, cycle_time=0, area=0):
         self.access_time = access_time
@@ -27,7 +27,7 @@ class CACTIResult:
         return hash(self.get_pair())
 
 
-class CACTIParams:
+class CACTIParams(object):
 
     size = 0
     block_size = 0

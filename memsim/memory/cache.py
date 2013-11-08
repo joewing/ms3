@@ -9,7 +9,7 @@ from memsim.memory import container
 from memsim.memory import xilinx
 
 
-class CachePolicy:
+class CachePolicy(object):
     LRU = 0
     MRU = 1
     FIFO = 2
@@ -62,7 +62,7 @@ def random_cache(machine, nxt, rand, cost):
         return None
 
 
-class CacheLine:
+class CacheLine(object):
     tag = -1
     age = 0
     dirty = False

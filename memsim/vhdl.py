@@ -1,5 +1,5 @@
 
-class VHDLGenerator:
+class VHDLGenerator(object):
     """Class used to generate VHDL code."""
 
     def __init__(self):

@@ -3,7 +3,7 @@ from memsim import lex
 from memsim import parser
 
 
-class TargetType:
+class TargetType(object):
     SIMPLE = 0
     ASIC = 1
     FPGA = 2
@@ -31,7 +31,7 @@ def show_target(t):
         return "?"
 
 
-class MachineType:
+class MachineType(object):
 
     def __init__(self,
                  target=TargetType.SIMPLE,

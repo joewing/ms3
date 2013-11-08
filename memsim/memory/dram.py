@@ -5,7 +5,7 @@ from memsim import parser
 from memsim.memory import base
 
 
-class DRAMBank:
+class DRAMBank(object):
     page = -1          # Currently open page.
     dirty = False      # Set if the open page is dirty.
     time = 0           # Time of the next allowed access.

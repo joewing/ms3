@@ -3,7 +3,7 @@ from memsim.process import AccessType
 from memsim import parser
 
 
-class Benchmark:
+class Benchmark(object):
     """Base clase for benchmarks.
         A benchmark is a kernel used to generate an address trace.
     """
