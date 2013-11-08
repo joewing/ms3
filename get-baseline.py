@@ -18,13 +18,15 @@ from memsim import process
 BRAM_WIDTH = 72
 BRAM_DEPTH = 512
 DEFAULT_MAX_COST = 64
-
+DEFAULT_WORD_SIZE = 4
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
 parser.add_option('-c', '--cost', dest='cost', default=DEFAULT_MAX_COST,
                   help='max cost')
+parser.add_option('-w', '--word', dest='word_size', default=DEFAULT_WORD_SIZE,
+                  help='word size in bytes')
 
 
 db = None
@@ -38,6 +40,7 @@ best_name = ''
 best_cost = 0
 best_time = 1 << 31
 max_cost = DEFAULT_MAX_COST
+word_size = DEFAULT_WORD_SIZE
 
 
 def estimate_bram_count(width, depth):
@@ -131,16 +134,15 @@ def main():
         url = os.environ.get('COUCHDB_URL')
     else:
         url = options.url
-    global db, max_cost
+    global db, max_cost, word_size
     max_cost = options.cost
+    word_size = options.word_size
     db = database.get_instance('', url)
-    max_brams = 64
-    bram_size = 512 * 72 / 8
-    word_size = 4
-    line_count = 256
-    while line_count <= max_brams * bram_size // word_size:
+    bram_size = (BRAM_WIDTH * BRAM_DEPTH) // 8
+    line_count = 128
+    while line_count <= (max_cost * bram_size) // word_size:
         line_size = word_size
-        while line_size * line_count <= max_brams * bram_size:
+        while line_size * line_count <= max_cost * bram_size:
             associativity = 1
             while associativity <= min(line_count, 8):
                 for policy in get_policies(associativity):
