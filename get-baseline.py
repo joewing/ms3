@@ -15,10 +15,15 @@ from memsim import model
 from memsim import process
 
 
+BRAM_WIDTH = 72
+BRAM_DEPTH = 512
+DEFAULT_MAX_COST = 64
+
+
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
-parser.add_option('-c', '--cost', dest='cost', default=64,
+parser.add_option('-c', '--cost', dest='cost', default=DEFAULT_MAX_COST,
                   help='max cost')
 
 
@@ -32,7 +37,22 @@ mach = machine.MachineType(target=machine.TargetType.FPGA,
 best_name = ''
 best_cost = 0
 best_time = 1 << 31
-max_cost = 64
+max_cost = DEFAULT_MAX_COST
+
+
+def estimate_bram_count(width, depth):
+    if width % BRAM_WIDTH != 0:
+        max_width = BRAM_WIDTH * BRAM_DEPTH
+        small_width = width % BRAM_WIDTH
+        rounded_width = machine.round_power2(small_width)
+        small_depth = max_width // rounded_width
+        result = (depth + small_depth - 1) // small_depth
+    else:
+        result = 0
+    big_count = width // BRAM_WIDTH
+    big_depth = (depth + BRAM_DEPTH - 1) // BRAM_DEPTH
+    result += big_depth * big_count
+    return result
 
 
 def run_simulation(mem, experiment):
@@ -76,6 +96,10 @@ def generate_cache(line_count,
                    policy,
                    write_back,
                    experiments):
+    width = line_size * associativity * 8
+    depth = line_count // associativity
+    if estimate_bram_count(width, depth) > max_cost:
+        return
     c = cache.Cache(mem=ram.RAM(latency=0),
                     line_count=line_count,
                     line_size=line_size,
@@ -84,7 +108,6 @@ def generate_cache(line_count,
                     write_back=write_back)
     c.reset(mach)
     cost = c.get_cost()
-    global max_cost
     if cost <= max_cost:
         global total
         total += 1
