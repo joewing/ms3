@@ -43,7 +43,7 @@ def run_xilinx(machine, mem, keep=False):
     db = database.get_instance()
     name = machine.part + str(component)
     temp = db.get_fpga_result(name)
-    if temp is not None:
+    if temp:
         return XilinxResult(temp[0], temp[1])
 
     # Create a directory for this run.

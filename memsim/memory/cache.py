@@ -56,10 +56,7 @@ def random_cache(machine, nxt, rand, cost):
             result.line_count //= 2
             break
     result.reset(machine)
-    if result.get_cost() <= cost:
-        return result
-    else:
-        return None
+    return result if result.get_cost() <= cost else None
 
 
 class CacheLine(object):

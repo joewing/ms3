@@ -11,7 +11,7 @@ _db_instance = None
 def get_instance(model='', url=None):
     """Get a database instance."""
     global _db_instance
-    if _db_instance is not None:
+    if _db_instance:
         return _db_instance
 
     # First try to connect to couch.
@@ -22,7 +22,7 @@ def get_instance(model='', url=None):
         return db
 
     # If a database URL was provided, but we were unable to connect, we exit.
-    if url is not None:
+    if url:
         print("ERROR: could not connect to database: " + str(url))
         sys.exit(-1)
 

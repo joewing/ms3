@@ -22,9 +22,7 @@ def random_spm(machine, nxt, rand, cost):
             spm.size //= 2
             spm.reset(machine)
             break
-    if spm.get_cost() <= cost:
-        return spm
-    return None
+    return spm if spm.get_cost() <= cost else None
 
 
 class SPM(container.Container):

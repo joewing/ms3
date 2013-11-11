@@ -10,10 +10,7 @@ def random_split(machine, nxt, rand, cost):
     bank0 = join.Join(0)
     bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
-    if result.get_cost() <= cost:
-        return result
-    else:
-        return None
+    return result if result.get_cost() <= cost else None
 
 
 class Split(base.Memory):

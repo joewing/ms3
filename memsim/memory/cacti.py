@@ -106,7 +106,7 @@ def _run_cacti(params):
     # Check if we already tried a memory with these parameters.
     db = database.get_instance()
     temp = db.get_cacti_result(params)
-    if temp is not None:
+    if temp:
         return CACTIResult(access_time=temp[0],
                            cycle_time=temp[1],
                            area=temp[2])
@@ -139,20 +139,14 @@ def _run_cacti(params):
     # Extract the area, access time, and cycle time from the CACTI results.
     result = CACTIResult()
     m = area_regex.search(buf)
-    if m is None:
-        result.area = 1 << 31
-    else:
+    if m:
         result.area = int(math.ceil(float(m.group(1)) * 1000.0 * 1000.0))
+    else:
+        result.area = 1 << 31
     m = access_regex.search(buf)
-    if m is None:
-        result.access_time = 1 << 31
-    else:
-        result.access_time = float(m.group(1))
+    result.access_time = float(m.group(1)) if m else (1 << 31)
     m = cycle_regex.search(buf)
-    if m is None:
-        result.cycle_time = result.access_time
-    else:
-        result.cycle_time = float(m.group(1))
+    result.cycle_time = float(m.group(1)) if m else result.access_time
 
     db.add_cacti_result(params,
                         result.access_time,

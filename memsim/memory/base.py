@@ -45,10 +45,7 @@ class Memory(object):
     def get_ports(self, mach):
         """Get a list of main memory ports for this subsystem."""
         n = self.get_next()
-        if n is not None:
-            return n.get_ports(mach)
-        else:
-            return []
+        return n.get_ports(mach) if n else []
 
     def get_next(self):
         """Get the next memory component."""
@@ -71,7 +68,7 @@ class Memory(object):
         counts = map(lambda m: m.count(), self.get_banks())
         result = reduce(lambda a, b: a + b, counts, 1)
         n = self.get_next()
-        if n is not None:
+        if n:
             result += n.count()
         return result
 
@@ -83,7 +80,7 @@ class Memory(object):
         """Get the total cost of the memory component and its children."""
         costs = map(lambda m: m.get_total_cost(), self.get_banks())
         result = reduce(lambda a, b: a + b, costs, self.get_cost())
-        if self.get_next() is not None:
+        if self.get_next():
             result += self.get_next().get_total_cost()
         return result
 
@@ -97,7 +94,7 @@ class Memory(object):
         for i in range(len(banks)):
             self.set_bank(i, banks[i].simplify())
         n = self.get_next()
-        if n is not None:
+        if n:
             self.set_next(n.simplify())
         return self
 
@@ -126,7 +123,7 @@ class Memory(object):
         self.machine = machine
         for b in self.get_banks():
             b.reset(machine)
-        if self.get_next() is not None:
+        if self.get_next():
             self.get_next().reset(machine)
 
     def process(self, start, write, addr, size):

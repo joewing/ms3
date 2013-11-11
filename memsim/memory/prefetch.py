@@ -8,10 +8,7 @@ def random_prefetch(machine, nxt, rand, cost):
     stride = machine.word_size * rand.randint(-8, 8)
     result = Prefetch(nxt, stride)
     result.reset(machine)
-    if result.get_cost() <= cost:
-        return result
-    else:
-        return None
+    return result if result.get_cost() <= cost else None
 
 
 class Prefetch(container.Container):

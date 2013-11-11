@@ -19,12 +19,10 @@ class CouchDatabase(base.Database):
         self.results = dict()
         self.fpga_results = dict()
         self.cacti_results = dict()
-        if url is None:
-            self.url = 'http://127.0.0.1:5984'
-        else:
-            self.url = url
+        self.url = url if url else 'http://127.0.0.1:5984'
 
     def _create_views(self):
+        """Create the necessary map-reduce views."""
         doc = {
             "language": "javascript",
             "views": {
@@ -70,6 +68,7 @@ class CouchDatabase(base.Database):
         self.db['_design/ms3'] = doc
 
     def load(self):
+        """Load the current model state from the database."""
         if couchdb.client is None:
             print("Could not load couchdb.client")
             return False
@@ -89,6 +88,7 @@ class CouchDatabase(base.Database):
             return False
 
     def save(self):
+        """Save the current model state to the database."""
         doc = {
             '_id': uuid.uuid4().hex,
             'type': 'state',
