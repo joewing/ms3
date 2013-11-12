@@ -7,6 +7,9 @@ import couchdb.client
 from memsim.database import base
 
 
+BATCH_SIZE = 1024
+
+
 class CouchDatabase(base.Database):
     """CouchDB database connector."""
 
@@ -95,7 +98,8 @@ class CouchDatabase(base.Database):
             'model': self.model_hash,
             'value': json.dumps(self.state),
         }
-        for r in self.db.view('ms3/state', key=self.model_hash):
+        for r in self.db.iterview('ms3/state', BATCH_SIZE,
+                                  key=self.model_hash):
             doc['_id'] = r.value['id']
             doc['_rev'] = r.value['rev']
             break
@@ -106,7 +110,8 @@ class CouchDatabase(base.Database):
         mem_hash = self.get_hash(mem)
         if mem_hash in self.results:
             return self.results[mem_hash]
-        for r in self.db.view('ms3/results', key=[self.model_hash, mem_hash]):
+        for r in self.db.iterview('ms3/results', BATCH_SIZE,
+                                  key=[self.model_hash, mem_hash]):
             self.results[mem_hash] = r.value
             return r.value
         return None
@@ -129,7 +134,8 @@ class CouchDatabase(base.Database):
         key_hash = self.get_hash(name)
         if key_hash in self.fpga_results:
             return self.fpga_results[key_hash]
-        for r in self.db.view('ms3/fpga_results', key=key_hash):
+        for r in self.db.iterview('ms3/fpga_results', BATCH_SIZE,
+                                  key=key_hash):
             self.fpga_results[key_hash] = r.value
             return r.value
         return None
@@ -153,7 +159,8 @@ class CouchDatabase(base.Database):
         key_hash = self.get_hash(name)
         if key_hash in self.cacti_results:
             return self.cacti_results[key_hash]
-        for r in self.db.view('ms3/cacti_results', key=key_hash):
+        for r in self.db.iterview('ms3/cacti_results', BATCH_SIZE,
+                                  key=key_hash):
             self.cacti_results[key_hash] = r.value
             return r.value
         return None
@@ -175,12 +182,28 @@ class CouchDatabase(base.Database):
 
     def get_states(self):
         """Generator to return all persisted states."""
-        for r in self.db.view('ms3/state'):
+        for r in self.db.iterview('ms3/state', BATCH_SIZE):
             yield json.loads(r.value['value'])
+
+    def get_results(self, model_hash):
+        """Generator to return all results for the specified model hash."""
+        for r in self.db.iterview('ms3/results', BATCH_SIZE,
+                                  key1=model_hash):
+            yield r.key[1], r.value
+
+    def get_fpga_results(self):
+        """Generator to return all FPGA results."""
+        for r in self.db.iterview('ms3/fpga_results', BATCH_SIZE):
+            yield r.key, r.value
+
+    def get_cacti_results(self):
+        """Generator to return all CACTI results."""
+        for r in self.db.iterview('ms3/cacti_results', BATCH_SIZE):
+            yield r.key, r.value
 
     def remove(self, h):
         """Remove data for the specified hash."""
-        for r in self.db.view('ms3/model_list', key=h):
+        for r in self.db.iterview('ms3/model_list', BATCH_SIZE, key=h):
             del self.db[r.value]
 
     def compact(self):
@@ -192,7 +215,7 @@ class CouchDatabase(base.Database):
         last_key = ''
         last_frequency = 0
         last_bram_count = 0
-        for r in self.db.view('ms3/fpga_results'):
+        for r in self.db.view('ms3/fpga_results', BATCH_SIZE):
             if r.value[0] == 1:
                 print("Removing invalid:", r.id)
                 del self.db[r.id]

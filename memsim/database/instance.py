@@ -1,8 +1,7 @@
 
 import sys
 
-from memsim.database import couch
-from memsim.database import simple
+from memsim.database import couch, simple, s3
 
 
 _db_instance = None
@@ -20,6 +19,9 @@ def get_instance(model='', url=None):
         print("Connected to CouchDB")
         _db_instance = db
         return db
+
+    # Attempt to connect to S3.
+    db = s3.S3Database(model)
 
     # If a database URL was provided, but we were unable to connect, we exit.
     if url:

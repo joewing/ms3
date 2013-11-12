@@ -48,49 +48,51 @@ class S3Database(base.Database):
         k = Key(self.bucket, name=key)
         k.set_contents_from_string(json.dumps(self.state))
 
-    def _get_key(self, prefix, name):
+    def get_key(self, prefix, name, include_model):
         """Get the key name for an entry in the database."""
-        return '-'.join([prefix, self.model_hash, self.get_hash(name)])
+        if include_model:
+            lst = [prefix, self.model_hash, self.get_hash(name)]
+        else:
+            lst = [prefix, self.get_hash(name)]
+        return '-'.join(lst)
 
-    def _get(self, prefix, name):
+    def get(self, key):
         """Load a value from the database."""
-        key = self._get_key(prefix, name)
         if key in self.results:
             return self.results[key]
         k = self.bucket.get_key(key)
         return json.loads(k.get_contents_as_string()) if k else None
 
-    def _put(self, prefix, name, value):
+    def put(self, key, value):
         """Store a value to the database."""
-        key = self._get_keY(prefix, name)
         self.results[key] = value
         k = Key(self.bucket, name=key)
         k.set_contents_from_string(json.dumps(value))
 
     def get_result(self, mem):
         """Get a result from the database."""
-        return self._get('result', mem)
+        return self.get(self.get_key('result', mem, True))
 
     def add_result(self, mem, value):
         """Insert a result to the database."""
-        self._put('result', mem, value)
+        self.put(self.get_key('result', mem, True), value)
 
     def get_fpga_result(self, name):
         """Get FPGA timing data from the database."""
-        return self._get('fpga', name)
+        return self.get(self.get_key('fpga', name, False))
 
     def add_fpga_result(self, name, frequency, bram_count):
         """Add an FPGA timing result to the database."""
-        self._put('fpga', name, (frequency, bram_count))
+        self.put(self.get_key('fpga', name, False), (frequency, bram_count))
 
     def get_cacti_result(self, name):
         """Get CACTI timing data from the database."""
-        return self._get('cacti', name)
+        return self.get(self.get_key('cacti', name, False))
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
         """Add CACTI timing data to the database."""
         value = (access_time, cycle_time, area)
-        self._put('cacti', name, value)
+        self.put(self.get_key('cacti', name, False), value)
 
     def get_states(self):
         """Generator to return all persisted states."""
