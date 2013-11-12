@@ -148,7 +148,7 @@ def main():
                                word_size=int(options.word_size),
                                addr_bits=32,
                                max_path_length=64)
-    max_cost = options.cost
+    max_cost = int(options.cost)
     db = database.get_instance('', url)
     bram_size = (BRAM_WIDTH * BRAM_DEPTH) // 8
     line_count = machine.round_power2((max_cost * bram_size) // mach.word_size)
