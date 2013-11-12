@@ -27,35 +27,39 @@ parser.add_option('-c', '--cost', dest='cost', default=DEFAULT_MAX_COST,
                   help='max cost')
 parser.add_option('-w', '--word', dest='word_size', default=DEFAULT_WORD_SIZE,
                   help='word size in bytes')
+parser.add_option('-t', '--target', dest='target', default='fpga',
+                  help='target architecture')
+parser.add_option('-f', '--frequency', dest='frequency', default=250000000,
+                  help='target frequency')
 
 
 db = None
 total = 0
-mach = machine.MachineType(target=machine.TargetType.FPGA,
-                           frequency=250000000,
-                           word_size=4,
-                           addr_bits=32,
-                           max_path_length=64)
+mach = None
 best_name = ''
 best_cost = 0
 best_time = 1 << 31
 max_cost = DEFAULT_MAX_COST
-word_size = DEFAULT_WORD_SIZE
 
 
-def estimate_bram_count(width, depth):
-    if width % BRAM_WIDTH != 0:
-        max_width = BRAM_WIDTH * BRAM_DEPTH
-        small_width = width % BRAM_WIDTH
-        rounded_width = machine.round_power2(small_width)
-        small_depth = max_width // rounded_width
-        result = (depth + small_depth - 1) // small_depth
+def estimate_cost(width, depth):
+    if mach.target == machine.TargetType.FPGA:
+        if width % BRAM_WIDTH != 0:
+            max_width = BRAM_WIDTH * BRAM_DEPTH
+            small_width = width % BRAM_WIDTH
+            rounded_width = machine.round_power2(small_width)
+            small_depth = max_width // rounded_width
+            result = (depth + small_depth - 1) // small_depth
+        else:
+            result = 0
+        big_count = width // BRAM_WIDTH
+        big_depth = (depth + BRAM_DEPTH - 1) // BRAM_DEPTH
+        result += big_depth * big_count
+        return result
+    elif mach.target == machine.TargetType.SIMPLE:
+        return width * depth
     else:
-        result = 0
-    big_count = width // BRAM_WIDTH
-    big_depth = (depth + BRAM_DEPTH - 1) // BRAM_DEPTH
-    result += big_depth * big_count
-    return result
+        return 0
 
 
 def run_simulation(mem, experiment):
@@ -104,7 +108,7 @@ def generate_cache(line_count,
                    experiments):
     width = line_size * associativity * 8
     depth = line_count // associativity
-    if estimate_bram_count(width, depth) > max_cost:
+    if estimate_cost(width, depth) > max_cost:
         return
     c = cache.Cache(mem=ram.RAM(latency=0),
                     line_count=line_count,
@@ -124,10 +128,11 @@ def get_policies(associativity):
     if associativity == 1:
         return [0]
     else:
-        return range(0, cache.CachePolicy.MAX_POLICY)
+        return range(0, cache.CachePolicy.MAX_POLICY + 1)
 
 
 def main():
+    global db, max_cost, mach
     options, args = parser.parse_args()
     if len(args) == 0:
         experiments = None
@@ -137,16 +142,19 @@ def main():
         url = os.environ.get('COUCHDB_URL')
     else:
         url = options.url
-    global db, max_cost, word_size
+    target = machine.parse_target(options.target)
+    mach = machine.MachineType(target=target,
+                               frequency=float(options.frequency),
+                               word_size=int(options.word_size),
+                               addr_bits=32,
+                               max_path_length=64)
     max_cost = options.cost
-    word_size = options.word_size
     db = database.get_instance('', url)
     bram_size = (BRAM_WIDTH * BRAM_DEPTH) // 8
-    line_count = machine.round_power2((max_cost * bram_size) // word_size)
+    line_count = machine.round_power2((max_cost * bram_size) // mach.word_size)
     while line_count >= 128:
         line_size = machine.round_power2(max_cost * bram_size)
-        line_size = word_size
-        while line_size >= word_size:
+        while line_size >= mach.word_size:
             associativity = min(line_count, 8)
             while associativity >= 1:
                 for policy in get_policies(associativity):
