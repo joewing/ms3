@@ -73,21 +73,24 @@ def run_simulation(mem, experiment):
 
 
 def run_simulations(mem, experiments):
+    global best_time, best_cost, best_name
     print("Evaluating", mem)
     if experiments is None:
         global total
         print("  Total:", str(total))
         return
     lsum = 0.0
+    gmean = 0.0
     for e in experiments:
         result = run_simulation(mem, e)
         lsum += math.log(result)
-    gmean = math.exp(lsum / len(experiments))
-    print("Geometric mean:", gmean)
+        gmean = math.exp(lsum / len(experiments))
+        if gmean > best_time:
+            print("Best cost exceeded")
+            return
     cost = mem.get_cost()
-    global best_time, best_cost, best_name
-    if gmean < best_time or \
-       (gmean == best_time and cost < best_cost):
+    if gmean < best_time or (gmean == best_time and cost < best_cost):
+        print("New best:", gmean)
         best_time = gmean
         best_cost = cost
         best_name = str(mem)
@@ -139,20 +142,21 @@ def main():
     word_size = options.word_size
     db = database.get_instance('', url)
     bram_size = (BRAM_WIDTH * BRAM_DEPTH) // 8
-    line_count = 128
-    while line_count <= (max_cost * bram_size) // word_size:
+    line_count = machine.round_power2((max_cost * bram_size) // word_size)
+    while line_count >= 128:
+        line_size = machine.round_power2(max_cost * bram_size)
         line_size = word_size
-        while line_size * line_count <= max_cost * bram_size:
-            associativity = 1
-            while associativity <= min(line_count, 8):
+        while line_size >= word_size:
+            associativity = min(line_count, 8)
+            while associativity >= 1:
                 for policy in get_policies(associativity):
                     generate_cache(line_count, line_size, associativity,
                                    policy, True, experiments)
                     generate_cache(line_count, line_size, associativity,
                                    policy, False, experiments)
-                associativity *= 2
-            line_size *= 2
-        line_count *= 2
+                associativity //= 2
+            line_size //= 2
+        line_count //= 2
     print("Total:", total)
     print("Best Cost:  ", best_cost)
     print("Best Memory:", best_name)
