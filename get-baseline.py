@@ -59,7 +59,16 @@ def estimate_cost(width, depth):
     elif mach.target == machine.TargetType.SIMPLE:
         return width * depth
     else:
-        return 0
+        return width * depth * mach.technology
+
+
+def get_max_size():
+    if mach.target == machine.TargetType.FPGA:
+        return max_cost * BRAM_WIDTH * BRAM_DEPTH
+    elif mach.target == machine.TargetType.ASIC:
+        return int(max_cost / mach.technology)
+    else:
+        return max_cost
 
 
 def run_simulation(mem, experiment):
@@ -150,10 +159,10 @@ def main():
                                max_path_length=64)
     max_cost = int(options.cost)
     db = database.get_instance('', url)
-    bram_size = (BRAM_WIDTH * BRAM_DEPTH) // 8
-    line_count = machine.round_power2((max_cost * bram_size) // mach.word_size)
+    max_size = get_max_size()
+    line_count = machine.round_power2(max_size // (mach.word_size * 8))
     while line_count >= 128:
-        line_size = machine.round_power2(max_cost * bram_size)
+        line_size = machine.round_power2(max_size // 8)
         while line_size >= mach.word_size:
             associativity = min(line_count, 8)
             while associativity >= 1:

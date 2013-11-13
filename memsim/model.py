@@ -1,8 +1,5 @@
 
-from memsim import benchmarks
-from memsim import lex
-from memsim import machine
-from memsim import memory
+from memsim import benchmarks, lex, machine, memory
 
 
 class Model(object):
@@ -27,6 +24,15 @@ class Model(object):
             result += str(b)
         result += ')'
         return result
+
+
+def parse_model_file(filename):
+    try:
+        with open(filename, 'r') as f:
+            return parse_model(lex.Lexer(f))
+    except IOError as e:
+        print('ERROR:', e)
+        return None
 
 
 def parse_model(lexer, model=None):
