@@ -1,9 +1,9 @@
 (machine
    (word_size  4)
    (addr_bits  32)
-   (target     fpga)
+   (target     simple)
    (frequency  250000000)
-   (max_cost   64)
+   (max_cost   8192)
 )
 (skip 100000)(on 10000)
 (memory

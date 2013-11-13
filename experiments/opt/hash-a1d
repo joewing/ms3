@@ -1,0 +1,14 @@
+(machine
+   (word_size  4)
+   (addr_bits  32)
+   (target     asic)
+   (frequency  1000000000)
+   (technology 0.045)
+   (max_cost   1000000)
+)
+(memory
+(spm (size 262144)(access_time 1)(cycle_time 3)(memory (shift (value 22)(bank (spm (size 65536)(access_time 1)(cycle_time 1)(memory (join))))(memory (dram (frequency 400000000)(cas_cycles 5)(rcd_cycles 5)(rp_cycles 5)(wb_cycles 0)(page_size 1024)(page_count 65536)(width 8)(burst_size 4)(open_page true)(ddr true))))))
+)
+(benchmarks
+   (hash (count 8388608))
+)
