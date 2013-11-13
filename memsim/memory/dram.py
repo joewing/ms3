@@ -2,7 +2,7 @@
 import math
 
 from memsim import parser
-from memsim.memory import base
+from memsim.memory import base, main
 
 
 class DRAMBank(object):
@@ -11,7 +11,7 @@ class DRAMBank(object):
     time = 0           # Time of the next allowed access.
 
 
-class DRAM(base.Memory):
+class DRAM(main.MainMemory):
     """DRAM device model."""
 
     def __init__(self,
@@ -26,7 +26,7 @@ class DRAM(base.Memory):
                  burst_size,    # Size of a burst in transfers
                  open_page,     # True for open-page, False for closed-page
                  ddr):          # True for DDR, False for SDR.
-        base.Memory.__init__(self)
+        main.MainMemory.__init__(self)
         self.frequency = frequency
         self.cas_cycles = cas_cycles
         self.rcd_cycles = rcd_cycles
@@ -61,16 +61,6 @@ class DRAM(base.Memory):
             result += '(ddr false)'
         result += ')'
         return result
-
-    def get_ports(self, mach):
-        name = self.get_id()
-        word_size = mach.word_size
-        addr_width = mach.addr_bits
-        return [base.MemoryPort(name, word_size, addr_width)]
-
-    def generate(self, gen, mach):
-        name = self.get_id()
-        gen.declare_signals(name, mach.word_size)
 
     def reset(self, machine):
         base.Memory.reset(self, machine)
