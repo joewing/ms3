@@ -25,7 +25,7 @@ def main():
         print('ERROR: could not read model')
         sys.exit(-1)
     m.machine.frequency = 1 << 31
-    result = xilinx.run_xilinx(m.machine, m.memory, options.keep)
+    result = xilinx.run_xilinx(m.machine, m.memory, options.keep, True)
     print("Frequency:", result.frequency)
     print("BRAMs:     ", result.bram_count)
 

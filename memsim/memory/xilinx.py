@@ -30,14 +30,18 @@ class XilinxResult(object):
         return hash(self.get_pair())
 
 
-def run_xilinx(machine, mem, keep=False):
+def run_xilinx(machine, mem, keep=False, full=False):
     """Get the results of running XST on the specified memory."""
 
-    # Get the individual memory component with a simple main memory.
-    component = mem.clone()
-    component.access_time = 0
-    component.cycle_time = 0
-    component.set_next(ram.RAM(latency=0))
+    if full:
+        # Get the timing for the complete memory subsystem.
+        component = mem
+    else:
+        # Get the individual memory component with a simple main memory.
+        component = mem.clone()
+        component.access_time = 0
+        component.cycle_time = 0
+        component.set_next(ram.RAM(latency=0))
 
     # Determine if we've already processed this memory.
     db = database.get_instance()
