@@ -186,7 +186,4 @@ class ProcessList(object):
             self.db.set_value('first', False)
             self.first = False
 
-        # Display the results and return.
-        print("Time: ", self.machine.time)
-        print("Cost: ", ml.get_cost())
         return self.machine.time

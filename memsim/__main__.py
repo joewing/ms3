@@ -53,6 +53,8 @@ def main():
         print('Iteration: {0} (steps: {1}, threshold: {2}, age: {3})'
               .format(o.evaluations + 1, o.steps + 1, o.threshold, o.age))
         time = pl.run(ml, limit)
+        print('Time:', time)
+        print('Cost:', ml.get_cost())
         ml = o.optimize(time)
         print('Best Memory:', o.best_name)
         print('Best Value: ', o.best_value)
