@@ -122,6 +122,7 @@ def generate_cache(line_count,
         global total
         total += 1
         run_simulations(c, experiments)
+        print("Best:", best_name)
 
 
 def get_policies(associativity):
