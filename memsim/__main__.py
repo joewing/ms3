@@ -52,6 +52,7 @@ def main():
     while o.evaluations < int(options.iterations):
         print('Iteration: {0} (steps: {1}, threshold: {2}, age: {3})'
               .format(o.evaluations + 1, o.steps + 1, o.threshold, o.age))
+        print(ml)
         time = pl.run(ml, limit)
         print('Time:', time)
         print('Cost:', ml.get_cost())

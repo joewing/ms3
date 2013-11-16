@@ -2,8 +2,7 @@
 from __future__ import print_function
 import sys
 
-from memsim import database
-from memsim import priorityqueue
+from memsim import database, distribution, memory, priorityqueue
 
 
 class AccessType(object):
@@ -130,8 +129,6 @@ class ProcessList(object):
         """Run a simulation.
             ml is the MemoryList describing the memories to use.
         """
-        print(ml)
-
         # Reset to prepare for the simulation.
         self.machine.reset()
         for i in range(len(self.processes)):
@@ -187,3 +184,18 @@ class ProcessList(object):
             self.first = False
 
         return self.machine.time
+
+
+def evaluate(m):
+    """Evaluate the specified model."""
+    distributions = []
+    processes = []
+    memories = []
+    for i in range(len(m.benchmarks)):
+        dist = distribution.Distribution(m.seed)
+        distributions.append(dist)
+        processes.append(Process(dist, m.benchmarks[i]))
+        memories.append(m.memory)
+    pl = ProcessList(m.machine, processes, m.on, m.skip)
+    ml = memory.MemoryList(memories, distributions)
+    return pl.run(ml, 0)

@@ -10,7 +10,7 @@ _db_instance = None
 def get_instance(model='', url=None):
     """Get a database instance."""
     global _db_instance
-    if _db_instance:
+    if _db_instance and (model == '' or _db_instance.model == str(model)):
         return _db_instance
 
     # First try to connect to couch.

@@ -4,15 +4,8 @@ import math
 import optparse
 import os
 
-from memsim import database
-from memsim import distribution
-from memsim import lex
-from memsim import machine
-from memsim import memory
-from memsim.memory import cache
-from memsim.memory import ram
-from memsim import model
-from memsim import process
+from memsim import database, distribution, machine, memory, model, process
+from memsim.memory import cache, ram
 
 
 BRAM_WIDTH = 72
@@ -73,9 +66,7 @@ def get_max_size():
 
 def run_simulation(mem, experiment):
     print("  Running", experiment)
-    with open(experiment, 'r') as f:
-        l = lex.Lexer(f)
-        m = model.parse_model(l)
+    m = model.parse_model_file(experiment)
     dist = distribution.Distribution(m.seed)
     procs = [process.Process(dist, m.benchmarks[0])]
     pl = process.ProcessList(mach, procs, 1000000, 0)
