@@ -27,7 +27,8 @@ def simulate(url, experiment, mem, baseline):
     if mem == 'model':
         pass
     elif mem == 'baseline':
-        m.memory = memory.parse(lex.Lexer(baseline))
+        with open(baseline, 'r') as f:
+            m.memory = memory.parse_memory(lex.Lexer(f))
     elif mem == 'best':
         best_name = db.get_value('best_name', str(m.memory))
         best_file = StringIO.StringIO(best_name)
@@ -42,7 +43,7 @@ def simulate(url, experiment, mem, baseline):
 
 def generate_array(url, experiments, mem, baseline):
     for experiment in experiments:
-        simulate(url, experiment, options.memory, options.baseline)
+        simulate(url, experiment, mem, baseline)
 
 
 def generate_matrix(url, experiments, mem, baseline):
@@ -61,7 +62,8 @@ def generate_matrix(url, experiments, mem, baseline):
                 temp = model.parse_model_file(mem_model)
                 m.memory = temp.memory
             elif mem == 'baseline':
-                m.memory = memory.parse(lex.Lexer(baseline))
+                with open(baseline, 'r') as f:
+                    m.memory = memory.parse_memory(lex.Lexer(f))
             elif mem == 'best':
                 m.memory = model_memory
             m.skip = 0
