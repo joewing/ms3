@@ -2,11 +2,13 @@
 from __future__ import print_function
 import optparse
 import os
+import re
 import sys
 import StringIO
 
 from memsim import database, lex, memory, model
 from memsim.process import evaluate
+from memsim.benchmarks import trace
 
 
 parser = optparse.OptionParser()
@@ -35,10 +37,17 @@ def simulate(url, experiment, mem, baseline):
         m.memory = memory.parse_memory(lex.Lexer(best_file))
     else:
         print('ERROR: invalid memory selected:', mem)
-    m.skip = 0
-    m.on = 1000000
+    fixup_model(m)
     time = evaluate(m)
     print(experiment + ',' + str(time))
+
+
+def fixup_model(m):
+    m.skip = 0
+    m.on = 1000000
+    for b in m.benchmarks:
+        if isinstance(b, trace.Trace):
+            b.file_name = re.sub(r'\/traces\/', '/mibench3/', b.file_name)
 
 
 def generate_array(url, experiments, mem, baseline):
@@ -66,8 +75,7 @@ def generate_matrix(url, experiments, mem, baseline):
                     m.memory = memory.parse_memory(lex.Lexer(f))
             elif mem == 'best':
                 m.memory = model_memory
-            m.skip = 0
-            m.on = 1000000
+            fixup_model(m)
             time = evaluate(m)
             print(experiment + ',' + mem_model + ',' + str(time))
 
