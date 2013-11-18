@@ -37,6 +37,7 @@ def simulate(url, experiment, mem, baseline):
         print('ERROR: invalid memory selected:', mem)
     m.skip = 0
     m.on = 1000000
+    print(m)
     time = evaluate(m)
     print(experiment + ',' + str(time))
 
