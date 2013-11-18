@@ -9,7 +9,7 @@ def random_offset(machine, nxt, rand, cost):
     if rand.randbool():
         offset = rand.randint(-machine.word_size, machine.word_size)
     else:
-        offset = rand.random_address(machine.word_size)
+        offset = -rand.random_address(machine.word_size)
     return Offset(join.Join(), nxt, offset)
 
 
@@ -42,7 +42,7 @@ class Offset(transform.Transform):
         if rand.randbool():
             self.offset = rand.randint(-word_size, word_size)
         else:
-            self.offset = rand.random_address(word_size)
+            self.offset = -rand.random_address(word_size)
         return True
 
     def push_transform(self, index, rand):
