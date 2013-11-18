@@ -73,7 +73,6 @@ def generate_matrix(url, experiments, mem, baseline):
 
 
 def main():
-    global db
     options, args = parser.parse_args()
     if len(args) == 0:
         print('ERROR: no models specified')
