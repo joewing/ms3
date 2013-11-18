@@ -2,6 +2,7 @@
 from __future__ import print_function
 import uuid
 import json
+import sys
 import couchdb.client
 
 from memsim.database import base
@@ -73,9 +74,9 @@ class CouchDatabase(base.Database):
     def load(self):
         """Load the current model state from the database."""
         if couchdb.client is None:
-            print("Could not load couchdb.client")
+            sys.stderr.write('Could not load couchdb.client\n')
             return False
-        print("Trying", self.url)
+        sys.stderr.write('Trying ' + str(self.url) + '\n')
         self.server = couchdb.client.Server(url=self.url)
         try:
             if self.dbname in self.server:
@@ -217,14 +218,14 @@ class CouchDatabase(base.Database):
         last_bram_count = 0
         for r in self.db.view('ms3/fpga_results', BATCH_SIZE):
             if r.value[0] == 1:
-                print("Removing invalid:", r.id)
+                print('Removing invalid:', r.id)
                 del self.db[r.id]
             elif r.key == last_key:
-                print("Removing duplicate:", r.id)
+                print('Removing duplicate:', r.id)
                 if last_frequency != r.value[0]:
-                    print("WARN: frequency mismatch; key:", r.key)
+                    print('WARN: frequency mismatch; key:', r.key)
                 elif last_bram_count != r.value[1]:
-                    print("WARN: bram_count mismatch; key:", r.key)
+                    print('WARN: bram_count mismatch; key:', r.key)
                 else:
                     del self.db[r.id]
             else:

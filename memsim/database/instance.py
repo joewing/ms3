@@ -16,7 +16,7 @@ def get_instance(model='', url=None):
     # First try to connect to couch.
     db = couch.CouchDatabase(model, url)
     if db.load():
-        print("Connected to CouchDB")
+        sys.stderr.write('Connected to CouchDB\n')
         _db_instance = db
         return db
 
@@ -25,11 +25,11 @@ def get_instance(model='', url=None):
 
     # If a database URL was provided, but we were unable to connect, we exit.
     if url:
-        print("ERROR: could not connect to database: " + str(url))
+        print('ERROR: could not connect to database:', url)
         sys.exit(-1)
 
     # Fall back to the local database.
-    print("Using local database")
+    sys.stderr.write('Using local database\n')
     db = simple.SimpleDatabase(model)
     _db_instance = db
     return db
