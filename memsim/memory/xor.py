@@ -25,7 +25,7 @@ class XOR(transform.Transform):
         return result
 
     def generate(self, gen, mach):
-        self.generate_transform("eor", self.value, ~self.value, gen, mach)
+        self.generate_transform("eor", self.value, self.value, gen, mach)
 
     def is_empty(self):
         return self.value == 0
