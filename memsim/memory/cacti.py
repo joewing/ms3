@@ -112,7 +112,7 @@ def _run_cacti(params):
                            area=temp[2])
 
     # Make sure the cacti program exists and is executable.
-    cacti_exe = './cacti'
+    cacti_exe = 'cacti'
     if not os.path.isfile(cacti_exe):
         print("ERROR:", cacti_exe, "not found")
         sys.exit(-1)
