@@ -3,6 +3,7 @@ from __future__ import print_function
 import math
 import optparse
 import os
+import sys
 
 from memsim import database, machine, memory, model, process
 from memsim.memory import cache, ram
@@ -10,20 +11,10 @@ from memsim.memory import cache, ram
 
 BRAM_WIDTH = 72
 BRAM_DEPTH = 512
-DEFAULT_MAX_COST = 64
-DEFAULT_WORD_SIZE = 4
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
-parser.add_option('-c', '--cost', dest='cost', default=DEFAULT_MAX_COST,
-                  help='max cost')
-parser.add_option('-w', '--word', dest='word_size', default=DEFAULT_WORD_SIZE,
-                  help='word size in bytes')
-parser.add_option('-t', '--target', dest='target', default='fpga',
-                  help='target architecture')
-parser.add_option('-f', '--frequency', dest='frequency', default=250000000,
-                  help='target frequency')
 parser.add_option('-d', '--directory', dest='directory', default='',
                   help='trace directory')
 
@@ -33,7 +24,6 @@ mach = None
 best_name = ''
 best_cost = 0
 best_time = 1 << 31
-max_cost = DEFAULT_MAX_COST
 directory = ''
 url = ''
 
@@ -60,16 +50,40 @@ def estimate_cost(width, depth):
 
 def get_max_size():
     if mach.target == machine.TargetType.FPGA:
-        return max_cost * BRAM_WIDTH * BRAM_DEPTH
+        return mach.max_cost * BRAM_WIDTH * BRAM_DEPTH
     elif mach.target == machine.TargetType.ASIC:
-        return int(max_cost / mach.technology)
+        return int(mach.max_cost / mach.technology)
     else:
-        return max_cost
+        return mach.max_cost
 
 
 def run_simulation(mem, experiment):
-    print("  Running", experiment)
+    print('  Running', experiment)
     m = model.parse_model_file(experiment)
+    if m.machine.target != mach.target:
+        print('ERROR: wrong target for', experiment)
+        sys.exit(-1)
+    if m.machine.frequency != mach.frequency:
+        print('ERROR: wrong frequency for', experiment)
+        sys.exit(-1)
+    if m.machine.technology != mach.technology:
+        print('ERROR: wrong technology for', experiment)
+        sys.exit(-1)
+    if m.machine.max_path_length != mach.max_path_length:
+        print('ERROR: wrong max path length for', experiment)
+        sys.exit(-1)
+    if m.machine.part != mach.part:
+        print('ERROR: wrong part for', experiment)
+        sys.exit(-1)
+    if m.machine.word_size != mach.word_size:
+        print('ERROR: wrong word size for', experiment)
+        sys.exit(-1)
+    if m.machine.addr_bits != mach.addr_bits:
+        print('ERROR: wrong addr bits for', experiment)
+        sys.exit(-1)
+    if m.machine.max_cost != mach.max_cost:
+        print('ERROR: wrong max cost for', experiment)
+        sys.exit(-1)
     procs = [process.Process(None, m.benchmarks[0])]
     pl = process.ProcessList(mach, procs, directory, 1000000, 0)
     pl.first = False
@@ -88,7 +102,7 @@ def run_simulation(mem, experiment):
 
 def run_simulations(mem, experiments):
     global best_time, best_cost, best_name
-    print("Evaluating", mem)
+    print('Evaluating', mem)
     if experiments is None:
         global total
         print('  Total:', str(total))
@@ -118,7 +132,7 @@ def generate_cache(line_count,
                    experiments):
     width = line_size * associativity * 8
     depth = line_count // associativity
-    if estimate_cost(width, depth) > max_cost:
+    if estimate_cost(width, depth) > mach.max_cost:
         return
     c = cache.Cache(mem=ram.RAM(latency=0),
                     line_count=line_count,
@@ -128,7 +142,7 @@ def generate_cache(line_count,
                     write_back=write_back)
     c.reset(mach)
     cost = c.get_cost()
-    if cost <= max_cost:
+    if cost <= mach.max_cost:
         global total
         total += 1
         run_simulations(c, experiments)
@@ -144,19 +158,17 @@ def get_policies(associativity):
 
 
 def main():
-    global url, directory, max_cost, mach
+    global url, directory, mach
     options, args = parser.parse_args()
     experiments = args if args else None
     url = options.url if options.url else os.environ.get('COUCHDB_URL')
     directory = options.directory
     database.get_instance('', url)
-    target = machine.parse_target(options.target)
-    mach = machine.MachineType(target=target,
-                               frequency=float(options.frequency),
-                               word_size=int(options.word_size),
-                               addr_bits=32,
-                               max_path_length=64)
-    max_cost = int(options.cost)
+    if len(args) > 0:
+        m = model.parse_model_file(args[0])
+        mach = m.machine
+    else:
+        mach = machine.MachineType()
     max_size = get_max_size()
     line_count = machine.round_power2(max_size // (mach.word_size * 8))
     while line_count >= 128:
@@ -172,9 +184,9 @@ def main():
                 associativity //= 2
             line_size //= 2
         line_count //= 2
-    print("Total:", total)
-    print("Best Cost:  ", best_cost)
-    print("Best Memory:", best_name)
+    print('Total:', total)
+    print('Best Cost:  ', best_cost)
+    print('Best Memory:', best_name)
 
 
 if __name__ == '__main__':

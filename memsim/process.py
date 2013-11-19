@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 
-from memsim import database, distribution, memory, priorityqueue
+from memsim import database, memory, priorityqueue
 
 
 class AccessType(object):
