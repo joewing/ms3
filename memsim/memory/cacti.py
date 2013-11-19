@@ -136,7 +136,7 @@ def _run_cacti(params):
 
     # Run CACTI.
     try:
-        buf = subprocess.check_output(['./cacti', '-infile', file_name])
+        buf = subprocess.check_output([cacti_exe, '-infile', file_name])
     except subprocess.CalledProcessError:
         buf = ''
     finally:
