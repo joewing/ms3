@@ -100,6 +100,18 @@ def _generate_file(fd, params):
     fd.write("-internal prefetch width 8\n")
 
 
+def _find_cacti():
+    """Find the cacti executable."""
+    for path in os.environ['PATH'].split(os.pathsep):
+        path = path.strip('"')
+        cacti_exe = os.path.join(path, 'cacti')
+        if os.path.is_exe(cacti_exe):
+            return cacti_exe
+    print('ERROR: cacti not found')
+    sys.exit(-1)
+    return None
+
+
 def _run_cacti(params):
     """Get the result of running CACTI with the specified parameters."""
 
@@ -111,14 +123,8 @@ def _run_cacti(params):
                            cycle_time=temp[1],
                            area=temp[2])
 
-    # Make sure the cacti program exists and is executable.
-    cacti_exe = 'cacti'
-    if not os.path.isfile(cacti_exe):
-        print("ERROR:", cacti_exe, "not found")
-        sys.exit(-1)
-    if not os.access(cacti_exe, os.X_OK):
-        print("ERROR:", cacti_exe, "not executable")
-        sys.exit(-1)
+    # Find cacti.
+    cacti_exe = _find_cacti()
 
     # Generate a file containing the parameters for CACTI.
     fd, file_name = tempfile.mkstemp(suffix='.cacti',
