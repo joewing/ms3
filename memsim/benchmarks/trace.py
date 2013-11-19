@@ -6,22 +6,32 @@ from memsim.process import AccessType
 from memsim.benchmarks import base
 
 
+TRACE_SUFFIX = '.trace'
+
+
 class Trace(base.Benchmark):
     """Benchmark to replay an address trace."""
 
-    def __init__(self, file_name):
+    def __init__(self, name):
         base.Benchmark.__init__(self)
-        self.file_name = file_name
+        self.name = name
         self.expr = re.compile(r'([RWMIPCX])([0-9a-fA-F]+):([0-9a-fA-F]+)')
 
     def __str__(self):
-        result = '(trace '
-        result += '(file ' + str(self.file_name) + ')'
-        result += ')'
-        return result
+        return ''.join(['(trace (name ', self.name, '))'])
+
+    def skip(self, n):
+        assert(n == self.off)
+        return True
 
     def run(self):
-        with open(self.file_name, 'r') as f:
+        base_name = '/'.join([self.directory, self.name])
+        if self.off != 0:
+            file_name = ''.join([base_name, '-', str(self.on),
+                                '-', str(self.off), TRACE_SUFFIX])
+        else:
+            file_name = ''.join([base_name, TRACE_SUFFIX])
+        with open(file_name, 'r') as f:
             for line in f:
                 for m in self.expr.finditer(line):
                     at = m.group(1)
@@ -45,6 +55,6 @@ class Trace(base.Benchmark):
 
 
 def _create_trace(lexer, args):
-    file_name = parser.get_argument(lexer, args, 'file', 'trace.txt')
-    return Trace(file_name)
+    name = parser.get_argument(lexer, args, 'name', 'input')
+    return Trace(name)
 base.constructors['trace'] = _create_trace

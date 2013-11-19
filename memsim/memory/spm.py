@@ -22,6 +22,8 @@ def random_spm(machine, nxt, rand, cost):
             spm.size //= 2
             spm.reset(machine)
             break
+        elif rand.randint(0, 8) == 0:
+            break
     return spm if spm.get_cost() <= cost else None
 
 

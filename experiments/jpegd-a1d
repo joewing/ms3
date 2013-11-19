@@ -6,6 +6,7 @@
    (technology 0.045)
    (max_cost   1000000)
 )
+(skip 100000)(on 10000)
 (memory
    (dram
       (frequency     400000000)
@@ -21,5 +22,5 @@
    )
 )
 (benchmarks
-   (trace (file /data/traces/jpegd.trace))
+   (trace (name jpegd))
 )

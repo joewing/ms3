@@ -41,7 +41,8 @@ class TestSPM(unittest.TestCase):
         self.machine.time += t
 
     def test_random(self):
-        s = random_spm(self.machine, self.main, None, 8193)
+        dist = distribution.Distribution(1)
+        s = random_spm(self.machine, self.main, dist, 8193)
         self.assertEqual(str(s), "(spm (size 1024)(memory (mock)))")
 
     def test_permute(self):

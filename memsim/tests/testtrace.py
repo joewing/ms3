@@ -2,6 +2,7 @@
 import os
 import tempfile
 import unittest
+import re
 
 from memsim import benchmarks, lex
 from memsim.benchmarks.trace import Trace
@@ -12,7 +13,7 @@ from memsim.tests import mocks
 class TestTrace(unittest.TestCase):
 
     def test_trace1(self):
-        fd, file_name = tempfile.mkstemp()
+        fd, file_name = tempfile.mkstemp(suffix='.trace')
         try:
             with os.fdopen(fd, 'w') as f:
                 f.write("Rabc:10\n")
@@ -22,7 +23,9 @@ class TestTrace(unittest.TestCase):
                 f.write("P1:0\n")
                 f.write("C2:0\n")
                 f.write("X3:0\n")
-            trace = Trace(file_name)
+            name = re.sub(r'.trace', '', file_name)
+            trace = Trace(name)
+            trace.reset(0, '', 0, 0)
             output = trace.run()
 
             t, addr, size = next(output)
@@ -66,7 +69,7 @@ class TestTrace(unittest.TestCase):
             os.remove(file_name)
 
     def test_parse(self):
-        s = "(trace (file test_file))"
+        s = "(trace (name test))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

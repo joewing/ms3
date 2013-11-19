@@ -12,7 +12,7 @@ class TestHash(unittest.TestCase):
 
     def test_hash(self):
         h = Hash(1, 2, 1, 2)
-        h.reset(1024)
+        h.reset(1024, '', 0, 0)
         gen = h.run()
 
         t, addr, size = next(gen)

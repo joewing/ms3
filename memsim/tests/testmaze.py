@@ -11,7 +11,7 @@ class TestMaze(unittest.TestCase):
 
     def test_maze1(self):
         m = Maze(2, 2, 3)
-        m.reset(1024)
+        m.reset(1024, '', 0, 0)
         gen = m.run()
 
         expected = [

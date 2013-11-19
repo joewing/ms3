@@ -55,6 +55,8 @@ def random_cache(machine, nxt, rand, cost):
         if result.get_cost() > cost:
             result.line_count //= 2
             break
+        elif rand.randint(0, 8) == 0:
+            break
     result.reset(machine)
     return result if result.get_cost() <= cost else None
 

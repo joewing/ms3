@@ -33,5 +33,4 @@ class TestMachine(unittest.TestCase):
         s += "(addr_bits 16)(max_path 10)(max_cost 9)"
         l = lex.Lexer(mocks.MockFile(s))
         result = machine.parse_machine(l)
-        expected = "(machine " + s + ")"
-        self.assertEqual(str(result), expected)
+        self.assertEqual(str(result), s)

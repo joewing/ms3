@@ -10,14 +10,12 @@ class Model(object):
         self.benchmarks = []
         self.skip = 0
         self.on = 1000
-        self.seed = 7
 
     def __str__(self):
         result = '(machine ' + str(self.machine) + ')'
         if self.skip > 0:
             result += '(skip ' + str(self.skip) + ')'
             result += '(on ' + str(self.on) + ')'
-        result += '(seed ' + str(self.seed) + ')'
         result += '(memory ' + str(self.memory) + ')'
         result += '(benchmarks '
         for b in self.benchmarks:
@@ -56,8 +54,6 @@ def parse_model(lexer, model=None):
             model.skip = _parse_int(lexer)
         elif name == 'on':
             model.on = _parse_int(lexer)
-        elif name == 'seed':
-            model.seed = _parse_int(lexer)
         else:
             lex.ParseError(lexer, "invalid top-level component: " + name)
         lexer.match(lex.TOKEN_CLOSE)

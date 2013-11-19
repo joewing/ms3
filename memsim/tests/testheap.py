@@ -12,7 +12,7 @@ class TestHeap(unittest.TestCase):
 
     def test_heap1(self):
         h = Heap(1, 2, 3, 4)
-        h.reset(1024)
+        h.reset(1024, '', 0, 0)
         gen = h.run()
 
         # Initialize
@@ -132,7 +132,7 @@ class TestHeap(unittest.TestCase):
 
     def test_heap2(self):
         h = Heap(1, 1, -1, -1)
-        h.reset(1024)
+        h.reset(1024, '', 0, 0)
         gen = h.run()
 
         expected = [

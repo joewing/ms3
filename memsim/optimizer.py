@@ -33,6 +33,7 @@ class Optimizer(object):
         offset.random_offset,
         shift.random_shift,
         split.random_split,
+        split.random_split,
         spm.random_spm,
         xor.random_xor
     ]

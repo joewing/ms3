@@ -19,7 +19,7 @@ class TestProcess(unittest.TestCase):
         mem = mocks.MockMemory()
         mach = machine.MachineType()
         p = process.Process(None, mocks.MockBenchmark(actions))
-        p.reset(mach, mem, 0)
+        p.reset(mach, mem, 0, '', 0, 0)
 
         t = p.step(False)
         self.assertEqual(t, 400)

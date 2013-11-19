@@ -11,7 +11,7 @@ class TestQSort(unittest.TestCase):
 
     def test_qsort1(self):
         q = QSort(7, 2, 3, 4)
-        q.reset(1024)
+        q.reset(1024, '', 0, 0)
         gen = q.run()
 
         expected = [
@@ -37,7 +37,7 @@ class TestQSort(unittest.TestCase):
 
     def test_qsort2(self):
         q = QSort(3, 64, -1, -1)
-        q.reset(1024)
+        q.reset(1024, '', 0, 0)
         for _ in q.run():
             pass
         self.assertEqual(sorted(q.array), q.array)

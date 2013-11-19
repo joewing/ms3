@@ -14,6 +14,13 @@ parser.add_option('-i', '--iterations', dest='iterations', default=1,
                   help='number of iterations for optimization')
 parser.add_option('-m', '--model', dest='model', default=None,
                   help='model to use for optimization')
+parser.add_option('-n', '--nosave', dest='nosave', default=False,
+                  action='store_true',
+                  help='do not save state to the database')
+parser.add_option('-s', '--seed', dest='seed', default=7,
+                  help='optimization random number seed')
+parser.add_option('-d', '--directory', dest='directory', default=None,
+                  help='directory containing trace data')
 
 
 def main():
@@ -25,28 +32,26 @@ def main():
     if not m:
         print('ERROR: could not read model')
         sys.exit(-1)
-    if options.url is None:
-        url = os.environ.get('COUCHDB_URL')
-    else:
-        url = options.url
+    url = options.url if options.url else os.environ.get('COUCHDB_URL')
+    directory = options.directory if options.directory else os.getcwd()
     db = database.get_instance(m, url)
     db.set_value('model', str(m))
     print(m)
 
+    seed = int(options.seed)
     distributions = []
     processes = []
     memories = []
     for i in range(len(m.benchmarks)):
-        dist = distribution.Distribution(m.seed)
+        dist = distribution.Distribution(seed)
         dist.load(i)
         distributions.append(dist)
         processes.append(process.Process(dist, m.benchmarks[i]))
         memories.append(m.memory)
 
-    pl = process.ProcessList(m.machine, processes, m.on, m.skip)
+    pl = process.ProcessList(m.machine, processes, directory, m.on, m.skip)
     ml = memory.MemoryList(memories, distributions)
-    o = optimizer.Optimizer(m.machine, ml, m.seed,
-                            use_prefetch=pl.has_delay())
+    o = optimizer.Optimizer(m.machine, ml, seed, use_prefetch=pl.has_delay())
     ml = o.load()
     limit = o.best_value * 4
     while o.evaluations < int(options.iterations):
@@ -60,7 +65,8 @@ def main():
         print('Best Memory:', o.best_name)
         print('Best Value: ', o.best_value)
         print('Best Cost:   ', o.best_cost)
-        db.save()
+        if not options.nosave:
+            db.save()
         gc.collect()
 
 if __name__ == '__main__':

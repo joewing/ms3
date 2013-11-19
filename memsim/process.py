@@ -33,15 +33,18 @@ class Process(object):
     def has_delay(self):
         return self.delay
 
-    def reset(self, machine, mem, offset):
+    def reset(self, machine, mem, offset, directory, on, skip):
         """Reset this process for the next simulation.
             machine is the MachineType to use.
             mem is the memory subsystem.
             offset is the address offset for this process.
+            directory is the directory containing trace data.
+            on is the number of items to process each segment.
+            skip is the number of items to skip each segment.
         """
         self.mem = mem
         self.machine = machine
-        self.benchmark.reset(offset)
+        self.benchmark.reset(offset, directory, on, skip)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)
 
@@ -55,8 +58,9 @@ class Process(object):
         """Skip the next n events."""
         if self.waiting >= 0:
             self.machine.reset_port(self.waiting)
-        for _ in range(n):
-            next(self.generator)
+        if not self.benchmark.skip(n):
+            for _ in range(n):
+                next(self.generator)
 
     def step(self, first):
         """Peform the next event.
@@ -104,10 +108,13 @@ class Process(object):
 class ProcessList(object):
     """Class to schedule a list of processes on a machine."""
 
-    def __init__(self, machine, processes, on, skip):
+    def __init__(self, machine, processes, directory, on, skip):
         """Initialize the process list.
             machine is the MachineType instance to use.
             processes is a list of Process objects.
+            directory is the directory containing trace data.
+            on is the number of access to process per segment.
+            skip is the number of access to skip per segment.
         """
         db = database.get_instance()
         self.heap = priorityqueue.PriorityQueue()
@@ -118,6 +125,7 @@ class ProcessList(object):
         self.skip = skip
         self.db = db
         self.trace_length = 0
+        self.directory = directory
 
     def has_delay(self):
         """Determine if there are blocking operations.
@@ -133,7 +141,8 @@ class ProcessList(object):
         self.machine.reset()
         for i in range(len(self.processes)):
             p = self.processes[i]
-            p.reset(self.machine, ml.memories[i], self.machine.flip(i))
+            p.reset(self.machine, ml.memories[i], self.machine.flip(i),
+                    self.directory, self.on, self.skip)
             self.heap.push(0, p)
 
         # Run the simulation until there are no more events to process.
@@ -186,7 +195,7 @@ class ProcessList(object):
         return self.machine.time
 
 
-def evaluate(m):
+def evaluate(m, directory):
     """Evaluate the specified model."""
     distributions = []
     processes = []
@@ -196,6 +205,6 @@ def evaluate(m):
         distributions.append(dist)
         processes.append(Process(dist, m.benchmarks[i]))
         memories.append(m.memory)
-    pl = ProcessList(m.machine, processes, m.on, m.skip)
+    pl = ProcessList(m.machine, processes, directory, m.on, m.skip)
     ml = memory.MemoryList(memories, distributions)
     return pl.run(ml, 0)

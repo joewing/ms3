@@ -11,7 +11,7 @@ class TestMM(unittest.TestCase):
 
     def test_mm1(self):
         m = MM(2, 1, 3, 4)
-        m.reset(1024)
+        m.reset(1024, '', 0, 0)
         gen = m.run()
 
         expected = [
@@ -54,7 +54,7 @@ class TestMM(unittest.TestCase):
 
     def test_mm2(self):
         m = MM(1, 1, -1, -1)
-        m.reset(1024)
+        m.reset(1024, '', 0, 0)
         gen = m.run()
 
         expected = [

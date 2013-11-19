@@ -41,8 +41,7 @@ class MachineType(object):
                  max_path_length=64,
                  max_cost=10000,
                  technology=0.045,
-                 part='xc7v585t',
-                 id=0):
+                 part='xc7v585t'):
         self.target = target
         self.part = part
         self.frequency = frequency
@@ -54,13 +53,11 @@ class MachineType(object):
         self.addr_mask = (1 << addr_bits) - 1
         self.max_path_length = max_path_length
         self.max_cost = max_cost
-        self.id = 0
         self.time = 0
         self.ports = []
 
     def __str__(self):
-        result = "(machine "
-        result += "(target " + show_target(self.target) + ")"
+        result = "(target " + show_target(self.target) + ")"
         if self.target == TargetType.FPGA:
             result += "(part " + str(self.part) + ")"
         elif self.target == TargetType.ASIC:
@@ -70,9 +67,6 @@ class MachineType(object):
         result += "(addr_bits " + str(self.addr_bits) + ")"
         result += "(max_path " + str(self.max_path_length) + ")"
         result += "(max_cost " + str(self.max_cost) + ")"
-        if self.id != 0:
-            result += "(id " + str(self.id) + ")"
-        result += ")"
         return result
 
     def reset(self):
@@ -140,7 +134,6 @@ def parse_machine(lexer):
     part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
     max_path = parser.get_argument(lexer, args, 'max_path', 64)
     max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
-    id = parser.get_argument(lexer, args, 'id', 0)
     tstr = parser.get_argument(lexer, args, 'target', 'simple')
     target = parse_target(tstr)
     if target is None:
@@ -152,5 +145,4 @@ def parse_machine(lexer):
                        max_path_length=max_path,
                        max_cost=max_cost,
                        technology=technology,
-                       part=part,
-                       id=id)
+                       part=part)
