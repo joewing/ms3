@@ -105,7 +105,7 @@ def _find_cacti():
     for path in os.environ['PATH'].split(os.pathsep):
         path = path.strip('"')
         cacti_exe = os.path.join(path, 'cacti')
-        if os.path.is_exe(cacti_exe):
+        if os.path.isfile(cacti_exe) and os.access(cacti_exe, os.X_OK):
             return cacti_exe
     print('ERROR: cacti not found')
     sys.exit(-1)
