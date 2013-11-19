@@ -201,10 +201,10 @@ def evaluate(m, directory):
     processes = []
     memories = []
     for i in range(len(m.benchmarks)):
-        dist = distribution.Distribution(m.seed)
-        distributions.append(dist)
-        processes.append(Process(dist, m.benchmarks[i]))
+        distributions.append(None)
+        processes.append(Process(None, m.benchmarks[i]))
         memories.append(m.memory)
     pl = ProcessList(m.machine, processes, directory, m.on, m.skip)
     ml = memory.MemoryList(memories, distributions)
+    pl.first = False
     return pl.run(ml, 0)
