@@ -64,7 +64,7 @@ def main():
         ml = o.optimize(time)
         print('Best Memory:', o.best_name)
         print('Best Value: ', o.best_value)
-        print('Best Cost:   ', o.best_cost)
+        print('Best Cost:  ', o.best_cost)
         if not options.nosave:
             db.save()
         gc.collect()

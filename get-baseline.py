@@ -4,7 +4,7 @@ import math
 import optparse
 import os
 
-from memsim import database, distribution, machine, memory, model, process
+from memsim import database, machine, memory, model, process
 from memsim.memory import cache, ram
 
 
@@ -24,15 +24,18 @@ parser.add_option('-t', '--target', dest='target', default='fpga',
                   help='target architecture')
 parser.add_option('-f', '--frequency', dest='frequency', default=250000000,
                   help='target frequency')
+parser.add_option('-d', '--directory', dest='directory', default='',
+                  help='trace directory')
 
 
-db = None
 total = 0
 mach = None
 best_name = ''
 best_cost = 0
 best_time = 1 << 31
 max_cost = DEFAULT_MAX_COST
+directory = ''
+url = ''
 
 
 def estimate_cost(width, depth):
@@ -67,13 +70,20 @@ def get_max_size():
 def run_simulation(mem, experiment):
     print("  Running", experiment)
     m = model.parse_model_file(experiment)
-    dist = distribution.Distribution(m.seed)
-    procs = [process.Process(dist, m.benchmarks[0])]
-    pl = process.ProcessList(mach, procs, 1000000, 0)
+    procs = [process.Process(None, m.benchmarks[0])]
+    pl = process.ProcessList(mach, procs, directory, 1000000, 0)
     pl.first = False
     mem.set_next(m.memory)
-    ml = memory.MemoryList([mem], [dist])
-    return pl.run(ml, 0)
+    m.memory = mem
+    m.skip = 0
+    m.on = 1000000
+    db = database.get_instance(m, url)
+    result = db.get_result(mem)
+    if not result:
+        ml = memory.MemoryList([mem], [None])
+        result = pl.run(ml, 0)
+        db.add_result(mem, result)
+    return result
 
 
 def run_simulations(mem, experiments):
@@ -81,7 +91,7 @@ def run_simulations(mem, experiments):
     print("Evaluating", mem)
     if experiments is None:
         global total
-        print("  Total:", str(total))
+        print('  Total:', str(total))
         return
     lsum = 0.0
     gmean = 0.0
@@ -90,11 +100,11 @@ def run_simulations(mem, experiments):
         lsum += math.log(result)
         gmean = math.exp(lsum / len(experiments))
         if gmean > best_time:
-            print("Best cost exceeded")
+            print('  Best cost exceeded')
             return
     cost = mem.get_cost()
     if gmean < best_time or (gmean == best_time and cost < best_cost):
-        print("New best:", gmean)
+        print('  New best:', gmean)
         best_time = gmean
         best_cost = cost
         best_name = str(mem)
@@ -122,7 +132,8 @@ def generate_cache(line_count,
         global total
         total += 1
         run_simulations(c, experiments)
-        print("Best:", best_name)
+        if best_name:
+            print("Best:", best_name)
 
 
 def get_policies(associativity):
@@ -133,16 +144,12 @@ def get_policies(associativity):
 
 
 def main():
-    global db, max_cost, mach
+    global url, directory, max_cost, mach
     options, args = parser.parse_args()
-    if len(args) == 0:
-        experiments = None
-    else:
-        experiments = args
-    if options.url is None:
-        url = os.environ.get('COUCHDB_URL')
-    else:
-        url = options.url
+    experiments = args if args else None
+    url = options.url if options.url else os.environ.get('COUCHDB_URL')
+    directory = options.directory
+    database.get_instance('', url)
     target = machine.parse_target(options.target)
     mach = machine.MachineType(target=target,
                                frequency=float(options.frequency),
@@ -150,7 +157,6 @@ def main():
                                addr_bits=32,
                                max_path_length=64)
     max_cost = int(options.cost)
-    db = database.get_instance('', url)
     max_size = get_max_size()
     line_count = machine.round_power2(max_size // (mach.word_size * 8))
     while line_count >= 128:
