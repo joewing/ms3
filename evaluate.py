@@ -40,13 +40,13 @@ def simulate(experiment, mem, baseline, directory):
         print('ERROR: invalid memory selected:', mem)
         sys.exit(-1)
     fixup_model(m)
-    db.load(m)
-    name = str(subsystem)
-    time = db.get_result(name)
+    time = None
+    if db.load(m):
+        time = db.get_result(subsystem)
     if time is None:
         m.memory = subsystem
         time = evaluate(m, directory)
-        db.add_result(name, time)
+        db.add_result(subsystem, time)
     print(experiment + ',' + str(time))
 
 
@@ -75,18 +75,20 @@ def generate_matrix(experiments, mem, baseline, directory):
             m = model.parse_model_file(experiment)
             if mem == 'model':
                 temp = model.parse_model_file(mem_model)
-                m.memory = temp.memory
+                subsystem = temp.memory
             elif mem == 'baseline':
                 with open(baseline, 'r') as f:
-                    m.memory = memory.parse_memory(lex.Lexer(f))
+                    subsystem = memory.parse_memory(lex.Lexer(f))
             elif mem == 'best':
-                m.memory = model_memory
+                subsystem = model_memory
             fixup_model(m)
             db.load(m)
-            time = db.get_result(m.memory)
+            name = str(subsystem)
+            time = db.get_result(name)
             if not time:
+                m.memory = subsystem
                 time = evaluate(m, directory)
-                db.add_result(m.memory, time)
+                db.add_result(name, time)
             print(experiment + ',' + mem_model + ',' + str(time))
 
 

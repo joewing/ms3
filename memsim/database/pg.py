@@ -3,7 +3,7 @@ from __future__ import print_function
 import json
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger)
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, and_
 from sqlalchemy.exc import ProgrammingError
 
 from memsim.database import base
@@ -121,7 +121,10 @@ class PGDatabase(base.Database):
             return self.results[mem_hash]
         memory_id = self._get_memory_id(mem)
         stmt = select([results_table.c.value]).where(
-            results_table.c.memory_id == memory_id
+            and_(
+                results_table.c_model_id == self.model_id,
+                results_table.c.memory_id == memory_id,
+            )
         )
         with self.engine.begin() as conn:
             row = conn.execute(stmt).first()
