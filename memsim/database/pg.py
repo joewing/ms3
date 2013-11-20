@@ -97,18 +97,22 @@ class PGDatabase(base.Database):
 
     def _get_memory_id(self, mem):
         mem_hash = self.get_hash(mem)
-        with self.engine.begin() as conn:
-            stmt = select([memories_table.c.id]).where(
-                memories_table.c.name_hash == mem_hash
-            )
-            row = conn.execute(stmt).first()
-            if row:
-                return row['id']
-            stmt = memories_table.insert().values(
-                name_hash=mem_hash,
-                name=str(mem),
-            )
-            conn.execute(stmt)
+        try:
+            with self.engine.begin() as conn:
+                stmt = select([memories_table.c.id]).where(
+                    memories_table.c.name_hash == mem_hash
+                )
+                row = conn.execute(stmt).first()
+                if row:
+                    return row['id']
+                stmt = memories_table.insert().values(
+                    name_hash=mem_hash,
+                    name=str(mem),
+                )
+                conn.execute(stmt)
+        except ProgrammingError as e:
+            if e.orig[1] != '23505':
+                raise
         return self._get_memory_id(mem)
 
     def get_result(self, mem):
