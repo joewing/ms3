@@ -122,7 +122,7 @@ class PGDatabase(base.Database):
         memory_id = self._get_memory_id(mem)
         stmt = select([results_table.c.value]).where(
             and_(
-                results_table.c_model_id == self.model_id,
+                results_table.c.model_id == self.model_id,
                 results_table.c.memory_id == memory_id,
             )
         )
