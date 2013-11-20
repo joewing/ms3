@@ -216,7 +216,7 @@ class CouchDatabase(base.Database):
         last_key = ''
         last_frequency = 0
         last_bram_count = 0
-        for r in self.db.view('ms3/fpga_results', BATCH_SIZE):
+        for r in self.db.iterview('ms3/fpga_results', BATCH_SIZE):
             if r.value[0] == 1:
                 print('Removing invalid:', r.id)
                 del self.db[r.id]
