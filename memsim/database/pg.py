@@ -9,35 +9,40 @@ from sqlalchemy.exc import ProgrammingError
 from memsim.database import base
 
 metadata = MetaData()
-models_table = Table('models', metadata,
+models_table = Table(
+    'models', metadata,
     Column('id', Integer, primary_key=True),
     Column('model_hash', String(64), nullable=False, unique=True),
     Column('name', Text, nullable=False),
     Column('data', Text, nullable=False),
-);
-fpga_results_table = Table('fpga_results', metadata,
+)
+fpga_results_table = Table(
+    'fpga_results', metadata,
     Column('name_hash', String(64), primary_key=True),
     Column('name', Text, nullable=False),
     Column('frequency', Float, nullable=False),
     Column('bram_count', Integer, nullable=False),
-);
-cacti_results_table = Table('cacti_results', metadata,
+)
+cacti_results_table = Table(
+    'cacti_results', metadata,
     Column('name_hash', String(64), primary_key=True),
     Column('name', Text, nullable=False),
     Column('area', Float, nullable=False),
     Column('access_time', Float, nullable=False),
     Column('cycle_time', Float, nullable=False),
-);
-memories_table = Table('memories', metadata,
+)
+memories_table = Table(
+    'memories', metadata,
     Column('id', Integer, primary_key=True),
     Column('name_hash', String(64), nullable=False, unique=True),
     Column('name', Text, nullable=False),
-);
-results_table = Table('results', metadata,
+)
+results_table = Table(
+    'results', metadata,
     Column('model_id', None, ForeignKey('models.id'), nullable=False),
     Column('memory_id', None, ForeignKey('memories.id'), nullable=False),
     Column('value', BigInteger, nullable=False),
-);
+)
 
 
 class PGDatabase(base.Database):
@@ -59,7 +64,7 @@ class PGDatabase(base.Database):
         if not self.engine:
             return False
         metadata.create_all(bind=self.engine)
-        return True;
+        return True
 
     def load(self, m):
         base.Database.load(self, m)

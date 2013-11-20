@@ -2,7 +2,6 @@
 from __future__ import print_function
 import math
 import optparse
-import os
 import sys
 
 from memsim import database, machine, memory, model, process

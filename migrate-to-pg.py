@@ -1,7 +1,7 @@
 
 from __future__ import print_function
 import optparse
-import os
+import sys
 
 from memsim.database.couch import CouchDatabase
 from memsim.database.pg import PGDatabase
