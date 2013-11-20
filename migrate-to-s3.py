@@ -27,7 +27,7 @@ def migrate_states(couch, s3):
 
 def migrate_fpga_results(couch, s3):
     print("Migrating FPGA results")
-    for k, v in couch.get_fpga_results():
+    for k, v, _ in couch.get_fpga_results():
         print(k)
         fpga_key = '-'.join(['fpga', k])
         s3.put(fpga_key, v)
@@ -35,7 +35,7 @@ def migrate_fpga_results(couch, s3):
 
 def migrate_cacti_results(couch, s3):
     print("Migrating CACTI results")
-    for k, v in couch.get_cacti_results():
+    for k, v, _ in couch.get_cacti_results():
         print(k)
         cacti_key = '-'.join(['cacti', k])
         s3.put(cacti_key, v)

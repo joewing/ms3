@@ -32,9 +32,8 @@ def main():
     if not m:
         print('ERROR: could not read model')
         sys.exit(-1)
-    url = options.url if options.url else os.environ.get('COUCHDB_URL')
     directory = options.directory if options.directory else os.getcwd()
-    db = database.get_instance(url)
+    db = database.get_instance(options.url)
     db.load(m)
     db.set_value('model', str(m))
     print(m)

@@ -194,17 +194,19 @@ class CouchDatabase(base.Database):
 
     def get_fpga_results(self):
         """Generator to return all FPGA results."""
-        for r in self.db.iterview('ms3/fpga_results', BATCH_SIZE):
-            yield r.key, r.value
+        for r in self.db.iterview('ms3/fpga_results', BATCH_SIZE,
+                                  include_docs=True):
+            yield r.key, r.value, r.doc['memory']
 
     def get_cacti_results(self):
         """Generator to return all CACTI results."""
-        for r in self.db.iterview('ms3/cacti_results', BATCH_SIZE):
-            yield r.key, r.value
+        for r in self.db.iterview('ms3/cacti_results', BATCH_SIZE,
+                                  include_docs=True):
+            yield r.key, r.value, r.doc['memory']
 
     def remove(self, h):
         """Remove data for the specified hash."""
-        for r in self.db.iterview('ms3/model_list', BATCH_SIZE, key=h):
+        for r in self.db.view('ms3/model_list', key=h):
             del self.db[r.value]
 
     def compact(self):

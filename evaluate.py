@@ -95,8 +95,7 @@ def main():
     if len(args) == 0:
         print('ERROR: no models specified')
         sys.exit(-1)
-    url = options.url if options.url else os.environ.get('COUCHDB_URL')
-    if not database.get_instance(url):
+    if not database.get_instance(options.url):
         print('ERROR: could not connect to the database')
         sys.exit(-1)
     directory = options.directory if options.directory else os.getcwd()

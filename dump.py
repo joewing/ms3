@@ -64,8 +64,7 @@ def show_pending(db):
 
 def main():
     (options, args) = parser.parse_args()
-    url = options.url if options.url else os.environ.get('COUCHDB_URL')
-    db = database.get_instance(url)
+    db = database.get_instance(options.url)
     if options.fpga:
         db.remove_fpga()
     if options.compact:

@@ -162,8 +162,7 @@ def main():
     global directory, mach
     options, args = parser.parse_args()
     experiments = args if args else None
-    url = options.url if options.url else os.environ.get('COUCHDB_URL')
-    if not database.get_instance(url):
+    if not database.get_instance(options.url):
         print('ERROR: could not connect to the database')
         sys.exit(-1)
     directory = options.directory
