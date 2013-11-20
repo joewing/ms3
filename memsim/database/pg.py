@@ -21,7 +21,7 @@ fpga_results_table = Table(
     Column('name_hash', String(64), primary_key=True),
     Column('name', Text, nullable=False),
     Column('frequency', Float, nullable=False),
-    Column('bram_count', Integer, nullable=False),
+    Column('bram_count', BigInteger, nullable=False),
 )
 cacti_results_table = Table(
     'cacti_results', metadata,
