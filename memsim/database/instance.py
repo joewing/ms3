@@ -4,26 +4,20 @@ import sys
 from memsim.database import couch, simple
 
 
-_instances = dict()
-_last_model = ''
+_instance = None
 
 
-def get_instance(model=None, url=None):
+def get_instance(url=None):
     """Get a database instance."""
-    global _instances, _last_model
-    if model:
-        smodel = str(model)
-    else:
-        smodel = _last_model
-    if smodel in _instances:
-        return _instances[smodel]
+    global _instance
+    if _instance is not None:
+        return _instance
 
     # First try to connect to couch.
-    db = couch.CouchDatabase(model, url)
-    if db.load():
+    db = couch.CouchDatabase(url)
+    if db.connect():
         sys.stderr.write('Connected to CouchDB\n')
-        _instances[smodel] = db
-        _last_model = smodel
+        _instance = db
         return db
 
     # If a database URL was provided, but we were unable to connect, we exit.
@@ -33,14 +27,12 @@ def get_instance(model=None, url=None):
 
     # Fall back to the local database.
     sys.stderr.write('Using local database\n')
-    db = simple.SimpleDatabase(model)
-    _instances[smodel] = db
-    _last_model = smodel
+    db = simple.SimpleDatabase()
+    _instance = db
     return db
 
 
-def set_instance(db, model=''):
+def set_instance(db):
     """Set the database instance to use (for debugging)."""
-    global _instances
-    smodel = str(model)
-    _instances[smodel] = db
+    global _instance
+    _instance = db

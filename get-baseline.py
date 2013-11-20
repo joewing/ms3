@@ -25,7 +25,6 @@ best_name = ''
 best_cost = 0
 best_time = 1 << 31
 directory = ''
-url = ''
 
 
 def estimate_cost(width, depth):
@@ -89,7 +88,8 @@ def run_simulation(mem, experiment):
     pl.first = False
     m.skip = 0
     m.on = 1000000
-    db = database.get_instance(m, url)
+    db = database.get_instance()
+    db.load(m)
     mem.set_next(m.memory)
     m.memory = mem
     result = db.get_result(mem)
@@ -159,12 +159,14 @@ def get_policies(associativity):
 
 
 def main():
-    global url, directory, mach
+    global directory, mach
     options, args = parser.parse_args()
     experiments = args if args else None
     url = options.url if options.url else os.environ.get('COUCHDB_URL')
+    if not database.get_instance(url):
+        print('ERROR: could not connect to the database')
+        sys.exit(-1)
     directory = options.directory
-    database.get_instance('', url)
     if len(args) > 0:
         m = model.parse_model_file(args[0])
         mach = m.machine

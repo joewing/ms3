@@ -13,7 +13,7 @@ from memsim.tests.mocks import MockMemory
 class TestCACTI(unittest.TestCase):
 
     def setUp(self):
-        self.db = simple.SimpleDatabase('test')
+        self.db = simple.SimpleDatabase()
         set_instance(self.db)
         self.machine = MachineType(target=TargetType.ASIC,
                                    word_size=4)

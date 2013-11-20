@@ -21,9 +21,10 @@ parser.add_option('-b', '--baseline', dest='baseline', default=None,
                   help='file containing the baseline memory')
 
 
-def get_frequency(url, experiment, mem, baseline, keep):
+def get_frequency(experiment, mem, baseline, keep):
     m = model.parse_model_file(experiment)
-    db = database.get_instance(m, url)
+    db = database.get_instance()
+    db.load(m)
     if mem == 'model':
         pass
     elif mem == 'baseline':
@@ -47,8 +48,11 @@ def main():
         print('ERROR: no model(s) specified')
         sys.exit(-1)
     url = options.url if options.url else os.environ.get('COUCHDB_URL')
+    if not database.get_instance(url):
+        print('ERROR: could not connect to the database')
+        sys.exit(-1)
     for experiment in args:
-        get_frequency(url, experiment, options.memory,
+        get_frequency(experiment, options.memory,
                       options.baseline, options.keep)
 
 

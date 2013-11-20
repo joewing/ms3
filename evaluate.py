@@ -23,9 +23,10 @@ parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
 
 
-def simulate(url, experiment, mem, baseline, directory):
+def simulate(experiment, mem, baseline, directory):
     m = model.parse_model_file(experiment)
-    db = database.get_instance(m, url)
+    db = database.get_instance()
+    db.load(m)
     if mem == 'model':
         subsystem = m.memory
     elif mem == 'baseline':
@@ -39,7 +40,7 @@ def simulate(url, experiment, mem, baseline, directory):
         print('ERROR: invalid memory selected:', mem)
         sys.exit(-1)
     fixup_model(m)
-    db = database.get_instance(m, url)
+    db.load(m)
     name = str(subsystem)
     time = db.get_result(name)
     if time is None:
@@ -54,23 +55,24 @@ def fixup_model(m):
     m.on = 1000000
 
 
-def generate_array(url, experiments, mem, baseline, directory):
+def generate_array(experiments, mem, baseline, directory):
     for experiment in experiments:
-        simulate(url, experiment, mem, baseline, directory)
+        simulate(experiment, mem, baseline, directory)
 
 
-def generate_matrix(url, experiments, mem, baseline, directory):
+def generate_matrix(experiments, mem, baseline, directory):
     if mem != 'best':
         print('WARN: using', mem, 'memory')
     for mem_model in experiments:
         m = model.parse_model_file(mem_model)
-        db = database.get_instance(m, url)
+        db = database.get_instance()
+        if not db.load(m):
+            print('WARN: no best for', m)
         best_name = db.get_value('best_name', str(m.memory))
         best_file = StringIO.StringIO(best_name)
         model_memory = memory.parse_memory(lex.Lexer(best_file))
         for experiment in experiments:
             m = model.parse_model_file(experiment)
-            db = database.get_instance(m, url)
             if mem == 'model':
                 temp = model.parse_model_file(mem_model)
                 m.memory = temp.memory
@@ -80,7 +82,7 @@ def generate_matrix(url, experiments, mem, baseline, directory):
             elif mem == 'best':
                 m.memory = model_memory
             fixup_model(m)
-            db = database.get_instance(m, url)
+            db.load(m)
             time = db.get_result(m.memory)
             if not time:
                 time = evaluate(m, directory)
@@ -94,13 +96,14 @@ def main():
         print('ERROR: no models specified')
         sys.exit(-1)
     url = options.url if options.url else os.environ.get('COUCHDB_URL')
+    if not database.get_instance(url):
+        print('ERROR: could not connect to the database')
+        sys.exit(-1)
     directory = options.directory if options.directory else os.getcwd()
     if options.compare:
-        generate_matrix(url, args, options.memory, options.baseline,
-                        directory)
+        generate_matrix(args, options.memory, options.baseline, directory)
     else:
-        generate_array(url, args, options.memory, options.baseline,
-                       directory)
+        generate_array(args, options.memory, options.baseline, directory)
 
 
 if __name__ == '__main__':

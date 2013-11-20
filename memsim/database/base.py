@@ -5,13 +5,23 @@ import hashlib
 class Database:
     """Database used for saving state."""
 
-    def __init__(self, m):
+    def __init__(self):
         """Initialize."""
-        self.model = str(m)
         self.state = dict()
+        self.results = dict()
+        self.model = None
+        self.model_hash = None
 
-    def load(self):
+    def connect(self):
+        """Establish a database connection."""
+        return True
+
+    def load(self, m):
         """Load values from the database."""
+        self.state = dict()
+        self.results = dict()
+        self.model = str(m)
+        self.model_hash = self.get_hash(self.model)
         return True
 
     def save(self):
@@ -20,11 +30,13 @@ class Database:
 
     def get_result(self, mem):
         """Load a cached result."""
-        return None
+        mem_hash = self.get_hash(mem)
+        return self.results.get(mem_hash)
 
     def add_result(self, mem, value):
         """Insert a result to the database."""
-        pass
+        mem_hash = self.get_hash(mem)
+        self.results[mem_hash] = value
 
     def get_fpga_result(self, key):
         """Load FPGA timing data."""

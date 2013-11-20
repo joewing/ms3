@@ -14,13 +14,11 @@ BATCH_SIZE = 1024
 class CouchDatabase(base.Database):
     """CouchDB database connector."""
 
-    def __init__(self, m='', url=None):
-        base.Database.__init__(self, m)
+    def __init__(self, url=None):
+        base.Database.__init__(self)
         self.dbname = 'ms3'
+        self.server = None
         self.url = url
-        self.model_hash = self.get_hash(self.model)
-        self.state = dict()
-        self.results = dict()
         self.fpga_results = dict()
         self.cacti_results = dict()
         self.url = url if url else 'http://127.0.0.1:5984'
@@ -71,12 +69,9 @@ class CouchDatabase(base.Database):
         }
         self.db['_design/ms3'] = doc
 
-    def load(self):
-        """Load the current model state from the database."""
-        if couchdb.client is None:
-            sys.stderr.write('Could not load couchdb.client\n')
-            return False
-        sys.stderr.write('Trying ' + str(self.url) + '\n')
+    def connect(self):
+        """Establish a database connection."""
+        sys.stderr.write('CouchDB: trying ' + self.url + '\n')
         self.server = couchdb.client.Server(url=self.url)
         try:
             if self.dbname in self.server:
@@ -84,12 +79,17 @@ class CouchDatabase(base.Database):
             else:
                 self.db = self.server.create(self.dbname)
                 self._create_views()
-            for r in self.db.view('ms3/state', key=self.model_hash):
-                self.state = json.loads(r.value['value'])
-                break
             return True
         except:
             return False
+
+    def load(self, m):
+        """Load the current model state from the database."""
+        base.Database.load(self, m)
+        for r in self.db.view('ms3/state', key=self.model_hash):
+            self.state = json.loads(r.value['value'])
+            return True
+        return False
 
     def save(self):
         """Save the current model state to the database."""

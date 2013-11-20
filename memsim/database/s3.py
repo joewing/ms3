@@ -11,36 +11,35 @@ from memsim.database import base
 
 class S3Database(base.Database):
 
-    def __init__(self, m=''):
+    def __init__(self):
         """Initialize."""
-        base.Database.__init__(self, m)
-        self.model_hash = self.get_hash(self.model)
+        base.Database.__init__(self)
         self.state = dict()
         self.results = dict()
 
-    def load(self):
-        """Load the current model state from the database."""
+    def connect(self):
+        """Establish a database connection."""
         akey = os.environ['AWS_ACCESS_KEY']
         skey = os.environ['AWS_SECRET_KEY']
         bucket_name = os.environ['AWS_S3_BUCKET']
-
-        # Attempt to connect to the database.
         print("Trying ", bucket_name)
         try:
             self.conn = S3Connection(akey, skey)
             self.bucket = self.conn.get_bucket(bucket_name)
+            return True
         except:
             return False
 
-        # Attempt to read the current state.
-        # If this fails, it means that we are to create a new state.
+    def load(self, m):
+        """Load the current model state from the database."""
+        base.Database.load(self, m)
         try:
             key = '-'.join(['state', self.model_hash])
             k = Key(self.bucket, name=key)
             self.state = json.loads(k.get_contents_as_string())
+            return True
         except:
-            pass
-        return True
+            return False
 
     def save(self):
         """Save the current model state to the database."""
