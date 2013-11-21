@@ -1,7 +1,6 @@
 
 from __future__ import print_function
 import optparse
-import os
 import sys
 import StringIO
 
@@ -47,8 +46,8 @@ def main():
     if not args:
         print('ERROR: no model(s) specified')
         sys.exit(-1)
-    url = options.url if options.url else os.environ.get('COUCHDB_URL')
-    if not database.get_instance(url):
+    db = database.get_instance(options.url)
+    if not db.connect():
         print('ERROR: could not connect to the database')
         sys.exit(-1)
     for experiment in args:
