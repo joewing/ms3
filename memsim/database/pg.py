@@ -70,21 +70,24 @@ class PGDatabase(base.Database):
 
     def load(self, m):
         base.Database.load(self, m)
-        with self.engine.begin() as conn:
-            stmt = select([models_table.c.id, models_table.c.data]).where(
-                models_table.c.model_hash == self.model_hash
-            )
-            row = conn.execute(stmt).first()
-            if row:
-                self.model_id = row['id']
-                self.state = json.loads(row['data'])
-                return True
-            stmt = models_table.insert().values(
-                model_hash=self.model_hash,
-                name=str(m),
-                data=json.dumps(self.state),
-            )
-            conn.execute(stmt)
+        stmt = select([models_table.c.id, models_table.c.data]).where(
+            models_table.c.model_hash == self.model_hash
+        )
+        row = self.engine.execute(stmt).first()
+        if row:
+            self.model_id = row['id']
+            self.state = json.loads(row['data'])
+            return True
+        stmt = models_table.insert().values(
+            model_hash=self.model_hash,
+            name=str(m),
+            data=json.dumps(self.state),
+        )
+        try:
+            self.engine.execute(stmt)
+        except ProgrammingError as e:
+            if e.orig[1] != '23505':
+                raise
         self.load(m)
         return False
 
@@ -94,24 +97,22 @@ class PGDatabase(base.Database):
         ).values(
             data=json.dumps(self.state)
         )
-        with self.engine.begin() as conn:
-            conn.execute(stmt)
+        self.engine.execute(stmt)
 
     def _get_memory_id(self, mem):
         mem_hash = self.get_hash(mem)
+        stmt = select([memories_table.c.id]).where(
+            memories_table.c.name_hash == mem_hash
+        )
+        row = self.engine.execute(stmt).first()
+        if row:
+            return row['id']
         try:
-            with self.engine.begin() as conn:
-                stmt = select([memories_table.c.id]).where(
-                    memories_table.c.name_hash == mem_hash
-                )
-                row = conn.execute(stmt).first()
-                if row:
-                    return row['id']
-                stmt = memories_table.insert().values(
-                    name_hash=mem_hash,
-                    name=str(mem),
-                )
-                conn.execute(stmt)
+            stmt = memories_table.insert().values(
+                name_hash=mem_hash,
+                name=str(mem),
+            )
+            self.engine.execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -128,9 +129,8 @@ class PGDatabase(base.Database):
                 results_table.c.memory_id == memory_id,
             )
         )
-        with self.engine.begin() as conn:
-            row = conn.execute(stmt).first()
-            return row['value'] if row else None
+        row = self.engine.execute(stmt).first()
+        return row['value'] if row else None
 
     def add_result(self, mem, value):
         mem_hash = self.get_hash(mem)
@@ -142,8 +142,7 @@ class PGDatabase(base.Database):
             value=value,
         )
         try:
-            with self.engine.begin() as conn:
-                conn.execute(stmt)
+            self.engine.execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -156,14 +155,13 @@ class PGDatabase(base.Database):
                        fpga_results_table.c.bram_count]).where(
             fpga_results_table.c.name_hash == name_hash
         )
-        with self.engine.begin() as conn:
-            row = conn.execute(stmt).first()
-            if row:
-                temp = (row['frequency'], row['bram_count'])
-                self.fpga_results[name_hash] = temp
-                return temp
-            else:
-                return None
+        row = self.engine.execute(stmt).first()
+        if row:
+            temp = (row['frequency'], row['bram_count'])
+            self.fpga_results[name_hash] = temp
+            return temp
+        else:
+            return None
 
     def add_fpga_result(self, name, frequency, bram_count):
         name_hash = self.get_hash(name)
@@ -175,8 +173,7 @@ class PGDatabase(base.Database):
             bram_count=bram_count,
         )
         try:
-            with self.engine.begin() as conn:
-                conn.execute(stmt)
+            self.engine.execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -190,14 +187,13 @@ class PGDatabase(base.Database):
                        cacti_results_table.c.area]).where(
             cacti_results_table.c.name_hash == name_hash
         )
-        with self.engine.begin() as conn:
-            row = conn.execute(stmt).first()
-            if row:
-                temp = (row['access_time'], row['cycle_time'], row['area'])
-                self.cacti_results[name_hash] = temp
-                return temp
-            else:
-                return None
+        row = self.engine.execute(stmt).first()
+        if row:
+            temp = (row['access_time'], row['cycle_time'], row['area'])
+            self.cacti_results[name_hash] = temp
+            return temp
+        else:
+            return None
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
         name_hash = self.get_hash(name)
@@ -210,14 +206,12 @@ class PGDatabase(base.Database):
             cycle_time=cycle_time,
         )
         try:
-            with self.engine.begin() as conn:
-                conn.execute(stmt)
+            self.engine.execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
 
     def get_states(self):
         stmt = select([models_table.c.data])
-        with self.engine.begin() as conn:
-            for row in conn.execute(stmt):
-                yield json.loads(row['data'])
+        for row in self.engine.execute(stmt):
+            yield json.loads(row['data'])
