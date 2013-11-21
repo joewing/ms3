@@ -39,8 +39,10 @@ memories_table = Table(
 )
 results_table = Table(
     'results', metadata,
-    Column('model_id', None, ForeignKey('models.id'), nullable=False),
-    Column('memory_id', None, ForeignKey('memories.id'), nullable=False),
+    Column('model_id', None, ForeignKey('models.id'),
+           nullable=False, index=True),
+    Column('memory_id', None, ForeignKey('memories.id'),
+           nullable=False, index=True),
     Column('value', BigInteger, nullable=False),
 )
 
