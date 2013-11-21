@@ -38,6 +38,7 @@ def show_state(db, state):
     print("  Best:", best_name)
     print("  Time:", best_value)
     print("  Cost:", best_cost)
+    print()
 
 
 def show_pending(db):
@@ -74,7 +75,6 @@ def main():
     if options.show:
         for state in db.get_states():
             show_state(db, state)
-            print()
     if options.pending:
         show_pending(db)
 
