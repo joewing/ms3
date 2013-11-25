@@ -53,12 +53,11 @@ def main():
     ml = memory.MemoryList(memories, distributions)
     o = optimizer.Optimizer(m.machine, ml, seed, use_prefetch=pl.has_delay())
     ml = o.load()
-    limit = o.best_value * 4
     while o.evaluations < int(options.iterations):
         print('Iteration: {0} (steps: {1}, threshold: {2}, age: {3})'
               .format(o.evaluations + 1, o.steps + 1, o.threshold, o.age))
         print(ml)
-        time = pl.run(ml, limit)
+        time = pl.run(ml, o.best_value * 2)
         print('Time:', time)
         print('Cost:', ml.get_cost())
         ml = o.optimize(time)

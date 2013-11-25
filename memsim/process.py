@@ -177,9 +177,10 @@ class ProcessList(object):
                 count = 0
             if current_length > self.trace_length:
                 self.trace_length = current_length
-            elif current_length > limit and limit > 0:
+            elif self.machine.time > limit and limit > 0:
                 print("Prune")
-                self.machine.time *= self.trace_length - current_length
+                self.machine.time *= self.trace_length / current_length
+                break
 
         # Take into account any leftover time.
         for p in self.processes:
