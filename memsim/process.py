@@ -178,7 +178,8 @@ class ProcessList(object):
             if current_length > self.trace_length:
                 self.trace_length = current_length
             elif self.machine.time > limit and limit > 0:
-                print("Prune")
+                percent = 100.0 * float(current_length) / self.trace_length
+                print('Prune (' + str(percent) + '%)')
                 self.machine.time *= self.trace_length / current_length
                 break
 
