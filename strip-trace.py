@@ -14,16 +14,16 @@ parser.add_option('-k', '--skip', dest='skip', default=100000,
                   help='number of requests to skip')
 parser.add_option('-o', '--on', dest='on', default=10000,
                   help='number of requests to process between skips')
-parser.add_option('-w', '--word_size', dest='word_size', default=4,
-                  help='word size in bytes')
+parser.add_option('-w', '--window_size', dest='window_size', default=4,
+                  help='window size in bytes')
 parser.add_option('-c', '--min_count', dest='min_count', default=0,
                   help='minimum number of accesses to each memory location')
 
 
 class TraceData:
 
-    def __init__(self, word_size, min_count):
-        self.word_size = word_size
+    def __init__(self, window_size, min_count):
+        self.window_size = window_size
         self.min_count = min_count
         self.min_address = sys.maxint
         self.max_address = 0
@@ -31,17 +31,17 @@ class TraceData:
         self.has_data = False
 
     def insert_access(self, address, size):
-        base_addr = address // self.word_size
-        word_count = (size + self.word_size - 1) // self.word_size
-        for offset in range(word_count):
+        base_addr = address // self.window_size
+        count = (size + self.window_size - 1) // self.window_size
+        for offset in range(count):
             addr = base_addr + offset
             self.addresses[addr] += 1
 
     def should_output(self, address, size):
         if self.min_count > 0:
-            base_addr = address // self.word_size
-            word_count = (size + self.word_size - 1) // self.word_size
-            for offset in range(word_count):
+            base_addr = address // self.window_size
+            count = (size + self.window_size - 1) // self.window_size
+            for offset in range(count):
                 if self.addresses[base_addr + offset] >= self.min_count:
                     return True
             return False
@@ -75,7 +75,7 @@ def output_trace(trace, trace_data, on, skip):
         else:
             assert(False)
         if count < on and trace_data.should_output(addr, size):
-            print(output)
+            print(*output, sep='')
         count += 1
         if count == on + skip:
             count = 0
@@ -90,8 +90,8 @@ def main():
     on = int(options.on)
     skip = int(options.skip)
     min_count = int(options.min_count)
-    word_size = int(options.word_size)
-    data = TraceData(word_size, min_count)
+    window_size = int(options.window_size)
+    data = TraceData(window_size, min_count)
     if min_count > 0:
         collect_stats(trace, data)
         output_trace(trace, data, on, skip)
