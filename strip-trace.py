@@ -18,24 +18,38 @@ parser.add_option('-w', '--window_size', dest='window_size', default=4,
                   help='window size in bytes')
 parser.add_option('-c', '--min_count', dest='min_count', default=0,
                   help='minimum number of accesses to each memory location')
+parser.add_option('-p', '--percent', dest='percent', default=100,
+                  help='percent of the trace to use')
 
 
 class TraceData:
 
-    def __init__(self, window_size, min_count):
+    def __init__(self, window_size):
         self.window_size = window_size
-        self.min_count = min_count
+        self.min_count = 0
         self.min_address = sys.maxint
         self.max_address = 0
         self.addresses = collections.defaultdict(lambda: 0)
-        self.has_data = False
+        self.counts = collections.defaultdict(lambda: 0)
+        self.total = 0
 
     def insert_access(self, address, size):
         base_addr = address // self.window_size
         count = (size + self.window_size - 1) // self.window_size
         for offset in range(count):
             addr = base_addr + offset
-            self.addresses[addr] += 1
+            before = self.addresses[addr]
+            if before > 0:
+                self.counts[before] -= 1
+            after = before + 1
+            self.addresses[addr] = after
+            self.counts[after] += 1
+            self.total += 1
+
+    def compute_min(self, p):
+        self.min_count = 0
+        while self.counts[self.min_count] / self.total > p:
+            self.min_count += 1
 
     def should_output(self, address, size):
         if self.min_count > 0:
@@ -89,11 +103,12 @@ def main():
     trace = Trace(options.trace)
     on = int(options.on)
     skip = int(options.skip)
-    min_count = int(options.min_count)
+    percent = float(options.percent)
     window_size = int(options.window_size)
-    data = TraceData(window_size, min_count)
-    if min_count > 0:
+    data = TraceData(window_size)
+    if percent < 100.0:
         collect_stats(trace, data)
+        data.compute_min(percent / 100.0)
         output_trace(trace, data, on, skip)
     else:
         output_trace(trace, data, on, skip)
