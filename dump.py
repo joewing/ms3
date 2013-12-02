@@ -59,7 +59,7 @@ def show_pending(db):
     for key in models:
         name = models[key]
         i = iterations.get(key, 0)
-        pad = max(16 - len(name), 0)
+        pad = max(20 - len(name), 0)
         print("{0}: {1}{2}".format(name, " " * pad, i))
 
 
