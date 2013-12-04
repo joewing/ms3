@@ -18,7 +18,7 @@ parser.add_option('-w', '--window_size', dest='window_size', default=4,
                   help='window size in bytes')
 parser.add_option('-c', '--min_count', dest='min_count', default=0,
                   help='minimum number of accesses to each memory location')
-parser.add_option('-p', '--percent', dest='percent', default=100,
+parser.add_option('-p', '--percent', dest='percent', default=100.0,
                   help='percent of the trace to use')
 
 
@@ -38,18 +38,20 @@ class TraceData:
         count = (size + self.window_size - 1) // self.window_size
         for offset in range(count):
             addr = base_addr + offset
-            before = self.addresses[addr]
-            if before > 0:
-                self.counts[before] -= 1
-            after = before + 1
-            self.addresses[addr] = after
-            self.counts[after] += 1
+            value = self.addresses[addr]
+            self.addresses[addr] = value + 1
+            self.counts[value] += 1
             self.total += 1
 
     def compute_min(self, p):
         self.min_count = 0
-        while self.counts[self.min_count] / self.total > p:
-            self.min_count += 1
+        if p < 1.0:
+            self.min_count = len(self.counts) + 1
+            while self.min_count > 0:
+                print(float(self.counts[self.min_count] / self.total), file=sys.stderr)
+                if float(self.counts[self.min_count]) / self.total >= p:
+                    break
+                self.min_count -= 1
 
     def should_output(self, address, size):
         if self.min_count > 0:
