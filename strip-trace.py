@@ -30,28 +30,42 @@ class TraceData:
         self.min_address = sys.maxint
         self.max_address = 0
         self.addresses = collections.defaultdict(lambda: 0)
-        self.counts = collections.defaultdict(lambda: 0)
-        self.total = 0
 
     def insert_access(self, address, size):
         base_addr = address // self.window_size
         count = (size + self.window_size - 1) // self.window_size
         for offset in range(count):
             addr = base_addr + offset
-            value = self.addresses[addr]
-            self.addresses[addr] = value + 1
-            self.counts[value] += 1
-            self.total += 1
+            self.addresses[addr] += 1
 
     def compute_min(self, p):
         self.min_count = 0
         if p < 1.0:
-            self.min_count = len(self.counts) + 1
+
+            # Get counts as a PDF.
+            counts = collections.defaultdict(lambda: 0)
+            max_count = 0
+            for k in self.addresses:
+                v = self.addresses[k]
+                counts[v] += v
+                max_count = max(v, max_count)
+
+            # Convert counts to a CDF.
+            total = 0
+            for k in range(max_count, -1, -1):
+                v = counts[k]
+                counts[k] += total
+                total += v
+
+            # Determine the minimum number of accesses required.
+            self.min_count = max_count
+            total = counts[1]
             while self.min_count > 0:
-                print(float(self.counts[self.min_count] / self.total), file=sys.stderr)
-                if float(self.counts[self.min_count]) / self.total >= p:
+                ratio = float(counts[self.min_count]) / total
+                if ratio > p:
                     break
                 self.min_count -= 1
+            self.min_count += 1
 
     def should_output(self, address, size):
         if self.min_count > 0:
