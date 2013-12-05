@@ -2,6 +2,7 @@
 from __future__ import print_function
 import optparse
 import os
+import re
 import sys
 import StringIO
 
@@ -21,6 +22,11 @@ parser.add_option('-c', '--compare', dest='compare', default=False,
                   help='generate comparison matrix')
 parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
+
+
+def get_name(full_name):
+    base_name = re.sub(r'.*\/', '', full_name)
+    return re.sub(r'-.*', '', base_name)
 
 
 def simulate(experiment, mem, baseline, directory):
@@ -47,7 +53,7 @@ def simulate(experiment, mem, baseline, directory):
         m.memory = subsystem
         time = evaluate(m, directory)
         db.add_result(subsystem, time)
-    print(experiment + ',' + str(time))
+    print(get_name(experiment) + ',' + str(time))
 
 
 def fixup_model(m):
@@ -89,7 +95,8 @@ def generate_matrix(experiments, mem, baseline, directory):
                 m.memory = subsystem
                 time = evaluate(m, directory)
                 db.add_result(name, time)
-            print(experiment + ',' + mem_model + ',' + str(time))
+            print(get_name(experiment) + ',' +
+                  get_name(mem_model) + ',' + str(time))
 
 
 def main():
