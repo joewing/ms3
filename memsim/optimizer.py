@@ -241,7 +241,7 @@ class Optimizer(object):
                 stat = self.permute(dist, mem, index, max_cost)
 
     def update_best(self, simplified, time):
-        """Update and display the best memory found so far."""
+        """Update the best memory found so far."""
         cost = simplified.get_cost()
         name = str(simplified)
         if self.best_value == -1 or time < self.best_value or \
@@ -285,6 +285,7 @@ class Optimizer(object):
                 if time is None:
                     return self.current
                 else:
+                    self.update_best(simplified, time)
                     self.age += tries
                     tries += 1
 
