@@ -5,8 +5,18 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger)
 from sqlalchemy.sql import select, and_
 from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.pool import SingletonThreadPool
 
 from memsim.database import base
+
+try:
+    import psycopg2
+except ImportError:
+    try:
+        from psycopg2ct import compat
+        compat.register()
+    except ImportError:
+        print("psycopg2 not available")
 
 metadata = MetaData()
 models_table = Table(
@@ -62,18 +72,23 @@ class PGDatabase(base.Database):
     def connect(self):
         """Establish a database connection."""
         connection_str = '/'.join([self.url, self.dbname])
-        self.engine = create_engine(connection_str)
+        self.engine = create_engine(connection_str,
+                                    pool_size=1,
+                                    poolclass=SingletonThreadPool)
         if not self.engine:
             return False
         metadata.create_all(bind=self.engine)
         return True
+
+    def _execute(self, stmt):
+        return self.engine.execute(stmt)
 
     def load(self, m):
         base.Database.load(self, m)
         stmt = select([models_table.c.id, models_table.c.data]).where(
             models_table.c.model_hash == self.model_hash
         )
-        row = self.engine.execute(stmt).first()
+        row = self._execute(stmt).first()
         if row:
             self.model_id = row['id']
             self.state = json.loads(row['data'])
@@ -84,7 +99,7 @@ class PGDatabase(base.Database):
             data=json.dumps(self.state),
         )
         try:
-            self.engine.execute(stmt)
+            self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -97,14 +112,14 @@ class PGDatabase(base.Database):
         ).values(
             data=json.dumps(self.state)
         )
-        self.engine.execute(stmt)
+        self._execute(stmt)
 
     def _get_memory_id(self, mem):
         mem_hash = self.get_hash(mem)
         stmt = select([memories_table.c.id]).where(
             memories_table.c.name_hash == mem_hash
         )
-        row = self.engine.execute(stmt).first()
+        row = self._execute(stmt).first()
         if row:
             return row['id']
         try:
@@ -112,7 +127,7 @@ class PGDatabase(base.Database):
                 name_hash=mem_hash,
                 name=str(mem),
             )
-            self.engine.execute(stmt)
+            self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -129,7 +144,7 @@ class PGDatabase(base.Database):
                 results_table.c.memory_id == memory_id,
             )
         )
-        row = self.engine.execute(stmt).first()
+        row = self._execute(stmt).first()
         return row['value'] if row else None
 
     def add_result(self, mem, value):
@@ -142,7 +157,7 @@ class PGDatabase(base.Database):
             value=value,
         )
         try:
-            self.engine.execute(stmt)
+            self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -155,7 +170,7 @@ class PGDatabase(base.Database):
                        fpga_results_table.c.bram_count]).where(
             fpga_results_table.c.name_hash == name_hash
         )
-        row = self.engine.execute(stmt).first()
+        row = self._execute(stmt).first()
         if row:
             temp = (row['frequency'], row['bram_count'])
             self.fpga_results[name_hash] = temp
@@ -173,7 +188,7 @@ class PGDatabase(base.Database):
             bram_count=bram_count,
         )
         try:
-            self.engine.execute(stmt)
+            self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
@@ -187,7 +202,7 @@ class PGDatabase(base.Database):
                        cacti_results_table.c.area]).where(
             cacti_results_table.c.name_hash == name_hash
         )
-        row = self.engine.execute(stmt).first()
+        row = self._execute(stmt).first()
         if row:
             temp = (row['access_time'], row['cycle_time'], row['area'])
             self.cacti_results[name_hash] = temp
@@ -206,12 +221,12 @@ class PGDatabase(base.Database):
             cycle_time=cycle_time,
         )
         try:
-            self.engine.execute(stmt)
+            self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
 
     def get_states(self):
         stmt = select([models_table.c.data])
-        for row in self.engine.execute(stmt):
+        for row in self._execute(stmt):
             yield json.loads(row['data'])
