@@ -11,6 +11,7 @@ from memsim.database import base
 
 try:
     import psycopg2
+    assert(psycopg2)
     print("Using psycopg2")
 except ImportError:
     try:
