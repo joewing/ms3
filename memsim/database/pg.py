@@ -11,12 +11,20 @@ from memsim.database import base
 
 try:
     import psycopg2
+    print("Using psycopg2")
 except ImportError:
     try:
-        from psycopg2ct import compat
+        from psycopg2cffi import compat
         compat.register()
+        print("Using psycopg2cffi")
     except ImportError:
-        print("psycopg2 not available")
+        try:
+            from psycopg2ct import compat
+            compat.register()
+            print("Using psycopg2ct")
+        except ImportError:
+            print("psycopg2 not available")
+
 
 metadata = MetaData()
 models_table = Table(
