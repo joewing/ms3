@@ -52,15 +52,22 @@ def show_pending(db):
         except:
             pass
     iterations = dict()
+    steps = dict()
+    best = dict()
     for state in db.get_states():
         if 'model' in state:
             key = db.get_hash(state['model'])
             iterations[key] = state['evaluations']
+            steps[key] = state['steps']
+            best[key] = state['best_value']
     for key in models:
         name = models[key]
         i = iterations.get(key, 0)
+        s = steps.get(key, 0)
+        b = best.get(key, 0)
         pad = max(20 - len(name), 0)
-        print("{0}: {1}{2}".format(name, " " * pad, i))
+        print("{0}: {1}{2}\t{3}\t{4}"
+              .format(name, " " * pad, i, s, b))
 
 
 def main():
