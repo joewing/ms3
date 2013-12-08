@@ -26,38 +26,38 @@ class TestCache(unittest.TestCase):
         cache.access_time = 1
 
         # Miss [-, -, -, -] -> [(0,4), -, -, -] (read 0..7)
-        t = cache.process(0, False, 0, 1)
-        self.assertEqual(t, 801)
+        t = cache.process(1, False, 0, 1)
+        self.assertEqual(t, 801 + 1)
         self.machine.time += t
 
         # Hit [(0,4), -, -, -] -> [(0,4), -, -, -]
-        t = cache.process(0, False, 1, 1)
-        self.assertEqual(t, 3)
+        t = cache.process(2, False, 1, 1)
+        self.assertEqual(t, 3 + 2 - 2)
         self.machine.time += t
 
         # Hit [(0,4), -, -, -] -> [(0*,4), -, -, -]
-        t = cache.process(0, True, 1, 1)
-        self.assertEqual(t, 3)
+        t = cache.process(3, True, 1, 1)
+        self.assertEqual(t, 3 + 3 - 2)
         self.machine.time += t
 
         # Miss [(0*,4), -, -, -] -> [(0*,4), (8,16), -, -] (read 8..15)
-        t = cache.process(0, False, 8, 1)
-        self.assertEqual(t, 803)
+        t = cache.process(4, False, 8, 1)
+        self.assertEqual(t, 803 + 4 - 2)
         self.machine.time += t
 
         # Hit [(0*,4), (8,16), -, -] -> [(0*,4), (8,16), -, -]
-        t = cache.process(0, False, 2, 2)
-        self.assertEqual(t, 3)
+        t = cache.process(5, False, 2, 2)
+        self.assertEqual(t, 3 + 5 - 2)
         self.machine.time += t
 
         # Hit [(0*,4), (8,16), -, -] -> [(0*,4*), (8,16), -, -]
-        t = cache.process(0, True, 4, 2)
-        self.assertEqual(t, 3)
+        t = cache.process(6, True, 4, 2)
+        self.assertEqual(t, 3 + 6 - 2)
         self.machine.time += t
 
         # Hit [(0*,4*), (8,16), -, -] -> [(0*,4*), (8,16), -, -]
-        t = cache.process(0, True, 6, 1)
-        self.assertEqual(t, 3)
+        t = cache.process(7, True, 6, 1)
+        self.assertEqual(t, 3 + 7 - 2)
         self.machine.time += t
 
         t = cache.done()
@@ -76,32 +76,32 @@ class TestCache(unittest.TestCase):
         self.assertEqual(cache.access_time, 3)
         self.assertEqual(cache.cycle_time, 3)
 
-        t = cache.process(0, False, 0, 1)
-        self.assertEqual(t, 203)
+        t = cache.process(10, False, 0, 1)
+        self.assertEqual(t, 203 + 10)
         self.machine.time += t
 
-        t = cache.process(0, False, 1, 1)
-        self.assertEqual(t, 3)
+        t = cache.process(11, False, 1, 1)
+        self.assertEqual(t, 3 + 11)
         self.machine.time += t
 
-        t = cache.process(0, True, 1, 1)
-        self.assertEqual(t, 3)
+        t = cache.process(12, True, 1, 1)
+        self.assertEqual(t, 3 + 12)
         self.machine.time += t
 
-        t = cache.process(0, False, 8, 1)
-        self.assertEqual(t, 203)
+        t = cache.process(13, False, 8, 1)
+        self.assertEqual(t, 203 + 13)
         self.machine.time += t
 
-        t = cache.process(0, False, 2, 2)
-        self.assertEqual(t, 203)
+        t = cache.process(14, False, 2, 2)
+        self.assertEqual(t, 203 + 14)
         self.machine.time += t
 
-        t = cache.process(0, True, 4, 2)
-        self.assertEqual(t, 203)
+        t = cache.process(15, True, 4, 2)
+        self.assertEqual(t, 203 + 15)
         self.machine.time += t
 
-        t = cache.process(0, True, 6, 1)
-        self.assertEqual(t, 203)
+        t = cache.process(16, True, 6, 1)
+        self.assertEqual(t, 203 + 16)
         self.machine.time += t
 
         t = cache.done()
