@@ -242,15 +242,15 @@ class Optimizer(object):
 
     def update_best(self, simplified, time):
         """Update the best memory found so far."""
-        cost = simplified.get_cost()
-        name = str(simplified)
-        if self.best_value == -1 or time < self.best_value or \
-            (time == self.best_value and cost < self.best_cost) or \
-            (time == self.best_value and cost == self.best_cost and
-                len(name) < len(self.best_name)):
+        db = database.get_instance()
+        name, value = db.get_best()
+        if name != self.best_name:
             self.best_name = name
-            self.best_cost = cost
-            self.best_value = time
+            self.best_value = value
+            lexer = lex.Lexer(StringIO.StringIO(name))
+            best = memory.parse_memory_list(lexer, self.current.distributions)
+            best.reset(self.machine)
+            self.best_cost = best.get_cost()
 
     def generate_next(self, time):
         """Generate the next memory to try."""

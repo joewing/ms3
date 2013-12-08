@@ -3,7 +3,7 @@ from __future__ import print_function
 import json
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger)
-from sqlalchemy.sql import select, and_
+from sqlalchemy.sql import select, and_, func
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.pool import SingletonThreadPool
 
@@ -170,6 +170,30 @@ class PGDatabase(base.Database):
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+
+    def get_best(self):
+        min_query = select([
+            func.min(results_table.c.value)
+        ]).where(results_table.c.model_id == self.model_id)
+        stmt = select([
+            memories_table.c.name,
+            results_table.c.value,
+        ]).where(
+            and_(
+                memories_table.c.id == results_table.c.memory_id,
+                results_table.c.model_id == self.model_id,
+                results_table.c.value == min_query,
+            )
+        )
+        best_name = None
+        best_value = 0
+        for row in self._execute(stmt):
+            name = row['name']
+            value = row['value']
+            if (not best_name) or len(name) < len(best_name):
+                best_name = name
+                best_value = value
+        return best_name, best_value
 
     def get_fpga_result(self, name):
         name_hash = self.get_hash(name)
