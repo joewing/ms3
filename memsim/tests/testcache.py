@@ -60,6 +60,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(t, 3)
         self.machine.time += t
 
+        t = cache.done()
+        self.assertEqual(t, 2)
+
     def test_set(self):
         cache = Cache(self.main,
                       line_count=4,
@@ -100,6 +103,9 @@ class TestCache(unittest.TestCase):
         t = cache.process(0, True, 6, 1)
         self.assertEqual(t, 203)
         self.machine.time += t
+
+        t = cache.done()
+        self.assertEqual(t, 0)
 
     def test_fifo(self):
         cache = Cache(self.main,
@@ -186,6 +192,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.main.last_addr, 40)
         self.machine.time += t
 
+        t = cache.done()
+        self.assertEqual(t, 0)
+
     def test_write_through(self):
         cache = Cache(self.main,
                       line_count=4,
@@ -238,6 +247,9 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.main.writes, 1)
         self.assertEqual(self.main.last_addr, 8)
         self.machine.time += t
+
+        t = cache.done()
+        self.assertEqual(t, 0)
 
     def test_simplify1(self):
         cache = Cache(self.main,
