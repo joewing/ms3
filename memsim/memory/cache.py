@@ -1,12 +1,6 @@
 
-from memsim import lex
-from memsim import machine
-from memsim import parser
-
-from memsim.memory import base
-from memsim.memory import cacti
-from memsim.memory import container
-from memsim.memory import xilinx
+from memsim import lex, machine, parser
+from memsim.memory import base, cacti, container, xilinx
 
 
 class CachePolicy(object):
@@ -29,11 +23,11 @@ def show_policy(value):
     return policy_map.get(value, "?")
 
 
-def parse_policy(name):
+def parse_policy(lexer, name):
     for (k, v) in policy_map.items():
         if name == v:
             return k
-    raise lex.ParseError("invalid cache policy: " + name)
+    raise lex.ParseError(lexer, "invalid cache policy: " + name)
 
 
 def random_cache(machine, nxt, rand, cost):
@@ -126,6 +120,7 @@ class Cache(container.Container):
         gen.add_code("LINE_SIZE_BITS => " + str(line_size_bits) + ",")
         gen.add_code("LINE_COUNT_BITS => " + str(line_count_bits) + ",")
         gen.add_code("ASSOC_BITS => " + str(assoc_bits) + ",")
+        replacement = -1
         if self.policy == CachePolicy.LRU:
             replacement = 0
         elif self.policy == CachePolicy.MRU:
@@ -134,8 +129,7 @@ class Cache(container.Container):
             replacement = 2
         elif self.policy == CachePolicy.PLRU:
             replacement = 3
-        else:
-            assert(False)
+        assert(replacement >= 0)
         gen.add_code("REPLACEMENT => " + str(replacement) + ",")
         if self.write_back:
             gen.add_code("WRITE_POLICY => 0")
@@ -281,8 +275,8 @@ class Cache(container.Container):
     def _do_process(self, start, write, addr, size):
         tag = addr & ~(self.line_size - 1)
         set_size = self.line_count // self.associativity
-        word_addr = addr // self.line_size
-        first_line = word_addr % set_size
+        line_addr = addr // self.line_size
+        first_line = line_addr % set_size
 
         # Update ages
         age_sum = 0
@@ -309,7 +303,7 @@ class Cache(container.Container):
                     line.age = 0
                 if (not write) or self.write_back:
                     line.dirty = line.dirty or write
-                    return self.access_time
+                    return start + self.access_time
                 else:
                     t = self.mem.process(start, True, tag, self.line_size)
                     return t + self.access_time
@@ -356,7 +350,7 @@ class Cache(container.Container):
 
         else:
             # Write on a write-through cache.
-            return (self.mem.process(start, write, addr, size) +
+            return (self.mem.process(start, True, addr, size) +
                     self.access_time)
 
 
@@ -366,7 +360,8 @@ def _create_cache(lexer, args):
     associativity = parser.get_argument(lexer, args, 'associativity', 1)
     access_time = parser.get_argument(lexer, args, 'access_time', 1)
     cycle_time = parser.get_argument(lexer, args, 'cycle_time', access_time)
-    policy = parse_policy(parser.get_argument(lexer, args, 'policy', 'lru'))
+    policy_str = parser.get_argument(lexer, args, 'policy', 'lru')
+    policy = parse_policy(lexer, policy_str)
     write_back = parser.get_argument(lexer, args, 'write_back', True)
     mem = parser.get_argument(lexer, args, 'memory')
     return Cache(mem=mem,

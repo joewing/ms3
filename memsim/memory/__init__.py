@@ -38,3 +38,6 @@ assert spm
 
 from memsim.memory import xor
 assert xor
+
+from memsim.memory import trace
+assert trace
