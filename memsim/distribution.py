@@ -64,7 +64,7 @@ class Distribution(random.Random):
         """Insert a new range into the set of address ranges."""
 
         # Check if this address already exists.
-        for i in range(len(self.ranges)):
+        for i in xrange(len(self.ranges)):
             r = self.ranges[i]
             start, end = r
             if addr >= start and addr < end + self.min_size:
@@ -77,7 +77,7 @@ class Distribution(random.Random):
         new = (addr, size)
 
         # Coalesce ranges.
-        for i in reversed(range(len(self.ranges))):
+        for i in reversed(xrange(len(self.ranges))):
             other = self.ranges[i]
             if self._check_overlap(new, other):
                 new = self._extend_range(new, other)
@@ -148,7 +148,7 @@ class Distribution(random.Random):
         # We make multiple attempts to pick a valid address.
         # If we fail, we just return a random address since it's
         # possible that no valid addresses exist.
-        for i in range(100):
+        for i in xrange(100):
 
             # Select a random range.
             rindex = self.randint(0, len(self.ranges) - 1)

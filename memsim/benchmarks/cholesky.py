@@ -13,15 +13,15 @@ class Cholesky(base.Benchmark):
         self.output_port = output_port
 
     def run(self):
-        for i in range(self.size * self.size):
+        for i in xrange(self.size * self.size):
             yield self.consume(self.input_port)
-        for i in range(self.size):
+        for i in xrange(self.size):
             yield self.read(i * self.size + i)
-            for j in range(i):
+            for j in xrange(i):
                 yield self.read(i * self.size + j)
-            for j in range(i + 1, self.size - 1):
+            for j in xrange(i + 1, self.size - 1):
                 yield self.read(i * self.size + j)
-                for k in range(i):
+                for k in xrange(i):
                     yield self.read(j * self.size + k)
                     yield self.read(i * self.size + k)
                 yield self.write(j * self.size + i)

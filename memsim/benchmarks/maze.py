@@ -28,12 +28,12 @@ class Maze(base.Benchmark):
         return self.write(index)
 
     def clear(self, maze):
-        for x in range(self.width):
+        for x in xrange(self.width):
             yield self.set(maze, x, 0, 0)
             yield self.set(maze, x, self.height - 1, 0)
-        for y in range(1, self.height - 1):
+        for y in xrange(1, self.height - 1):
             yield self.set(maze, 0, y, 0)
-            for x in range(1, self.width - 1):
+            for x in xrange(1, self.width - 1):
                 yield self.set(maze, x, y, 1)
             yield self.set(maze, self.width - 1, y, 0)
 
@@ -58,15 +58,15 @@ class Maze(base.Benchmark):
                 if maze[ny2 * self.width + nx2] == 1:
                     yield self.set(maze, nx, ny, 0)
                     d = rand.randint(0, 3)
-                    for i in range(4):
+                    for i in xrange(4):
                         yield self.write(stack_offset)
                         stack_offset += item_size
                         stack.append((nx2, ny2, (d + i) & 3))
 
     def show(self, maze):
-        for y in range(self.height):
+        for y in xrange(self.height):
             line = ''
-            for x in range(self.width):
+            for x in xrange(self.width):
                 if maze[y * self.width + x] == 0:
                     line += "[]"
                 else:

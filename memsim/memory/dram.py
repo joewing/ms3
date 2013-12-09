@@ -67,7 +67,7 @@ class DRAM(main.MainMemory):
         bank_size = self.page_size * self.page_count
         bank_count = (machine.addr_mask + bank_size) // bank_size
         self.banks = list()
-        for i in range(bank_count):
+        for i in xrange(bank_count):
             self.banks.append(DRAMBank())
         self.multiplier = float(machine.frequency) / float(self.frequency)
 

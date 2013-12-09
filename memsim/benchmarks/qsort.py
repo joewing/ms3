@@ -67,12 +67,12 @@ class QSort(base.Benchmark):
 
     def run(self):
         rand = random.Random(self.seed)
-        for i in range(self.size):
+        for i in xrange(self.size):
             self.array[i] = rand.randint(0, 1 << 30)
             yield self.consume(self.input_port)
         for a in self._sort(0, self.size - 1):
             yield a
-        for i in range(self.size):
+        for i in xrange(self.size):
             yield self.produce(self.output_port)
 
 

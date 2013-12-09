@@ -59,7 +59,7 @@ class Process(object):
         if self.waiting >= 0:
             self.machine.reset_port(self.waiting)
         if not self.benchmark.skip(n):
-            for _ in range(n):
+            for _ in xrange(n):
                 next(self.generator)
 
     def step(self, first):
@@ -139,7 +139,7 @@ class ProcessList(object):
         """
         # Reset to prepare for the simulation.
         self.machine.reset()
-        for i in range(len(self.processes)):
+        for i in xrange(len(self.processes)):
             p = self.processes[i]
             p.reset(self.machine, ml.memories[i], self.machine.flip(i),
                     self.directory, self.on, self.skip)
@@ -202,7 +202,7 @@ def evaluate(m, directory):
     distributions = []
     processes = []
     memories = []
-    for i in range(len(m.benchmarks)):
+    for i in xrange(len(m.benchmarks)):
         distributions.append(None)
         processes.append(Process(None, m.benchmarks[i]))
         memories.append(m.memory)

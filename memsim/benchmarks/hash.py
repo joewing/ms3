@@ -28,7 +28,7 @@ class Hash(base.Benchmark):
 
     def run(self):
         rand = random.Random(self.seed)
-        for i in range(self.count):
+        for i in xrange(self.count):
             if self.input_port >= 0:
                 yield self.consume(self.input_port)
             addr = rand.randint(0, self.count - 1)

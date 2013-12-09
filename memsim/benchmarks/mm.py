@@ -29,16 +29,16 @@ class MM(base.Benchmark):
         srca = 0 * msize
         srcb = 1 * msize
         dest = 2 * msize
-        for i in range(self.iterations):
+        for i in xrange(self.iterations):
             if self.input_port >= 0:
-                for a in range(self.size):
-                    for b in range(self.size):
+                for a in xrange(self.size):
+                    for b in xrange(self.size):
                         yield self.consume(self.input_port)
                         yield self.write(srca + a * self.size + b)
                         yield self.write(srcb + a * self.size + b)
-            for a in range(self.size):
-                for b in range(self.size):
-                    for c in range(self.size):
+            for a in xrange(self.size):
+                for b in xrange(self.size):
+                    for c in xrange(self.size):
                         yield self.read(srca + b * self.size + c)
                         yield self.read(srcb + c * self.size + a)
                     if self.output_port >= 0:

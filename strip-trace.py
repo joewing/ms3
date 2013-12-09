@@ -34,7 +34,7 @@ class TraceData:
     def insert_access(self, address, size):
         base_addr = address // self.window_size
         count = (size + self.window_size - 1) // self.window_size
-        for offset in range(count):
+        for offset in xrange(count):
             addr = base_addr + offset
             self.addresses[addr] += 1
 
@@ -52,7 +52,7 @@ class TraceData:
 
             # Convert counts to a CDF.
             total = 0
-            for k in range(max_count, -1, -1):
+            for k in xrange(max_count, -1, -1):
                 v = counts[k]
                 counts[k] += total
                 total += v
@@ -71,7 +71,7 @@ class TraceData:
         if self.min_count > 0:
             base_addr = address // self.window_size
             count = (size + self.window_size - 1) // self.window_size
-            for offset in range(count):
+            for offset in xrange(count):
                 if self.addresses[base_addr + offset] >= self.min_count:
                     return True
             return False

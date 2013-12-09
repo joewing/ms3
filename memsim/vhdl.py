@@ -71,7 +71,7 @@ class VHDLGenerator(object):
         self.enter()
         self.append("clk : in std_logic;")
         self.append("rst : in std_logic;")
-        for p in range(len(ports)):
+        for p in xrange(len(ports)):
             pname = "port" + str(p)
             addr_top = str(ports[p].addr_width - 1)
             word_top = str(ports[p].word_size * 8 - 1)
@@ -112,7 +112,7 @@ class VHDLGenerator(object):
         self.append(sname + "_we <= we;")
         self.append(sname + "_mask <= mask;")
         self.append("ready <= " + sname + "_ready;")
-        for p in range(len(ports)):
+        for p in xrange(len(ports)):
             pname = "port" + str(p)
             oname = ports[p].name
             self.append(pname + "_addr <= " + oname + "_addr;")

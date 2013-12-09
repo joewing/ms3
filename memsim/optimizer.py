@@ -96,7 +96,7 @@ class Optimizer(object):
             db.set_value('current', str(self.current))
         use_prefetch = prefetch.random_prefetch in self.constructors
         db.set_value('use_prefetch', use_prefetch)
-        for i in range(len(self.current.distributions)):
+        for i in xrange(len(self.current.distributions)):
             dist = self.current.distributions[i]
             dist.save(i)
 
@@ -127,7 +127,7 @@ class Optimizer(object):
             return result
         t = nc + 1
         banks = mem.get_banks()
-        for i in range(len(banks)):
+        for i in xrange(len(banks)):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
@@ -153,7 +153,7 @@ class Optimizer(object):
             return mem
         banks = mem.get_banks()
         t = nc + 1
-        for i in range(len(banks)):
+        for i in xrange(len(banks)):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
@@ -185,7 +185,7 @@ class Optimizer(object):
             return mem
         t = nc + 1
         banks = mem.get_banks()
-        for i in range(len(banks)):
+        for i in xrange(len(banks)):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
@@ -219,7 +219,7 @@ class Optimizer(object):
             # Select an action to perform.
             action = self.rand.randint(0, 7)
             if action == 0:  # Insert
-                for i in range(100):
+                for i in xrange(100):
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
@@ -228,7 +228,7 @@ class Optimizer(object):
                         self.current.memories[mindex] = temp
                         break
             elif action <= 2 and count > 1:  # Remove
-                for i in range(100):
+                for i in xrange(100):
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)

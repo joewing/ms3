@@ -42,7 +42,7 @@ def main():
     distributions = []
     processes = []
     memories = []
-    for i in range(len(m.benchmarks)):
+    for i in xrange(len(m.benchmarks)):
         dist = distribution.Distribution(seed)
         dist.load(i)
         distributions.append(dist)

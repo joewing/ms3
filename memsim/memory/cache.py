@@ -190,7 +190,7 @@ class Cache(container.Container):
         associativity = self.associativity
         policy = self.policy
         write_back = self.write_back
-        for i in range(param_count):
+        for i in xrange(param_count):
             if param == 0:
                 self.line_size *= 2
                 if self.get_cost() <= max_cost:
@@ -238,7 +238,7 @@ class Cache(container.Container):
         container.Container.reset(self, m)
         self.pending = 0
         self.lines = list()
-        for i in range(self.line_count):
+        for i in xrange(self.line_count):
             self.lines.append(CacheLine())
         if m.target == machine.TargetType.ASIC:
             self.access_time = cacti.get_access_time(m, self)
@@ -262,7 +262,7 @@ class Cache(container.Container):
         mask = self.machine.addr_mask
         temp = addr
         result = max(start, self.pending - self.machine.time)
-        for i in range(extra):
+        for i in xrange(extra):
             result = self._do_process(result, write, temp, self.line_size)
             temp = (temp + self.line_size) & mask
         if size > extra * self.line_size:
@@ -280,7 +280,7 @@ class Cache(container.Container):
 
         # Update ages
         age_sum = 0
-        for i in range(self.associativity):
+        for i in xrange(self.associativity):
             line_index = first_line + i * set_size
             line = self.lines[line_index]
             age_sum += line.age
@@ -290,13 +290,13 @@ class Cache(container.Container):
         # Check if this address is in the cache.
         to_replace = self.lines[first_line]
         age = to_replace.age
-        for i in range(self.associativity):
+        for i in xrange(self.associativity):
             line_index = first_line + i * set_size
             line = self.lines[line_index]
             if tag == line.tag:  # Hit
                 if self.policy == CachePolicy.PLRU:
                     if age_sum + 1 == self.associativity:
-                        for j in range(self.associativity):
+                        for j in xrange(self.associativity):
                             self.lines[first_line + j * set_size].age = 0
                     line.age = 1
                 elif self.policy != CachePolicy.FIFO:
@@ -336,7 +336,7 @@ class Cache(container.Container):
             # Update the age.
             if self.policy == CachePolicy.PLRU:
                 if age_sum + 1 == self.associativity:
-                    for j in range(self.associativity):
+                    for j in xrange(self.associativity):
                         self.lines[first_line + j * set_size].age = 0
                 to_replace.age = 1
             else:

@@ -30,36 +30,36 @@ class PCA(base.Benchmark):
         s_offset = r_offset + self.size
         x_offset = s_offset + self.size
 
-        for it in range(self.iterations):
+        for it in xrange(self.iterations):
 
             if self.input_port >= 0:
-                for i in range(self.size * self.size):
+                for i in xrange(self.size * self.size):
                     yield self.consume(self.input_port)
                     yield self.write(x_offset + i)
 
-            for c in range(self.count):
+            for c in xrange(self.count):
 
                 # s = 0
-                for i in range(self.size):
+                for i in xrange(self.size):
                     yield self.write(s_offset + i)
 
                 # for each row in X
-                for r in range(self.size):
+                for r in xrange(self.size):
 
                     # s = s + (x * r) * x
-                    for i in range(self.size):
+                    for i in xrange(self.size):
                         yield self.read(r_offset + i)
                         yield self.read(x_offset + r * self.size + i)
                         yield self.read(s_offset + i)
                         yield self.write(s_offset + i)
 
                     # r = s / |s|
-                    for i in range(self.size):
+                    for i in xrange(self.size):
                         yield self.read(s_offset + i)
                         yield self.write(r_offset + i)
 
                 if self.output_port >= 0:
-                    for i in range(self.size * self.size):
+                    for i in xrange(self.size * self.size):
                         yield self.read(x_offset + i)
                         yield self.produce(self.output_port)
 

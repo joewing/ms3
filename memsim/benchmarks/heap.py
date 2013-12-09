@@ -85,12 +85,12 @@ class Heap(base.Benchmark):
         rand = random.Random(self.seed)
         heap = [0] * (self.size + 1)
         yield self.write(0)
-        for i in range(self.size):
+        for i in xrange(self.size):
             yield self.consume(self.input_port)
             value = rand.randint(0, 1 << 30)
             for a in self._insert(heap, value):
                 yield a
-        for i in range(self.size):
+        for i in xrange(self.size):
             for a in self._remove(heap):
                 yield a
             yield self.produce(self.output_port)

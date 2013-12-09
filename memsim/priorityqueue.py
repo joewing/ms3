@@ -33,7 +33,7 @@ class BinaryHeap(object):
 
     def get_values(self):
         result = []
-        for i in range(1, self.size + 1):
+        for i in xrange(1, self.size + 1):
             result.append(self.heap[i][1])
         return result
 

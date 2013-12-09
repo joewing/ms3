@@ -91,7 +91,7 @@ class Memory(object):
     def simplify(self):
         """Return a simplified memory subsystem."""
         banks = self.get_banks()
-        for i in range(len(banks)):
+        for i in xrange(len(banks)):
             self.set_bank(i, banks[i].simplify())
         n = self.get_next()
         if n:
@@ -184,7 +184,7 @@ class MemoryList(object):
             This does not mutate the original memory list.
         """
         new = self.clone()
-        for i in range(len(new.memories)):
+        for i in xrange(len(new.memories)):
             new.memories[i] = new.memories[i].simplify()
         return new
 
