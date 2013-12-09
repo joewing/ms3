@@ -24,50 +24,50 @@ parser.add_option('-p', '--pending', default=False, action='store_true',
                   help='show pending experiments')
 
 
-def show_state(db, state):
-    if 'model' not in state:
-        return
-    m = state['model']
-    print(m)
-    iterations = state['evaluations']
-    best_name = state['best_name']
-    best_value = state['best_value']
-    best_cost = state['best_cost']
-    print("  Hash:", db.get_hash(m))
-    print("  Iter:", iterations)
-    print("  Best:", best_name)
-    print("  Time:", best_value)
-    print("  Cost:", best_cost)
-    print()
+def get_name_map(db):
+    names = dict()
+    for name in os.listdir('experiments'):
+        try:
+            with open('experiments/' + name, 'r') as f:
+                m = model.parse_model(lex.Lexer(f))
+                key = db.get_hash(m)
+                names[key] = name
+        except:
+            pass
+    return names
+
+
+def show_state(db):
+    names = get_name_map(db)
+    iterations = dict()
+    values = dict()
+    for mname, evals, value in db.get_status():
+        key = db.get_hash(mname)
+        if key in names:
+            print(mname)
+            key = db.get_hash(mname)
+            db.load(mname)
+            best_name, best_value, best_cost = db.get_best()
+            print('  Hash:', key)
+            print('  Iter:', evals)
+            print('  Best:', best_name)
+            print('  Time:', best_value)
+            print('  Cost:', best_cost)
+            print()
 
 
 def show_pending(db):
-    models = dict()
-    for e in os.listdir('experiments'):
-        try:
-            with open('experiments/' + e, 'r') as f:
-                l = lex.Lexer(f)
-                m = model.parse_model(l)
-                models[db.get_hash(m)] = e
-        except:
-            pass
-    iterations = dict()
-    steps = dict()
-    best = dict()
-    for state in db.get_states():
-        if 'model' in state:
-            key = db.get_hash(state['model'])
-            iterations[key] = state['evaluations']
-            steps[key] = state['steps']
-            best[key] = state['best_value']
-    for key in models:
-        name = models[key]
-        i = iterations.get(key, 0)
-        s = steps.get(key, 0)
-        b = best.get(key, 0)
-        pad = max(20 - len(name), 0)
-        print("{0}: {1}{2}\t{3}\t{4}"
-              .format(name, " " * pad, i, s, b))
+    names = get_name_map(db)
+    for mname, evals, value in db.get_status():
+        key = db.get_hash(mname)
+        if key in names:
+            name = names[key]
+            pad1 = max(20 - len(name), 0)
+            pad2 = max(8 - len(str(evals)), 0)
+            print("{}: {}{}{}{}"
+                  .format(name, " " * pad1,
+                          evals, " " * pad2,
+                          value))
 
 
 def main():
@@ -80,8 +80,7 @@ def main():
     if options.remove is not None:
         db.remove(options.remove)
     if options.show:
-        for state in db.get_states():
-            show_state(db, state)
+        show_state(db)
     if options.pending:
         show_pending(db)
 

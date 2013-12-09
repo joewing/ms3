@@ -3,9 +3,10 @@ from __future__ import print_function
 import json
 import sys
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
-                        ForeignKey, MetaData, Text, Float, BigInteger)
+                        ForeignKey, MetaData, Text, Float, BigInteger,
+                        UniqueConstraint)
 from sqlalchemy.sql import select, and_, func
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import ProgrammingError, IntegrityError
 from sqlalchemy.pool import SingletonThreadPool
 
 from memsim.database import base
@@ -64,6 +65,8 @@ results_table = Table(
     Column('memory_id', None, ForeignKey('memories.id'),
            nullable=False, index=True),
     Column('value', BigInteger, nullable=False),
+    Column('cost', BigInteger, nullable=False),
+    UniqueConstraint('model_id', 'memory_id'),
 )
 
 
@@ -116,6 +119,9 @@ class PGDatabase(base.Database):
         self.load(m)
         return False
 
+    def has_data(self):
+        return len(self.state) > 0
+
     def save(self):
         stmt = models_table.update().where(
             models_table.c.id == self.model_id
@@ -157,7 +163,7 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         return row['value'] if row else None
 
-    def add_result(self, mem, value):
+    def add_result(self, mem, value, cost):
         mem_hash = self.get_hash(mem)
         self.results[mem_hash] = value
         mem_id = self._get_memory_id(mem)
@@ -165,12 +171,28 @@ class PGDatabase(base.Database):
             model_id=self.model_id,
             memory_id=mem_id,
             value=value,
+            cost=cost,
         )
         try:
             self._execute(stmt)
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+        except IntegrityError:
+            pass
+
+    def get_status(self):
+        stmt = select([
+            models_table.c.name.label('name'),
+            func.min(results_table.c.value).label('value'),
+            func.count(results_table.c.value).label('evals'),
+        ]).where(
+            results_table.c.model_id == models_table.c.id
+        ).group_by(
+            models_table.c.name
+        )
+        for row in self._execute(stmt):
+            yield row['name'], row['evals'], row['value']
 
     def get_best(self):
         min_query = select([
@@ -179,6 +201,7 @@ class PGDatabase(base.Database):
         stmt = select([
             memories_table.c.name,
             results_table.c.value,
+            results_table.c.cost,
         ]).where(
             and_(
                 memories_table.c.id == results_table.c.memory_id,
@@ -188,13 +211,25 @@ class PGDatabase(base.Database):
         )
         best_name = None
         best_value = 0
+        best_cost = 0
         for row in self._execute(stmt):
             name = row['name']
             value = row['value']
-            if (not best_name) or len(name) < len(best_name):
+            cost = row['cost']
+            if ((not best_name)
+                    or (cost < best_cost)
+                    or (cost == best_cost and len(name) < len(best_name))):
                 best_name = name
                 best_value = value
-        return best_name, best_value
+                best_cost = cost
+        return best_name, best_value, best_cost
+
+    def get_result_count(self):
+        stmt = select([
+            func.count(results_table.c.value)
+        ]).where(results_table.c.model_id == self.model_id)
+        row = self._execute(stmt).first()
+        return row[0] if row else 0
 
     def get_fpga_result(self, name):
         name_hash = self.get_hash(name)
@@ -261,6 +296,6 @@ class PGDatabase(base.Database):
                 raise
 
     def get_states(self):
-        stmt = select([models_table.c.data])
+        stmt = select([models_table.c.id, models_table.c.name])
         for row in self._execute(stmt):
-            yield json.loads(row['data'])
+            yield row['id'], row['name']

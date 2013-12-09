@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 
-from memsim import database, memory, priorityqueue
+from memsim import memory, priorityqueue
 
 
 class AccessType(object):
@@ -108,7 +108,7 @@ class Process(object):
 class ProcessList(object):
     """Class to schedule a list of processes on a machine."""
 
-    def __init__(self, machine, processes, directory, on, skip):
+    def __init__(self, first, machine, processes, directory, on, skip):
         """Initialize the process list.
             machine is the MachineType instance to use.
             processes is a list of Process objects.
@@ -116,14 +116,12 @@ class ProcessList(object):
             on is the number of access to process per segment.
             skip is the number of access to skip per segment.
         """
-        db = database.get_instance()
         self.heap = priorityqueue.PriorityQueue()
         self.machine = machine
         self.processes = processes
-        self.first = db.get_value('first', True)
+        self.first = first
         self.on = on
         self.skip = skip
-        self.db = db
         self.trace_length = 0
         self.directory = directory
 
@@ -191,7 +189,6 @@ class ProcessList(object):
 
         # No longer the first execution.
         if self.first:
-            self.db.set_value('first', False)
             self.first = False
 
         return self.machine.time
@@ -206,7 +203,6 @@ def evaluate(m, directory):
         distributions.append(None)
         processes.append(Process(None, m.benchmarks[i]))
         memories.append(m.memory)
-    pl = ProcessList(m.machine, processes, directory, m.on, m.skip)
+    pl = ProcessList(False, m.machine, processes, directory, m.on, m.skip)
     ml = memory.MemoryList(memories, distributions)
-    pl.first = False
     return pl.run(ml, 0)

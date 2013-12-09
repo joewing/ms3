@@ -4,6 +4,7 @@ import gc
 import optparse
 import os
 import sys
+import time
 
 from memsim import database, distribution, memory, model, optimizer, process
 
@@ -17,10 +18,19 @@ parser.add_option('-m', '--model', dest='model', default=None,
 parser.add_option('-n', '--nosave', dest='nosave', default=False,
                   action='store_true',
                   help='do not save state to the database')
-parser.add_option('-s', '--seed', dest='seed', default=7,
+parser.add_option('-s', '--seed', dest='seed', default=None,
                   help='optimization random number seed')
 parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
+
+
+def show_best(db):
+    best_name, best_value, best_cost = db.get_best()
+    if best_name:
+        print('Best Memory:', best_name)
+        print('Best Value: ', best_value)
+        print('Best Cost:  ', best_cost)
+    return best_value
 
 
 def main():
@@ -35,38 +45,47 @@ def main():
     directory = options.directory if options.directory else os.getcwd()
     db = database.get_instance(options.url)
     db.load(m)
-    db.set_value('model', str(m))
     print(m)
 
-    seed = int(options.seed)
+    seed = int(options.seed) if options.seed else int(time.time())
     distributions = []
     processes = []
     memories = []
     for i in xrange(len(m.benchmarks)):
         dist = distribution.Distribution(seed)
-        dist.load(i)
+        dist.load(db, i)
         distributions.append(dist)
         processes.append(process.Process(dist, m.benchmarks[i]))
         memories.append(m.memory)
 
-    pl = process.ProcessList(m.machine, processes, directory, m.on, m.skip)
+    # Load the result from the first run.
     ml = memory.MemoryList(memories, distributions)
+    t = db.get_result(str(ml))
+    first = (not t) or (not db.has_data())
+
+    pl = process.ProcessList(first, m.machine, processes, directory,
+                             m.on, m.skip)
+    if first:
+        t = pl.run(ml, 0)
     o = optimizer.Optimizer(m.machine, ml, seed, use_prefetch=pl.has_delay())
-    ml = o.load()
-    while o.evaluations < int(options.iterations):
+    o.load(db)
+    if first:
+        o.save(db)
+    ml = o.optimize(db, t)
+    while True:
+        best_value = show_best(db)
+        result_count = db.get_result_count()
+        if result_count >= int(options.iterations):
+            break
         print('Iteration: {0} (steps: {1}, threshold: {2}, age: {3})'
-              .format(o.evaluations + 1, o.steps + 1, o.threshold, o.age))
+              .format(result_count + 1, o.steps + 1, o.threshold, o.age))
         print(ml)
-        time = pl.run(ml, o.best_value * 2)
-        print('Time:', time)
+        t = pl.run(ml, 10 * best_value)
+        print('Time:', t)
         print('Cost:', ml.get_cost())
-        ml = o.optimize(time)
-        print('Best Memory:', o.best_name)
-        print('Best Value: ', o.best_value)
-        print('Best Cost:  ', o.best_cost)
-        if not options.nosave:
-            db.save()
+        ml = o.optimize(db, t)
         gc.collect()
+
 
 if __name__ == '__main__':
     main()

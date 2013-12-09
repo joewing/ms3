@@ -83,7 +83,7 @@ def run_simulation(mem, experiment):
         print('ERROR: wrong max cost for', experiment)
         sys.exit(-1)
     procs = [process.Process(None, m.benchmarks[0])]
-    pl = process.ProcessList(mach, procs, directory, 1000000, 0)
+    pl = process.ProcessList(False, mach, procs, directory, 1000000, 0)
     pl.first = False
     m.skip = 0
     m.on = 1000000
@@ -171,11 +171,8 @@ def main():
     else:
         mach = machine.MachineType()
     max_size = get_max_size()
-#    line_count = machine.round_power2(max_size // (mach.word_size * 8))
-#    while line_count >= 128:
-    line_count = 128
-    end_line_count = machine.round_power2(max_size // (mach.word_size * 8))
-    while line_count <= end_line_count:
+    line_count = machine.round_power2(max_size // (mach.word_size * 8))
+    while line_count >= 128:
         line_size = machine.round_power2(max_size // 8)
         while line_size >= mach.word_size:
             associativity = min(line_count, 8)
@@ -187,8 +184,7 @@ def main():
                                    policy, False, experiments)
                 associativity //= 2
             line_size //= 2
-#        line_count //= 2
-        line_count *= 2
+        line_count //= 2
     print('Total:', total)
     print('Best Cost:  ', best_cost)
     print('Best Memory:', best_name)

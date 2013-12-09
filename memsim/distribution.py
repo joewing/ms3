@@ -1,8 +1,5 @@
 
-import cPickle
 import random
-
-from memsim import database
 
 
 class Distribution(random.Random):
@@ -23,19 +20,15 @@ class Distribution(random.Random):
         # Transform entries are pairs: (True, function).
         self.limits = []
 
-    def load(self, index):
+    def load(self, db, index):
         """Load the state of this distribution object."""
-        db = database.get_instance()
         temp = db.get_value('distribution' + str(index))
         if temp is not None:
             self.ranges = db.get_value('distribution' + str(index))
-            self.setstate(cPickle.loads(db.get_value('rand' + str(index))))
 
-    def save(self, index):
+    def save(self, db, index):
         """Save the state of this distribution object."""
-        db = database.get_instance()
         db.set_value('distribution' + str(index), self.ranges)
-        db.set_value('rand' + str(index), cPickle.dumps(self.getstate()))
 
     def reset(self):
         """Reset the random number generator using the original seed."""
