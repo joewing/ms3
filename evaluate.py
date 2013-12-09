@@ -39,7 +39,7 @@ def simulate(experiment, mem, baseline, directory):
         with open(baseline, 'r') as f:
             subsystem = memory.parse_memory(lex.Lexer(f))
     elif mem == 'best':
-        best_name = db.get_value('best_name', str(m.memory))
+        best_name, _, _ = db.get_best()
         best_file = StringIO.StringIO(best_name)
         subsystem = memory.parse_memory(lex.Lexer(best_file))
     else:
