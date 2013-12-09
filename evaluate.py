@@ -69,12 +69,15 @@ def generate_array(experiments, mem, baseline, directory):
 def generate_matrix(experiments, mem, baseline, directory):
     if mem != 'best':
         print('WARN: using', mem, 'memory')
+    db = database.get_instance()
     for mem_model in experiments:
         m = model.parse_model_file(mem_model)
-        db = database.get_instance()
-        if not db.load(m):
+        best_name = None
+        if db.load(m):
+            best_name, _, _ = db.get_best()
+        else:
             print('WARN: no best for', m)
-        best_name = db.get_value('best_name', str(m.memory))
+            best_name = str(m.memory)
         best_file = StringIO.StringIO(best_name)
         model_memory = memory.parse_memory(lex.Lexer(best_file))
         for experiment in experiments:

@@ -154,7 +154,8 @@ def get_policies(associativity):
     if associativity == 1:
         return [0]
     else:
-        return range(0, cache.CachePolicy.MAX_POLICY + 1)
+#        return range(0, cache.CachePolicy.MAX_POLICY + 1)
+        return [cache.CachePolicy.LRU]
 
 
 def main():
@@ -180,8 +181,8 @@ def main():
                 for policy in get_policies(associativity):
                     generate_cache(line_count, line_size, associativity,
                                    policy, True, experiments)
-                    generate_cache(line_count, line_size, associativity,
-                                   policy, False, experiments)
+#                    generate_cache(line_count, line_size, associativity,
+#                                   policy, False, experiments)
                 associativity //= 2
             line_size //= 2
         line_count //= 2
