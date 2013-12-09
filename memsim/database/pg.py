@@ -1,6 +1,7 @@
 
 from __future__ import print_function
 import json
+import sys
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger)
 from sqlalchemy.sql import select, and_, func
@@ -12,19 +13,19 @@ from memsim.database import base
 try:
     import psycopg2
     assert(psycopg2)
-    print("Using psycopg2")
+    print("Using psycopg2", file=sys.stderr)
 except ImportError:
     try:
         from psycopg2cffi import compat
         compat.register()
-        print("Using psycopg2cffi")
+        print("Using psycopg2cffi", file=sys.stderr)
     except ImportError:
         try:
             from psycopg2ct import compat
             compat.register()
-            print("Using psycopg2ct")
+            print("Using psycopg2ct", file=sys.stderr)
         except ImportError:
-            print("psycopg2 not available")
+            print("psycopg2 not available", file=sys.stderr)
 
 
 metadata = MetaData()
