@@ -90,7 +90,7 @@ class Process(object):
         elif at == AccessType.WRITE:
             return self.mem.process(0, True, addr, size)
         elif at == AccessType.IDLE:
-            self.delay = True
+            self.delay = self.delay or (addr > 0)
             return addr
         elif at == AccessType.PRODUCE:
             self.machine.produce(addr)

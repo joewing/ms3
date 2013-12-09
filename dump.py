@@ -39,8 +39,6 @@ def get_name_map(db):
 
 def show_state(db):
     names = get_name_map(db)
-    iterations = dict()
-    values = dict()
     for mname, evals, value in db.get_status():
         key = db.get_hash(mname)
         if key in names:
