@@ -96,7 +96,7 @@ def run_simulation(mem, experiment):
         ml = memory.MemoryList([mem], [None])
         pl.first = False
         result = pl.run(ml, 0)
-        db.add_result(mem, result)
+        db.add_result(mem, result, ml.get_cost())
     return result
 
 

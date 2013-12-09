@@ -51,8 +51,8 @@ def simulate(experiment, mem, baseline, directory):
         time = db.get_result(subsystem)
     if time is None:
         m.memory = subsystem
-        time = evaluate(m, directory)
-        db.add_result(subsystem, time)
+        time, cost = evaluate(m, directory)
+        db.add_result(subsystem, time, cost)
     print(get_name(experiment) + ',' + str(time))
 
 
@@ -93,8 +93,8 @@ def generate_matrix(experiments, mem, baseline, directory):
             time = db.get_result(name)
             if not time:
                 m.memory = subsystem
-                time = evaluate(m, directory)
-                db.add_result(name, time)
+                time, cost = evaluate(m, directory)
+                db.add_result(name, time, cost)
             print(get_name(experiment) + ',' +
                   get_name(mem_model) + ',' + str(time))
 

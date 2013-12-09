@@ -205,4 +205,4 @@ def evaluate(m, directory):
         memories.append(m.memory)
     pl = ProcessList(False, m.machine, processes, directory, m.on, m.skip)
     ml = memory.MemoryList(memories, distributions)
-    return pl.run(ml, 0)
+    return pl.run(ml, 0), ml.get_cost()
