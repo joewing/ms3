@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import random
 
 from memsim.memory import cache
@@ -14,7 +15,7 @@ from memsim.memory import xor
 class Optimizer(object):
 
     steps = 0
-    threshold = 1024 * 1024
+    threshold = 1024
     age = 0
     last = None
     last_value = 0
@@ -198,9 +199,11 @@ class Optimizer(object):
 
     def generate_next(self, db, time):
         """Generate the next memory to try."""
-        tries = 0
+        tries = 1
         while True:
             self.steps += 1
+            print('Step {} (threshold: {}, age: {})'
+                  .format(self.steps, self.threshold, self.age))
             if self.last is None:
                 self.last = self.current.clone()
             else:
@@ -214,8 +217,8 @@ class Optimizer(object):
                 else:
                     # Revert to the last memory.
                     self.current = self.last.clone()
-                    self.threshold += 1 + (self.age * self.threshold) // 2048
-                    self.age += 1
+                    self.threshold += (self.age * self.threshold) // 1024
+                    self.age += tries
                 before = self.current.clone()
                 while True:
                     self.modify()
@@ -228,7 +231,6 @@ class Optimizer(object):
                 if time is None:
                     return self.current
                 else:
-                    self.age += tries
                     tries += 1
 
     def optimize(self, db, time):
