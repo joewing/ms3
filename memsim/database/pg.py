@@ -165,7 +165,12 @@ class PGDatabase(base.Database):
             )
         )
         row = self._execute(stmt).first()
-        return row['value'] if row else None
+        if row:
+            value = row['value']
+            self.results[mem_hash] = value
+            return value
+        else:
+            return None
 
     def add_result(self, mem, value, cost):
         mem_hash = self.get_hash(mem)
