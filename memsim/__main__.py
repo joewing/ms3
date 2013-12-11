@@ -1,12 +1,14 @@
 
 from __future__ import print_function
+from StringIO import StringIO
 import gc
 import optparse
 import os
 import sys
 import time
 
-from memsim import database, distribution, memory, model, optimizer, process
+from memsim import (database, distribution, lex, memory, model,
+                    optimizer, process)
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
@@ -59,9 +61,14 @@ def main():
         memories.append(m.memory)
 
     # Load the result from the first run.
-    ml = memory.MemoryList(memories, distributions)
-    t = db.get_result(str(ml))
-    first = (not t) or (not db.has_data())
+    best_name, t, _ = db.get_best()
+    if best_name:
+        lexer = lex.Lexer(StringIO(best_name))
+        ml = memory.parse_memory_list(lexer, distributions)
+        first = not db.has_data()
+    else:
+        ml = memory.MemoryList(memories, distributions)
+        first = True
 
     pl = process.ProcessList(first, m.machine, processes, directory,
                              m.on, m.skip)
@@ -77,12 +84,10 @@ def main():
         result_count = db.get_result_count()
         if result_count >= int(options.iterations):
             break
-        print('Iteration: {0} (steps: {1}, threshold: {2}, age: {3})'
-              .format(result_count + 1, o.steps + 1, o.threshold, o.age))
+        print('Evaluation:', result_count + 1)
         print(ml)
         t = pl.run(ml, 10 * best_value)
-        print('Time:', t)
-        print('Cost:', ml.get_cost())
+        print('Time: {} (cost: {})'.format(t, ml.get_cost()))
         ml = o.optimize(db, t)
         gc.collect()
 
