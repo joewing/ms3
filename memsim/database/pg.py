@@ -90,7 +90,7 @@ class PGDatabase(base.Database):
                                     poolclass=SingletonThreadPool)
         if not self.engine:
             return False
-        metadata.create_all(bind=self.engine)
+#        metadata.create_all(bind=self.engine)
         return True
 
     def _execute(self, stmt):
@@ -116,6 +116,8 @@ class PGDatabase(base.Database):
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+        except IntegrityError:
+            pass
         self.load(m)
         return False
 
@@ -147,6 +149,8 @@ class PGDatabase(base.Database):
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+        except IntegrityError:
+            pass
         return self._get_memory_id(mem)
 
     def get_result(self, mem):
@@ -261,6 +265,8 @@ class PGDatabase(base.Database):
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+        except IntegrityError:
+            pass
 
     def get_cacti_result(self, name):
         name_hash = self.get_hash(name)
@@ -294,6 +300,8 @@ class PGDatabase(base.Database):
         except ProgrammingError as e:
             if e.orig[1] != '23505':
                 raise
+        except IntegrityError:
+            pass
 
     def get_states(self):
         stmt = select([models_table.c.id, models_table.c.name])
