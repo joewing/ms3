@@ -199,12 +199,11 @@ class Optimizer(object):
 
     def generate_next(self, db, time):
         """Generate the next memory to try."""
-        age = 0
         tries = 1
         while True:
             self.steps += 1
             print('Step {} (threshold: {}, age: {})'
-                  .format(self.steps, self.threshold, age))
+                  .format(self.steps, self.threshold, self.age))
             if self.last is None:
                 self.last = self.current.clone()
             else:
@@ -214,12 +213,12 @@ class Optimizer(object):
                     self.last_value = time
                     self.last = self.current.clone()
                     self.threshold -= (self.threshold + 1023) // 1024
-                    age = 0
+                    self.age = 0
                 else:
                     # Revert to the last memory.
                     self.current = self.last.clone()
-                    self.threshold += (age * self.threshold) // 1024
-                    age += tries
+                    self.threshold += (self.age * self.threshold) // 1024
+                    self.age += tries
                 before = self.current.clone()
                 while True:
                     self.modify()
