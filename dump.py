@@ -3,21 +3,12 @@ from __future__ import print_function
 import optparse
 import os
 
-from memsim import database
-from memsim import lex
-from memsim import model
+from memsim import database, lex, model
+
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
-parser.add_option('-r', '--remove', dest='remove', default=None,
-                  help='remove a model by id')
-parser.add_option('-c', '--compact', dest='compact', default=False,
-                  action='store_true',
-                  help='perform compaction')
-parser.add_option('-f', '--fpga', dest='fpga', default=False,
-                  action='store_true',
-                  help='remove invalid FPGA results')
 parser.add_option('-s', '--show', default=False, action='store_true',
                   help='show results')
 parser.add_option('-p', '--pending', default=False, action='store_true',
@@ -69,18 +60,13 @@ def show_pending(db):
 
 
 def main():
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
     db = database.get_instance(options.url)
-    if options.fpga:
-        db.remove_fpga()
-    if options.compact:
-        db.compact()
-    if options.remove is not None:
-        db.remove(options.remove)
     if options.show:
         show_state(db)
     if options.pending:
         show_pending(db)
+
 
 if __name__ == '__main__':
     main()

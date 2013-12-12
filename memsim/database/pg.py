@@ -121,9 +121,6 @@ class PGDatabase(base.Database):
         self.load(m)
         return False
 
-    def has_data(self):
-        return len(self.state) > 0
-
     def save(self):
         stmt = models_table.update().where(
             models_table.c.id == self.model_id

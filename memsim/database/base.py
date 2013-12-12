@@ -28,15 +28,31 @@ class Database:
         """Save values to the database."""
         pass
 
+    def has_data(self):
+        """Determine if there is state data for the current model."""
+        return len(self.state) > 0
+
     def get_result(self, mem):
         """Load a cached result."""
         mem_hash = self.get_hash(mem)
         return self.results.get(mem_hash)
 
-    def add_result(self, mem, value):
+    def add_result(self, mem, value, cost):
         """Insert a result to the database."""
         mem_hash = self.get_hash(mem)
         self.results[mem_hash] = value
+
+    def get_status(self):
+        """Get status for all models."""
+        return None, None, None
+
+    def get_best(self):
+        """Get the best for the current model."""
+        return None, 0, 0
+
+    def get_result_count(self):
+        """Get the number of results for this model."""
+        return 0
 
     def get_fpga_result(self, key):
         """Load FPGA timing data."""
@@ -69,11 +85,3 @@ class Database:
     def get_states(self):
         """Generator to return all persisted states."""
         raise StopIteration
-
-    def remove(self, h):
-        """Remove data for the specified hash."""
-        pass
-
-    def compact(self):
-        """Perform database compaction."""
-        pass
