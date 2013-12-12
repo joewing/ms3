@@ -179,7 +179,7 @@ class ProcessList(object):
                 percent = 100.0 * float(current_length) / self.trace_length
                 print('Prune (' + str(percent) + '%)')
                 multiplier = float(self.trace_length) / current_length
-                self.machine.time *= multiplier
+                self.machine.time = long(self.machine.time * multiplier)
                 break
 
         # Take into account any leftover time.
