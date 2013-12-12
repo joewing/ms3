@@ -217,21 +217,15 @@ class PGDatabase(base.Database):
                 results_table.c.model_id == self.model_id,
                 results_table.c.value == min_query,
             )
+        ).order_by(
+            results_table.c.cost,
+            func.length(memories_table.c.name),
         )
-        best_name = None
-        best_value = 0
-        best_cost = 0
-        for row in self._execute(stmt):
-            name = row['name']
-            value = row['value']
-            cost = row['cost']
-            if ((not best_name)
-                    or (cost < best_cost)
-                    or (cost == best_cost and len(name) < len(best_name))):
-                best_name = name
-                best_value = value
-                best_cost = cost
-        return best_name, best_value, best_cost
+        row = self._execute(stmt).first()
+        if row:
+            return row['name'], row['value'], row['cost']
+        else:
+            return None, 0, 0
 
     def get_result_count(self):
         stmt = select([
