@@ -1,0 +1,14 @@
+(machine
+   (word_size  4)
+   (addr_bits  32)
+   (target     asic)
+   (frequency  1000000000)
+   (technology 0.045)
+   (max_cost   1000000)
+)
+(memory
+   (ram (latency 1))
+)
+(benchmarks
+   (hash (count 8388608))
+)
