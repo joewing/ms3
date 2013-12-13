@@ -45,13 +45,12 @@ def random_cache(machine, nxt, rand, cost):
     result.reset(machine)
     while result.get_cost() < cost:
         result.line_count *= 2
-        result.reset(machine)
         if result.get_cost() > cost:
             result.line_count //= 2
             break
         elif rand.randint(0, 8) == 0:
             break
-    result.reset(machine)
+    result.update_latency()
     return result if result.get_cost() <= cost else None
 
 
@@ -159,6 +158,21 @@ class Cache(container.Container):
         gen.add_code(");")
         gen.leave()
 
+    def update_latency(self):
+        if self.machine.target == machine.TargetType.ASIC:
+            self.access_time = cacti.get_access_time(self.machine, self)
+            self.cycle_time = cacti.get_cycle_time(self.machine, self)
+        elif self.machine.target == machine.TargetType.FPGA:
+            self.access_time = 3
+            self.cycle_time = 3
+        else:
+            if self.policy == CachePolicy.PLRU:
+                latency = 3 + self.associativity // 8
+            else:
+                latency = 3 + self.associativity // 4
+            self.access_time = latency
+            self.cycle_time = latency
+
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
             index_bits = machine.log2(self.line_count - 1)
@@ -194,44 +208,53 @@ class Cache(container.Container):
             if param == 0:
                 self.line_size *= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.line_size = line_size
             elif param == 1 and line_size > self.machine.word_size:
                 self.line_size //= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.line_size = line_size
             elif param == 2:
                 self.line_count *= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.line_count = line_count
             elif param == 3 and line_count > associativity:
                 self.line_count //= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.line_count = line_count
             elif param == 4 and associativity < line_count:
                 self.associativity *= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.associativity = associativity
             elif param == 5 and associativity > 1:
                 self.associativity //= 2
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.assocativity = associativity
             elif param == 6:
                 self.policy = rand.randint(0, CachePolicy.MAX_POLICY)
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.policy = policy
             else:
                 self.write_back = not self.write_back
                 if self.get_cost() <= max_cost:
+                    self.update_latency()
                     return True
                 self.write_back = write_back
             param = (param + 1) % param_count
+        self.update_latency()
         return False
 
     def reset(self, m):
@@ -240,19 +263,7 @@ class Cache(container.Container):
         self.lines = list()
         for i in xrange(self.line_count):
             self.lines.append(CacheLine())
-        if m.target == machine.TargetType.ASIC:
-            self.access_time = cacti.get_access_time(m, self)
-            self.cycle_time = cacti.get_cycle_time(m, self)
-        elif m.target == machine.TargetType.FPGA:
-            self.access_time = 3
-            self.cycle_time = 3
-        else:
-            if self.policy == CachePolicy.PLRU:
-                latency = 3 + self.associativity // 8
-            else:
-                latency = 3 + self.associativity // 4
-            self.access_time = latency
-            self.cycle_time = latency
+        self.update_latency()
 
     def done(self):
         return max(self.pending - self.machine.time, 0)
