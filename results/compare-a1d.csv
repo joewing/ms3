@@ -31,12 +31,12 @@ sha,fft,41282233
 bitcount,hash,1337137699
 dijkstra,hash,2100544102
 fft,hash,3262740403
-hash,hash,357329286
-heap,hash,1728402216
+hash,hash,357328504
+heap,hash,1708127326
 jpegd,hash,390806111
-mm,hash,1245756104
+mm,hash,1222168152
 patricia,hash,4984494515
-qsort,hash,1152263424
+qsort,hash,1135265741
 sha,hash,772223674
 bitcount,heap,74292443
 dijkstra,heap,135875579

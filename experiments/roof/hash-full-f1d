@@ -6,7 +6,7 @@
    (max_cost   64)
 )
 (memory
-   (ram (latency 1))
+   (ram (latency 2))
 )
 (benchmarks
    (hash (count 8388608))
