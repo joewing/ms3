@@ -76,7 +76,7 @@ heap,patricia,1922858123
 jpegd,patricia,19751203
 mm,patricia,846076130
 patricia,patricia,241758992
-qsort,patricia,161483571
+qsort,patricia,297965535
 sha,patricia,41282233
 bitcount,qsort,74301695
 dijkstra,qsort,137417525
