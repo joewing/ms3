@@ -17,10 +17,10 @@ def random_spm(machine, nxt, rand, cost):
     spm.reset(machine)
     while spm.get_cost() < cost:
         spm.size *= 2
-        spm.reset(machine)
+        spm.update_latency()
         if spm.get_cost() > cost:
             spm.size //= 2
-            spm.reset(machine)
+            spm.update_latency()
             break
         elif rand.randint(0, 8) == 0:
             break
@@ -87,6 +87,14 @@ class SPM(container.Container):
         gen.add_code(");")
         gen.leave()
 
+    def update_latency(self):
+        if self.machine.target == machine.TargetType.ASIC:
+            self.access_time = cacti.get_access_time(self.machine, self)
+            self.cycle_time = cacti.get_cycle_time(self.machine, self)
+        elif self.machine.target == machine.TargetType.FPGA:
+            self.access_time = 2
+            self.cycle_time = 2
+
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
             return self.size * 8
@@ -104,7 +112,9 @@ class SPM(container.Container):
             self.size *= 2
             if self.get_cost() > max_cost:
                 self.size //= 2
+                self.update_latency()
                 return False
+        self.update_latency()
         return True
 
     def simplify(self):
@@ -117,12 +127,7 @@ class SPM(container.Container):
     def reset(self, m):
         container.Container.reset(self, m)
         self.pending = 0
-        if m.target == machine.TargetType.ASIC:
-            self.access_time = cacti.get_access_time(m, self)
-            self.cycle_time = cacti.get_cycle_time(m, self)
-        elif m.target == machine.TargetType.FPGA:
-            self.access_time = 2
-            self.cycle_time = 2
+        self.update_latency()
 
     def push_transform(self, index, rand):
         assert(index == -1)
