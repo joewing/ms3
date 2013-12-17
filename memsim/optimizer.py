@@ -1,7 +1,9 @@
 
 from __future__ import print_function
 import random
+from StringIO import StringIO
 
+from memsim import lex, memory
 from memsim.memory import cache
 from memsim.memory import join
 from memsim.memory import offset
@@ -20,6 +22,7 @@ class Optimizer(object):
     last = None
     last_value = 0
     current = None
+    max_tries = 1024
 
     constructors = [
         cache.random_cache,
@@ -197,13 +200,19 @@ class Optimizer(object):
                 index = self.rand.randint(0, count - 1)
                 stat = self.permute(dist, mem, index, max_cost)
 
+    def load_best(self, db):
+        best_name, _, _ = db.get_best()
+        lexer = lex.Lexer(StringIO(best_name))
+        self.current = memory.parse_memory_list(lexer, self.distributions)
+
     def generate_next(self, db, time):
         """Generate the next memory to try."""
         tries = 1
         while True:
             self.steps += 1
-            print('Step {} (threshold: {}, age: {})'
-                  .format(self.steps, self.threshold, self.age))
+            print('Step {} (threshold: {}, age: {}, try: {}/{})'
+                  .format(self.steps, self.threshold, self.age,
+                          tries, self.max_tries))
             if self.last is None:
                 self.last = self.current.clone()
             else:
@@ -218,7 +227,7 @@ class Optimizer(object):
                     # Revert to the last memory.
                     self.current = self.last.clone()
                     self.threshold += (self.age * self.threshold) // 1024
-                    self.age += tries
+                    self.age += 1
                 before = self.current.clone()
                 while True:
                     self.modify()
@@ -231,7 +240,12 @@ class Optimizer(object):
                 if time is None:
                     return self.current
                 else:
+                    # If we get stuck, restart from the best.
                     tries += 1
+                    if tries > self.max_tries:
+                        self.max_tries *= 2
+                        tries = 0
+                        self.load_best(db)
 
     def optimize(self, db, time):
         """This function is to be called after each evaluation.
