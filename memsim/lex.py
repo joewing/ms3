@@ -18,7 +18,10 @@ def isend(ch):
 class ParseError(Exception):
 
     def __init__(self, lexer, msg):
-        self.fname = lexer.f.name
+        try:
+            self.fname = lexer.f.name
+        except AttributeError:
+            self.fname = "?"
         self.line = lexer.line
         self.message = msg
 
