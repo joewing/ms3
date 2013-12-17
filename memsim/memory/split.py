@@ -140,7 +140,12 @@ class Split(base.Memory):
             self.bank1 = b
 
     def permute(self, rand, max_cost):
-        self.offset = rand.random_address(self.machine.word_size)
+        if rand.randbool():
+            # Change the offset.
+            self.offset = rand.random_address(self.machine.word_size)
+        else:
+            # Swap banks.
+            self.bank0, self.bank1 = self.bank1, self.bank0
         return True
 
     def simplify(self):
