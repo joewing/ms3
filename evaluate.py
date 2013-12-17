@@ -15,7 +15,7 @@ parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
 parser.add_option('-m', '--memory', dest='memory', default='model',
-                  help='evaulate "best", "baseline", "model", or "replace"')
+                  help='evaulate "best", "baseline", or "model"')
 parser.add_option('-b', '--baseline', dest='baseline', default=None,
                   help='file containing the baseline memory')
 parser.add_option('-c', '--compare', dest='compare', default=False,
@@ -23,6 +23,8 @@ parser.add_option('-c', '--compare', dest='compare', default=False,
                   help='generate comparison matrix')
 parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
+parser.add_option('-r', '--replace', dest='replace', default=None,
+                  help='file containing an alternate main memory')
 
 
 def get_name(full_name):
@@ -36,50 +38,44 @@ def get_best(db):
     return memory.parse_memory(lex.Lexer(best_file))
 
 
-def get_memory(db, mem, m, baseline):
+def get_memory(db, mem, m, baseline, replace):
     """Get the specified memory.
     mem is the name of the memory to get.
     m is the model.
     baseline is the name of the file containing a baseline memory.
+    replace is the memory to use as the main memory (or None).
     Returns the memory to simulate.
     """
     if mem == 'model':
         # Use the subsystem from the model.
-        return m.memory
+        subsystem = m.memory
     elif mem == 'baseline':
         # Use the baseline subsystem.
         with open(baseline, 'r') as f:
-            return memory.parse_memory(lex.Lexer(f))
+            subsystem = memory.parse_memory(lex.Lexer(f))
     elif mem == 'best':
         # Use the best subsystem.
-        return get_best(db)
-    elif mem == 'replace':
-        # Use the best subsystem, but replace the main memory.
-
-        # Get the best subsystem for the current model.
         subsystem = get_best(db)
+    else:
+        print('ERROR: invalid memory selected:', mem)
+        sys.exit(-1)
 
-        # Parse the main memory to use and switch models.
-        with open(baseline, 'r') as f:
+    if replace:
+        with open(replace, 'r') as f:
             m.memory = memory.parse_memory(lex.Lexer(f))
-
-        # Replace the main memory on the subsystem.
         ptr = subsystem
         while not isinstance(ptr.get_next(), MainMemory):
             ptr = ptr.get_next()
         ptr.set_next(m.memory)
 
-        return subsystem
-    else:
-        print('ERROR: invalid memory selected:', mem)
-        sys.exit(-1)
+    return subsystem
 
 
-def simulate(experiment, mem, baseline, directory):
+def simulate(experiment, mem, baseline, replace, directory):
     m = model.parse_model_file(experiment)
     db = database.get_instance()
     db.load(m)
-    subsystem = get_memory(db, mem, m, baseline)
+    subsystem = get_memory(db, mem, m, baseline, replace)
     fixup_model(m)
     time = None
     if db.load(m):
@@ -96,12 +92,12 @@ def fixup_model(m):
     m.on = 1000000
 
 
-def generate_array(experiments, mem, baseline, directory):
+def generate_array(experiments, mem, baseline, replace, directory):
     for experiment in experiments:
-        simulate(experiment, mem, baseline, directory)
+        simulate(experiment, mem, baseline, replace, directory)
 
 
-def generate_matrix(experiments, mem, baseline, directory):
+def generate_matrix(experiments, mem, baseline, replace, directory):
     assert(mem == 'best')
     db = database.get_instance()
     for mem_model in experiments:
@@ -139,9 +135,11 @@ def main():
         sys.exit(-1)
     directory = options.directory if options.directory else os.getcwd()
     if options.compare:
-        generate_matrix(args, options.memory, options.baseline, directory)
+        generate_matrix(args, options.memory, options.baseline,
+                        options.replace, directory)
     else:
-        generate_array(args, options.memory, options.baseline, directory)
+        generate_array(args, options.memory, options.baseline,
+                       options.replace, directory)
 
 
 if __name__ == '__main__':
