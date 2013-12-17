@@ -203,7 +203,8 @@ class Optimizer(object):
     def load_best(self, db):
         best_name, _, _ = db.get_best()
         lexer = lex.Lexer(StringIO(best_name))
-        self.current = memory.parse_memory_list(lexer, self.distributions)
+        distributions = self.current.distributions
+        self.current = memory.parse_memory_list(lexer, distributions)
 
     def generate_next(self, db, time):
         """Generate the next memory to try."""
