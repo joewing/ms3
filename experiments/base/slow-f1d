@@ -1,0 +1,12 @@
+(dram
+   (frequency     100000000)
+   (cas_cycles    5)
+   (rcd_cycles    5)
+   (rp_cycles     5)
+   (page_size     1024)
+   (page_count    65536)
+   (width         8)
+   (burst_size    4)
+   (open_page     true)
+   (ddr           false)
+)
