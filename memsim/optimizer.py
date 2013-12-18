@@ -205,6 +205,7 @@ class Optimizer(object):
         lexer = lex.Lexer(StringIO(best_name))
         distributions = self.current.distributions
         self.current = memory.parse_memory_list(lexer, distributions)
+        self.current.reset(self.machine)
 
     def generate_next(self, db, time):
         """Generate the next memory to try."""
