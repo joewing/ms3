@@ -1,6 +1,5 @@
 
-from memsim import lex
-from memsim import parser
+from memsim import lex, parser, util
 
 
 class TargetType(object):
@@ -47,7 +46,7 @@ class MachineType(object):
         self.frequency = frequency
         self.technology = technology
         self.word_size = word_size
-        self.word_bits = log2(word_size) - 1
+        self.word_bits = util.log2(word_size) - 1
         self.word_mask = word_size - 1
         self.addr_bits = addr_bits
         self.addr_mask = (1 << addr_bits) - 1
@@ -109,20 +108,6 @@ class MachineType(object):
             src_mask >>= 1
             dest_mask <<= 1
         return result
-
-
-def log2(n):
-    """Compute the log base 2 of n."""
-    r = 0
-    while n > 0:
-        r += 1
-        n >>= 1
-    return r
-
-
-def round_power2(n):
-    """Round n up to the next highest power of 2."""
-    return 1 << log2(n - 1)
 
 
 def parse_machine(lexer):

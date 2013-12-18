@@ -1,8 +1,6 @@
 
-from memsim import machine
-from memsim import parser
-from memsim.memory import base
-from memsim.memory import join
+from memsim import parser, util
+from memsim.memory import base, join
 
 
 def random_split(machine, nxt, rand, cost):
@@ -42,7 +40,7 @@ class Split(base.Memory):
         name = self.get_id()
         oname = self.get_next().get_id()
         word_width = mach.word_size * 8
-        boffset = machine.log2(self.offset) - 1
+        boffset = util.log2(self.offset) - 1
         b0name = self.bank0.get_id()
         b1name = self.bank1.get_id()
         j0name = join.find_join(self.bank0, self).get_id()

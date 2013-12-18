@@ -1,10 +1,6 @@
 
-from memsim import machine
-from memsim import parser
-from memsim.memory import base
-from memsim.memory import cacti
-from memsim.memory import container
-from memsim.memory import xilinx
+from memsim import machine, parser, util
+from memsim.memory import base, cacti, container, xilinx
 
 
 # Minimum SPM size in bytes.
@@ -53,7 +49,7 @@ class SPM(container.Container):
         name = self.get_id()
         oname = self.get_next().get_id()
         word_width = mach.word_size * 8
-        size_bits = machine.log2(self.size) - 1
+        size_bits = util.log2(self.size) - 1
         self.get_next().generate(gen, mach)
         gen.declare_signals(name, mach.word_size)
         gen.add_code(name + "_inst : entity work.spm")

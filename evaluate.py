@@ -2,11 +2,11 @@
 from __future__ import print_function
 import optparse
 import os
-import re
 import sys
 import StringIO
 
 from memsim import database, lex, memory, model
+from memsim.util import get_experiment_name
 from memsim.process import evaluate
 from memsim.memory.main import MainMemory
 
@@ -25,11 +25,6 @@ parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
 parser.add_option('-r', '--replace', dest='replace', default=None,
                   help='file containing an alternate main memory')
-
-
-def get_name(full_name):
-    base_name = re.sub(r'.*\/', '', full_name)
-    return re.sub(r'-.*', '', base_name)
 
 
 def get_best(db):
@@ -84,7 +79,7 @@ def simulate(experiment, mem, baseline, replace, directory):
         m.memory = subsystem
         time, cost = evaluate(m, directory)
         db.add_result(subsystem, time, cost)
-    print(get_name(experiment) + ',' + str(time))
+    print(get_experiment_name(experiment) + ',' + str(time))
 
 
 def fixup_model(m):
@@ -121,8 +116,8 @@ def generate_matrix(experiments, mem, baseline, replace, directory):
                 m.memory = subsystem
                 time, cost = evaluate(m, directory)
                 db.add_result(name, time, cost)
-            print(get_name(experiment) + ',' +
-                  get_name(mem_model) + ',' + str(time))
+            print(get_experiment_name(experiment) + ',' +
+                  get_experiment_name(mem_model) + ',' + str(time))
 
 
 def main():

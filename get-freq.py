@@ -5,6 +5,7 @@ import sys
 import StringIO
 
 from memsim import database, lex, memory, model
+from memsim.util import get_experiment_name
 from memsim.memory import xilinx
 
 
@@ -30,14 +31,15 @@ def get_frequency(experiment, mem, baseline, keep):
         with open(baseline, 'r') as f:
             m.memory = memory.parse_memory(lex.Lexer(f))
     elif mem == 'best':
-        best_name = db.get_value('best_name', str(m.memory))
+        best_name, _, _ = db.get_best()
         best_file = StringIO.StringIO(best_name)
         m.memory = memory.parse_memory(lex.Lexer(best_file))
     else:
         print('ERROR: invalid memory selected:', mem)
     m.machine.frequency = 1 << 31
     result = xilinx.run_xilinx(m.machine, m.memory, keep, True)
-    print(experiment + ',' + str(result.frequency) + ',' +
+    print(get_experiment_name(experiment) + ',' +
+          str(result.frequency) + ',' +
           str(result.bram_count))
 
 

@@ -1,5 +1,5 @@
 
-from memsim import lex, machine, parser
+from memsim import lex, machine, parser, util
 from memsim.memory import base, cacti, container, xilinx
 
 
@@ -104,10 +104,10 @@ class Cache(container.Container):
         name = self.get_id()
         oname = self.get_next().get_id()
         word_width = mach.word_size * 8
-        line_size_bits = machine.log2(8 * self.line_size // word_width - 1)
+        line_size_bits = util.log2(8 * self.line_size // word_width - 1)
         line_count_bits = \
-            machine.log2(self.line_count // self.associativity - 1)
-        assoc_bits = machine.log2(self.associativity - 1)
+            util.log2(self.line_count // self.associativity - 1)
+        assoc_bits = util.log2(self.associativity - 1)
         self.get_next().generate(gen, mach)
         gen.declare_signals(name, mach.word_size)
         gen.add_code(name + "_inst : entity work.cache")
@@ -175,17 +175,17 @@ class Cache(container.Container):
 
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
-            index_bits = machine.log2(self.line_count - 1)
+            index_bits = util.log2(self.line_count - 1)
             word_size = self.machine.word_size
             line_words = (self.line_size + word_size - 1) // word_size
-            ls_bits = machine.log2(line_words - 1)
+            ls_bits = util.log2(line_words - 1)
             tag_bits = max(self.machine.addr_bits - index_bits - ls_bits, 0)
             width = 1 + tag_bits
             if self.associativity > 1:
                 if self.policy == CachePolicy.PLRU:
                     width += 1
                 else:
-                    width += machine.log2(self.associativity - 1)
+                    width += util.log2(self.associativity - 1)
             if self.write_back:
                 width += 1
             width *= self.associativity
