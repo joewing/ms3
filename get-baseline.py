@@ -4,7 +4,7 @@ import math
 import optparse
 import sys
 
-from memsim import database, machine, memory, model, process
+from memsim import database, machine, memory, model, process, util
 from memsim.memory import cache, ram
 
 
@@ -31,7 +31,7 @@ def estimate_cost(width, depth):
         if width % BRAM_WIDTH != 0:
             max_width = BRAM_WIDTH * BRAM_DEPTH
             small_width = width % BRAM_WIDTH
-            rounded_width = machine.round_power2(small_width)
+            rounded_width = util.round_power2(small_width)
             small_depth = max_width // rounded_width
             result = (depth + small_depth - 1) // small_depth
         else:
@@ -171,9 +171,9 @@ def main():
     else:
         mach = machine.MachineType()
     max_size = get_max_size()
-    line_count = machine.round_power2(max_size // (mach.word_size * 8))
+    line_count = util.round_power2(max_size // (mach.word_size * 8))
     while line_count >= 128:
-        line_size = machine.round_power2(max_size // 8)
+        line_size = util.round_power2(max_size // 8)
         while line_size >= mach.word_size:
             associativity = min(line_count, 8)
             while associativity >= 1:
