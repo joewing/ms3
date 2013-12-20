@@ -22,7 +22,7 @@ class Optimizer(object):
     last = None
     last_value = 0
     current = None
-    max_tries = 1024
+    max_tries = 128
 
     constructors = [
         cache.random_cache,
@@ -246,7 +246,7 @@ class Optimizer(object):
                     tries += 1
                     if tries > self.max_tries:
                         self.max_tries *= 2
-                        self.threshold *= 2
+                        self.threshold *= self.max_tries
                         tries = 0
                         self.load_best(db)
 
