@@ -81,12 +81,12 @@ sha,patricia,41282233
 bitcount,qsort,74328465
 dijkstra,qsort,275927855
 fft,qsort,395220172
-hash,qsort,2196195120
-heap,qsort,4596638953
+hash,qsort,2195930800
+heap,qsort,4137293160
 jpegd,qsort,64990252
-mm,qsort,2205810560
+mm,qsort,2205286272
 patricia,qsort,1122689052
-qsort,qsort,71797058
+qsort,qsort,71779650
 sha,qsort,43481908
 bitcount,sha,74293425
 dijkstra,sha,62622541
