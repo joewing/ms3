@@ -246,6 +246,7 @@ class Optimizer(object):
                     tries += 1
                     if tries > self.max_tries:
                         self.max_tries *= 2
+                        self.threshold *= 2
                         tries = 0
                         self.load_best(db)
 
