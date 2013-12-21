@@ -22,7 +22,7 @@ class Optimizer(object):
     last = None
     last_value = 0
     current = None
-    max_tries = 128
+    max_tries = 64
 
     constructors = [
         cache.random_cache,
@@ -218,17 +218,18 @@ class Optimizer(object):
             if self.last is None:
                 self.last = self.current.clone()
             else:
+                denom = self.max_tries
                 diff = time - self.last_value
                 if diff <= self.threshold:
                     # Keep the current memory.
                     self.last_value = time
                     self.last = self.current.clone()
-                    self.threshold -= (self.threshold + 1023) // 1024
+                    self.threshold -= (self.threshold + denom - 1) // denom
                     self.age = 0
                 else:
                     # Revert to the last memory.
                     self.current = self.last.clone()
-                    self.threshold += (self.age * self.threshold) // 1024
+                    self.threshold += (self.age * self.threshold) // denom
                     self.age += 1
                 before = self.current.clone()
                 while True:
@@ -245,7 +246,7 @@ class Optimizer(object):
                     # If we get stuck, restart from the best.
                     tries += 1
                     if tries > self.max_tries:
-                        self.max_tries *= 2
+                        self.max_tries += 1
                         self.threshold *= self.max_tries
                         tries = 0
                         self.load_best(db)
