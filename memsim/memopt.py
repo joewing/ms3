@@ -185,8 +185,8 @@ class MemoryOptimizer(Optimizer):
 
             # Select an action to perform.
             action = self.rand.randint(0, 7)
-            if action == 0:  # Insert
-                for i in xrange(100):
+            for i in xrange(10):
+                if action == 0:  # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
@@ -196,8 +196,7 @@ class MemoryOptimizer(Optimizer):
                             return current
                         else:
                             current = last.clone()
-            elif action <= 2 and count > 1:  # Remove
-                for i in xrange(100):
+                elif action <= 2 and count > 1:  # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
@@ -207,17 +206,18 @@ class MemoryOptimizer(Optimizer):
                             return current
                         else:
                             current = last.clone()
-            else:   # Permute
-                index = self.rand.randint(0, count - 1)
-                if self.permute(dist, mem, index, max_cost):
-                    if current.get_max_path_length() <= max_path:
-                        return current
-                    else:
-                        current = last.clone()
+                else:   # Permute
+                    index = self.rand.randint(0, count - 1)
+                    if self.permute(dist, mem, index, max_cost):
+                        if current.get_max_path_length() <= max_path:
+                            return current
+                        else:
+                            current = last.clone()
 
     def restart(self, db):
         best_name, _, _ = db.get_best()
         lexer = lex.Lexer(StringIO(best_name))
         distributions = self.current.distributions
-        self.current = memory.parse_memory_list(lexer, distributions)
-        self.current.reset(self.machine)
+        current = memory.parse_memory_list(lexer, distributions)
+        current.reset(self.machine)
+        return current

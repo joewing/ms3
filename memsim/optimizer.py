@@ -25,7 +25,7 @@ class Optimizer(object):
 
     def restart(self, db):
         """Start a new chain."""
-        pass
+        return self.current
 
     def store_result(self, db, current, value):
         """Store a result."""
@@ -79,6 +79,6 @@ class Optimizer(object):
                     self.threshold = self.max_value
                     self.max_value = 0
                     tries = 0
-                    self.restart(db)
+                    self.current = self.restart(db)
 
         return self.current
