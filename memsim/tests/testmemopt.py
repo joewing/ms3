@@ -2,19 +2,19 @@
 import unittest
 
 from memsim.distribution import Distribution
-from memsim.optimizer import Optimizer
+from memsim.memopt import MemoryOptimizer
 from memsim.machine import MachineType
 from memsim.memory import MemoryList
 from memsim.tests.mocks import MockMemory
 
 
-class TestOptimizer(unittest.TestCase):
+class TestMemoryOptimizer(unittest.TestCase):
 
     def setUp(self):
         self.machine = MachineType(word_size=8, addr_bits=32)
         self.rand = Distribution(1)
         self.ml = MemoryList([], self.rand)
-        self.optimizer = Optimizer(self.machine, self.ml, None, None)
+        self.optimizer = MemoryOptimizer(self.machine, self.ml, None, None)
         self.optimizer.constructors = [self.mocks_constructor]
 
     def mocks_constructor(self, machine, nxt, rand, cost):

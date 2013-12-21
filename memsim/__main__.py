@@ -7,8 +7,16 @@ import os
 import sys
 import time
 
-from memsim import (database, distribution, lex, memory, model,
-                    optimizer, process)
+from memsim import (
+    database,
+    distribution,
+    lex,
+    memory,
+    model,
+    process
+)
+from memsim.memopt import MemoryOptimizer
+
 
 parser = optparse.OptionParser()
 parser.add_option('-u', '--url', dest='url', default=None,
@@ -74,11 +82,11 @@ def main():
                              m.on, m.skip)
     if first:
         t = pl.run(ml, 0)
-    o = optimizer.Optimizer(m.machine, ml, seed, use_prefetch=pl.has_delay())
+    o = MemoryOptimizer(m.machine, ml, seed, use_prefetch=pl.has_delay())
     o.load(db)
     if first:
         o.save(db)
-    ml = o.optimize(db, t)
+    ml = o.optimize(db, t).simplified()
     while True:
         best_value = show_best(db)
         result_count = db.get_result_count()
@@ -88,7 +96,7 @@ def main():
         print(ml)
         t = pl.run(ml, 10 * best_value)
         print('Time: {} (cost: {})'.format(t, ml.get_cost()))
-        ml = o.optimize(db, t)
+        ml = o.optimize(db, t).simplified()
         gc.collect()
 
 
