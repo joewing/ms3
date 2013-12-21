@@ -170,22 +170,25 @@ class MemoryOptimizer(Optimizer):
         max_cost = self.machine.max_cost - last.get_cost()
         while True:
 
-            # Select a memory to modify.
-            # Note that we do not attempt to modify a memory subsystem
-            # unless it is actually used, which we determine using
-            # Distribution.is_empty.
-            current = last.clone()
-            while True:
-                mindex = self.rand.randint(0, len(last) - 1)
-                mem = current.memories[mindex]
-                dist = current.distributions[mindex]
-                if not dist.is_empty():
-                    break
-            count = mem.count()
-
-            # Select an action to perform.
+            # Select an action to perform.  We make multiple
+            # attempts to use the selected action.
             action = self.rand.randint(0, 7)
             for i in xrange(10):
+
+                # Select a memory to modify.
+                # Note that we do not attempt to modify a memory subsystem
+                # unless it is actually used, which we determine using
+                # Distribution.is_empty.
+                current = last.clone()
+                while True:
+                    mindex = self.rand.randint(0, len(last) - 1)
+                    mem = current.memories[mindex]
+                    dist = current.distributions[mindex]
+                    if not dist.is_empty():
+                        break
+                count = mem.count()
+
+                # Modify the memory.
                 if action == 0:  # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
@@ -194,8 +197,6 @@ class MemoryOptimizer(Optimizer):
                         current.memories[mindex] = temp
                         if current.get_max_path_length() <= max_path:
                             return current
-                        else:
-                            current = last.clone()
                 elif action <= 2 and count > 1:  # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
@@ -204,15 +205,11 @@ class MemoryOptimizer(Optimizer):
                         current.memories[mindex] = temp
                         if current.get_max_path_length() <= max_path:
                             return current
-                        else:
-                            current = last.clone()
                 else:   # Permute
                     index = self.rand.randint(0, count - 1)
                     if self.permute(dist, mem, index, max_cost):
                         if current.get_max_path_length() <= max_path:
                             return current
-                        else:
-                            current = last.clone()
 
     def restart(self, db):
         best_name, _, _ = db.get_best()
