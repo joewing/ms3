@@ -10,7 +10,6 @@ class Optimizer(object):
     last_value = 0
     current = None
     max_tries = 1
-    max_value = 0
 
     def __init__(self, current):
         self.current = current
@@ -25,7 +24,7 @@ class Optimizer(object):
 
     def restart(self, db):
         """Start a new chain."""
-        return self.current
+        return self.current, 1
 
     def store_result(self, db, current, value):
         """Store a result."""
@@ -46,7 +45,6 @@ class Optimizer(object):
 
         # Store the current result.
         self.store_result(db, self.current, value)
-        self.max_value = max(self.max_value, value)
 
         # Generate the next state.
         self.last = self.current if self.last is None else self.last
@@ -72,13 +70,10 @@ class Optimizer(object):
                 return self.current
             else:
                 # If we get stuck, restart from the best.
-                self.max_value = max(self.max_value, value)
                 tries += 1
                 if tries > self.max_tries:
-                    self.max_tries *= 2
-                    self.threshold = self.max_value
-                    self.max_value = 0
+                    self.max_tries += 1
                     tries = 0
-                    self.current = self.restart(db)
+                    self.current, self.threshold = self.restart(db)
 
         return self.current

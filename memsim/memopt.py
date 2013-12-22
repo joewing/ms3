@@ -212,9 +212,9 @@ class MemoryOptimizer(Optimizer):
                             return current
 
     def restart(self, db):
-        best_name, _, _ = db.get_best()
+        best_name, best_value, _ = db.get_best()
         lexer = lex.Lexer(StringIO(best_name))
         distributions = self.current.distributions
         current = memory.parse_memory_list(lexer, distributions)
         current.reset(self.machine)
-        return current
+        return current, best_value
