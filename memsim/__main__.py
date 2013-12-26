@@ -14,7 +14,6 @@ from memsim import (
     memory,
     model,
     process,
-    util,
 )
 from memsim.memory import stats
 from memsim.memopt import MemoryOptimizer
@@ -55,19 +54,25 @@ class ThreadData(object):
         self.cond.wait()
         self.thread.join()
 
-    def show_status(self, best_value, best_cost, evaluation):
+    def show_status(self, best_value, best_cost, evaluation, status):
         self.stats_lock.acquire()
-        ident = threading.current_thread().ident
-        self.data[ident] = (best_value, best_cost, evaluation)
-        print('{:<16}{:<12}{:<12}{:<12}'
-              .format('name', 'value', 'cost', 'evaluation'))
+        current = threading.current_thread().ident
+        better = ' '
+        if current in self.data:
+            last_value, last_cost, _, _ = self.data[current]
+            if last_value != best_value or last_cost != best_cost:
+                better = '*'
+        self.data[current] = (best_value, best_cost, evaluation, status)
+        print('  {:<20}{:<12}{:<12}{:<12}{}'
+              .format('name', 'value', 'cost', 'evaluation', 'status'))
         for thrd in threading.enumerate():
             ident = thrd.ident
             if ident in self.data:
+                marker = (better + '>') if current == ident else '  '
                 name = thrd.name
-                value, cost, ev = self.data[ident]
-                print('{:<16}{:<12}{:<12}{:<12}'
-                      .format(name, value, cost, ev))
+                value, cost, ev, stat = self.data[ident]
+                print('{:<2}{:<20}{:<12}{:<12}{:<12}{}'
+                      .format(marker, name, value, cost, ev, stat))
         print()
         self.stats_lock.release()
 
@@ -132,7 +137,7 @@ def run_experiment(url, mod, iterations, seed, directory, tdata):
         # Show the best and get its value.
         result_count = db.get_result_count()
         _, best_value, best_cost = db.get_best()
-        tdata.show_status(best_value, best_cost, result_count)
+        tdata.show_status(best_value, best_cost, result_count, str(o))
 
         # Exit if we've performed enough evaluations.
         if result_count >= iterations:
@@ -168,7 +173,7 @@ def start_experiment(url, directory, seed, iterations, experiment, tdata):
         'seed': seed,
         'tdata': tdata,
     }
-    tname = util.get_experiment_name(experiment)
+    tname = os.path.basename(experiment)
     return threading.Thread(target=run_experiment, name=tname, kwargs=kwargs)
 
 
