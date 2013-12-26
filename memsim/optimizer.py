@@ -51,8 +51,6 @@ class Optimizer(object):
         tries = 1
         while True:
             self.steps += 1
-            print('Step {} (threshold: {}, try: {}/{})'
-                  .format(self.steps, self.threshold, tries, self.max_tries))
             denom = self.max_tries
             diff = value - self.last_value
             if diff <= self.threshold:

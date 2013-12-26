@@ -1,7 +1,7 @@
 
 from __future__ import print_function
 from StringIO import StringIO
-from threading import Thread, Condition, current_thread
+import threading
 import optparse
 import os
 import sys
@@ -37,21 +37,39 @@ parser.add_option('-t', '--threads', dest='threads', default=1,
 class ThreadData(object):
 
     def __init__(self):
-        self.cond = Condition()
+        self.data = dict()
+        self.cond = threading.Condition()
         self.cond.acquire()
+        self.stats_lock = threading.Lock()
 
     def release(self):
         self.cond.release()
 
     def stop_thread(self):
         self.cond.acquire()
-        self.thread = current_thread()
+        self.thread = threading.current_thread()
         self.cond.notify()
         self.cond.release()
 
     def wait(self):
-        self.wait()
+        self.cond.wait()
         self.thread.join()
+
+    def show_status(self, best_value, best_cost, evaluation):
+        self.stats_lock.acquire()
+        ident = threading.current_thread().ident
+        self.data[ident] = (best_value, best_cost, evaluation)
+        print('{:<16}{:<12}{:<12}{:<12}'
+              .format('name', 'value', 'cost', 'evaluation'))
+        for thrd in threading.enumerate():
+            ident = thrd.ident
+            if ident in self.data:
+                name = thrd.name
+                value, cost, ev = self.data[ident]
+                print('{:<16}{:<12}{:<12}{:<12}'
+                      .format(name, value, cost, ev))
+        print()
+        self.stats_lock.release()
 
 
 def get_initial_memory(db, m, dists, directory):
@@ -84,16 +102,11 @@ def get_initial_memory(db, m, dists, directory):
     return ml, best_value
 
 
-def show_best(db):
-    best_name, best_value, best_cost = db.get_best()
-    if best_name:
-        print('Best Memory:', best_name)
-        print('Best Value: ', best_value)
-        print('Best Cost:  ', best_cost)
-    return best_value
+def run_experiment(url, mod, iterations, seed, directory, tdata):
 
-
-def run_experiment(db, mod, iterations, seed, directory, tdata):
+    # Connect to the database (each thread needs its own database object).
+    db = database.get_instance(url)
+    db.load(mod)
 
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
@@ -117,19 +130,17 @@ def run_experiment(db, mod, iterations, seed, directory, tdata):
     while True:
 
         # Show the best and get its value.
-        best_value = show_best(db)
+        result_count = db.get_result_count()
+        _, best_value, best_cost = db.get_best()
+        tdata.show_status(best_value, best_cost, result_count)
 
         # Exit if we've performed enough evaluations.
-        result_count = db.get_result_count()
         if result_count >= iterations:
             break
 
         # Evaluate this memory subsystem.
         ml = o.optimize(db, t).simplified()
-        print('Evaluation:', result_count + 1)
-        print(ml)
         t = pl.run(ml, 10 * best_value)
-        print('Time: {} (cost: {})'.format(t, ml.get_cost()))
 
     tdata.stop_thread()
 
@@ -143,7 +154,6 @@ def start_experiment(url, directory, seed, iterations, experiment, tdata):
         sys.exit(-1)
     db = database.get_instance(url)
     db.load(m)
-    print(m)
 
     # Only start the thread if there is work to do.
     if db.get_result_count() >= iterations:
@@ -151,7 +161,7 @@ def start_experiment(url, directory, seed, iterations, experiment, tdata):
 
     # Start the thread.
     kwargs = {
-        'db': db,
+        'url': url,
         'iterations': iterations,
         'mod': m,
         'directory': directory,
@@ -159,12 +169,7 @@ def start_experiment(url, directory, seed, iterations, experiment, tdata):
         'tdata': tdata,
     }
     tname = util.get_experiment_name(experiment)
-    return Thread(target=run_experiment, name=tname, kwargs=kwargs)
-
-
-def await_thread(tdata, threads):
-    tdata.wait()
-    return filter(lambda t: t.is_alive(), threads)
+    return threading.Thread(target=run_experiment, name=tname, kwargs=kwargs)
 
 
 def main():
@@ -193,7 +198,8 @@ def main():
                 threads.append(thrd)
                 started_thread = True
             if len(threads) >= max_threads:
-                threads = await_thread(tdata, threads)
+                tdata.wait()
+                threads = filter(lambda t: t.is_alive(), threads)
         if not started_thread:
             break
     tdata.release()
