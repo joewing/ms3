@@ -30,12 +30,12 @@ class MemoryOptimizer(Optimizer):
     ]
 
     def __init__(self, machine, ml, seed,
-                 permute_only=False,
+                 distributions,
                  use_prefetch=False):
         Optimizer.__init__(self, ml)
         self.rand = random.Random(seed)
         self.machine = machine
-        self.permute_only = permute_only
+        self.distributions = distributions
         ml.reset(machine)
         if use_prefetch:
             self.constructors.append(prefetch.random_prefetch)
@@ -45,13 +45,16 @@ class MemoryOptimizer(Optimizer):
         use_prefetch = db.get_value('use_prefetch', False)
         if use_prefetch and prefetch.random_prefetch not in self.constructors:
             self.constructors.append(prefetch.random_prefetch)
+        for i in xrange(len(self.distributions)):
+            dist = self.distributions[i]
+            dist.load(db, i)
 
     def save(self, db):
         """Save the current state to the database."""
         use_prefetch = prefetch.random_prefetch in self.constructors
         db.set_value('use_prefetch', use_prefetch)
-        for i in xrange(len(self.current.distributions)):
-            dist = self.current.distributions[i]
+        for i in xrange(len(self.distributions)):
+            dist = self.distributions[i]
             dist.save(db, i)
         db.save()
 
@@ -183,7 +186,7 @@ class MemoryOptimizer(Optimizer):
                 while True:
                     mindex = self.rand.randint(0, len(last) - 1)
                     mem = current.memories[mindex]
-                    dist = current.distributions[mindex]
+                    dist = self.distributions[mindex]
                     if not dist.is_empty():
                         break
                 count = mem.count()
@@ -214,7 +217,6 @@ class MemoryOptimizer(Optimizer):
     def restart(self, db):
         best_name, best_value, _ = db.get_best()
         lexer = lex.Lexer(StringIO(best_name))
-        distributions = self.current.distributions
-        current = memory.parse_memory_list(lexer, distributions)
+        current = memory.parse_memory_list(lexer)
         current.reset(self.machine)
         return current, best_value

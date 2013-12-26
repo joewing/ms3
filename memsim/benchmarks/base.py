@@ -12,8 +12,6 @@ class Benchmark(object):
         self.word_size = word_size
         self.offset = 0
         self.directory = ''
-        self.on = 0
-        self.off = 0
 
     def read(self, addr):
         """Generate a read."""
@@ -45,12 +43,10 @@ class Benchmark(object):
         else:
             return AccessType.IDLE, 0, 0
 
-    def reset(self, offset, directory, on, off):
+    def reset(self, offset, directory):
         """Prepare the benchmark to be run and set the address offset."""
         self.offset = offset
         self.directory = directory
-        self.on = on
-        self.off = off
 
     def skip(self, n):
         """Skip the next n accesses.  Returns true if successful.

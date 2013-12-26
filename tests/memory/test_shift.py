@@ -4,7 +4,7 @@ import unittest
 from memsim import lex, machine, memory
 from memsim.memory import join
 from memsim.memory.shift import Shift
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestShift(unittest.TestCase):

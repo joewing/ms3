@@ -3,16 +3,15 @@ from __future__ import print_function
 import optparse
 import sys
 
-from memsim import distribution
-from memsim import lex
-from memsim import memory
-from memsim import model
-from memsim import process
+from memsim import distribution, lex, memory, model, process
+from memsim.memory import stats
 
 
 parser = optparse.OptionParser()
 parser.add_option('-m', '--model', dest='model', default=None,
-                        help='the model to use')
+                  help='the model to use')
+parser.add_option('-d', '--directory', dest='directory', default='.',
+                  help='directory containing traces')
 
 
 def main():
@@ -23,20 +22,19 @@ def main():
     with open(options.model) as f:
         m = model.parse_model(lex.Lexer(f))
 
-    distributions = []
+    dists = []
     processes = []
     memories = []
     for i in range(len(m.benchmarks)):
-        dist = distribution.Distribution(m.seed)
-        dist.load(i)
-        distributions.append(dist)
-        processes.append(process.Process(dist, m.benchmarks[i]))
-        memories.append(m.memory)
-    pl = process.ProcessList(m.machine, processes, 1000000, 0)
-    ml = memory.MemoryList(memories, distributions)
+        dist = distribution.Distribution(1)
+        dists.append(dist)
+        processes.append(process.Process(m.benchmarks[i]))
+        memories.append(stats.Stats(dist, m.memory))
+    pl = process.ProcessList(m.machine, processes, options.directory)
+    ml = memory.MemoryList(memories)
     pl.run(ml, 0)
 
-    for d in distributions:
+    for d in dists:
         min_addr = d.get_min_address()
         max_addr = d.get_max_address()
         size = d.get_size()

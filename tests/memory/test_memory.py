@@ -1,6 +1,6 @@
 
 import unittest
-from memsim.tests.mocks import MockMemory
+from tests.mocks import MockMemory
 
 
 class TestMemory(unittest.TestCase):

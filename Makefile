@@ -14,8 +14,7 @@ all: lint
 test:
 	@echo "[NOSE]"
 	@nosetests --with-coverage --nocapture \
-		$(foreach p,$(COVER_PACKAGES), --cover-package $p) \
-		memsim/tests
+		$(foreach p,$(COVER_PACKAGES), --cover-package $p) tests
 
 lint:
 	@echo "[PEP8]"

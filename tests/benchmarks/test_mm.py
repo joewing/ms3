@@ -4,14 +4,14 @@ import unittest
 from memsim import benchmarks, lex
 from memsim.benchmarks.mm import MM
 from memsim.process import AccessType
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestMM(unittest.TestCase):
 
     def test_mm1(self):
         m = MM(2, 1, 3, 4)
-        m.reset(1024, '', 0, 0)
+        m.reset(1024, '')
         gen = m.run()
 
         expected = [
@@ -54,7 +54,7 @@ class TestMM(unittest.TestCase):
 
     def test_mm2(self):
         m = MM(1, 1, -1, -1)
-        m.reset(1024, '', 0, 0)
+        m.reset(1024, '')
         gen = m.run()
 
         expected = [

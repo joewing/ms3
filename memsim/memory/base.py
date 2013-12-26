@@ -148,11 +148,8 @@ class Memory(object):
 
 class MemoryList(object):
 
-    memories = []
-
-    def __init__(self, memories, distributions):
+    def __init__(self, memories):
         self.memories = memories
-        self.distributions = distributions
 
     def __len__(self):
         return len(self.memories)
@@ -165,7 +162,7 @@ class MemoryList(object):
             return ""
 
     def clone(self):
-        return MemoryList(copy.deepcopy(self.memories), self.distributions)
+        return copy.deepcopy(self)
 
     def get_cost(self):
         costs = map(lambda m: m.get_total_cost(), self.memories)
@@ -192,10 +189,10 @@ def parse_memory(lexer):
     return parser.parse(lexer, constructors)
 
 
-def parse_memory_list(lexer, dists):
-    ms = []
-    ms.append(parse_memory(lexer))
+def parse_memory_list(lexer):
+    memories = []
+    memories.append(parse_memory(lexer))
     while lexer.get_type() == lex.TOKEN_COLON:
         lexer.match(lex.TOKEN_COLON)
-        ms.append(parse_memory(lexer))
-    return MemoryList(ms, dists)
+        memories.append(parse_memory(lexer))
+    return MemoryList(memories)

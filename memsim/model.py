@@ -8,14 +8,9 @@ class Model(object):
         self.machine = machine.MachineType()
         self.memory = None
         self.benchmarks = []
-        self.skip = 0
-        self.on = 1000
 
     def __str__(self):
         result = '(machine ' + str(self.machine) + ')'
-        if self.skip > 0:
-            result += '(skip ' + str(self.skip) + ')'
-            result += '(on ' + str(self.on) + ')'
         result += '(memory ' + str(self.memory) + ')'
         result += '(benchmarks '
         for b in self.benchmarks:
@@ -50,10 +45,6 @@ def parse_model(lexer, model=None):
             value = lexer.get_value()
             lexer.match(lex.TOKEN_LITERAL)
             parse_model(lex.Lexer(open(value, 'r')), model)
-        elif name == 'skip':
-            model.skip = _parse_int(lexer)
-        elif name == 'on':
-            model.on = _parse_int(lexer)
         else:
             lex.ParseError(lexer, "invalid top-level component: " + name)
         lexer.match(lex.TOKEN_CLOSE)

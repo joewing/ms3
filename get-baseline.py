@@ -82,19 +82,16 @@ def run_simulation(mem, experiment):
     if m.machine.max_cost != mach.max_cost:
         print('ERROR: wrong max cost for', experiment)
         sys.exit(-1)
-    procs = [process.Process(None, m.benchmarks[0])]
-    pl = process.ProcessList(False, mach, procs, directory, 1000000, 0)
+    procs = [process.Process(m.benchmarks[0])]
+    pl = process.ProcessList(mach, procs, directory)
     pl.first = False
-    m.skip = 0
-    m.on = 1000000
     db = database.get_instance()
     db.load(m)
     mem.set_next(m.memory)
     m.memory = mem
     result = db.get_result(mem)
     if not result:
-        ml = memory.MemoryList([mem], [None])
-        pl.first = False
+        ml = memory.MemoryList([mem])
         result = pl.run(ml, 0)
         db.add_result(mem, result, ml.get_cost())
     return result

@@ -4,7 +4,7 @@ import unittest
 from memsim import lex, machine, memory, vhdl
 from memsim.memory import join
 from memsim.memory.split import Split
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestSplit(unittest.TestCase):

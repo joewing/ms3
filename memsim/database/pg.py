@@ -7,7 +7,6 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         UniqueConstraint)
 from sqlalchemy.sql import select, and_, func
 from sqlalchemy.exc import ProgrammingError, IntegrityError
-from sqlalchemy.pool import SingletonThreadPool
 
 from memsim.database import base
 
@@ -85,9 +84,7 @@ class PGDatabase(base.Database):
     def connect(self):
         """Establish a database connection."""
         connection_str = '/'.join([self.url, self.dbname])
-        self.engine = create_engine(connection_str,
-                                    pool_size=1,
-                                    poolclass=SingletonThreadPool)
+        self.engine = create_engine(connection_str)
         if not self.engine:
             return False
 #        metadata.create_all(bind=self.engine)

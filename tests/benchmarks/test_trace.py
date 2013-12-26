@@ -7,7 +7,7 @@ import re
 from memsim import benchmarks, lex
 from memsim.benchmarks.trace import Trace
 from memsim.process import AccessType
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestTrace(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestTrace(unittest.TestCase):
                 f.write("X3:0\n")
             name = re.sub(r'.trace', '', file_name)
             trace = Trace(name)
-            trace.reset(0, '', 0, 0)
+            trace.reset(0, '')
             output = trace.run()
 
             t, addr, size = next(output)

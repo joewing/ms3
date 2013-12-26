@@ -4,7 +4,7 @@ import unittest
 from memsim import lex, memory
 from memsim.machine import MachineType
 from memsim.memory.dram import DRAM
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestDRAM(unittest.TestCase):

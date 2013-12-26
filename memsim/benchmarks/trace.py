@@ -21,20 +21,12 @@ class Trace(base.Benchmark):
     def __str__(self):
         return ''.join(['(trace (name ', self.name, '))'])
 
-    def skip(self, n):
-        assert(n == self.off)
-        return True
-
     def run(self):
         if self.fd:
             self.fd.seek(0)
         else:
             base_name = '/'.join([self.directory, self.name])
-            if self.off != 0:
-                file_name = ''.join([base_name, '-', str(self.on),
-                                    '-', str(self.off), TRACE_SUFFIX])
-            else:
-                file_name = ''.join([base_name, TRACE_SUFFIX])
+            file_name = ''.join([base_name, TRACE_SUFFIX])
             self.fd = open(file_name, 'r')
         for line in self.fd:
             for m in self.expr.finditer(line):

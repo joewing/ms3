@@ -4,14 +4,14 @@ import unittest
 from memsim import benchmarks, lex
 from memsim.benchmarks.maze import Maze
 from memsim.process import AccessType
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestMaze(unittest.TestCase):
 
     def test_maze1(self):
         m = Maze(2, 2, 3)
-        m.reset(1024, '', 0, 0)
+        m.reset(1024, '')
         gen = m.run()
 
         expected = [

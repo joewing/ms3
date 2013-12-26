@@ -2,7 +2,7 @@
 import unittest
 
 from memsim import lex, machine
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestMachine(unittest.TestCase):

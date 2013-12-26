@@ -4,14 +4,14 @@ import unittest
 from memsim import benchmarks, lex
 from memsim.benchmarks.qsort import QSort
 from memsim.process import AccessType
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestQSort(unittest.TestCase):
 
     def test_qsort1(self):
         q = QSort(7, 2, 3, 4)
-        q.reset(1024, '', 0, 0)
+        q.reset(1024, '')
         gen = q.run()
 
         expected = [
@@ -37,7 +37,7 @@ class TestQSort(unittest.TestCase):
 
     def test_qsort2(self):
         q = QSort(3, 64, -1, -1)
-        q.reset(1024, '', 0, 0)
+        q.reset(1024, '')
         for _ in q.run():
             pass
         self.assertEqual(sorted(q.array), q.array)

@@ -3,7 +3,7 @@ import unittest
 
 from memsim import lex, machine, memory
 from memsim.memory.option import Option
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestOption(unittest.TestCase):

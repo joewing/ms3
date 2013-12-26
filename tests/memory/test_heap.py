@@ -5,14 +5,14 @@ from memsim import benchmarks
 from memsim.benchmarks.heap import Heap
 from memsim import lex
 from memsim.process import AccessType
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestHeap(unittest.TestCase):
 
     def test_heap1(self):
         h = Heap(1, 2, 3, 4)
-        h.reset(1024, '', 0, 0)
+        h.reset(1024, '')
         gen = h.run()
 
         # Initialize
@@ -132,7 +132,7 @@ class TestHeap(unittest.TestCase):
 
     def test_heap2(self):
         h = Heap(1, 1, -1, -1)
-        h.reset(1024, '', 0, 0)
+        h.reset(1024, '')
         gen = h.run()
 
         expected = [

@@ -3,7 +3,7 @@ import unittest
 
 from memsim import distribution, lex, machine, memory, vhdl
 from memsim.memory.spm import SPM, random_spm
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestSPM(unittest.TestCase):

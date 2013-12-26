@@ -7,7 +7,7 @@ from memsim.machine import MachineType, TargetType
 from memsim.memory import cache
 from memsim.memory import cacti
 from memsim.memory import spm
-from memsim.tests.mocks import MockMemory
+from tests.mocks import MockMemory
 
 
 class TestCACTI(unittest.TestCase):

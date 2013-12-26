@@ -2,7 +2,7 @@
 import unittest
 
 from memsim import machine, process
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestProcess(unittest.TestCase):
@@ -18,31 +18,31 @@ class TestProcess(unittest.TestCase):
         ]
         mem = mocks.MockMemory()
         mach = machine.MachineType()
-        p = process.Process(None, mocks.MockBenchmark(actions))
-        p.reset(mach, mem, 0, '', 0, 0)
+        p = process.Process(mocks.MockBenchmark(actions))
+        p.reset(mach, mem, 0, '')
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 400)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 0)
         self.assertEqual(mem.last_addr, 8)
         self.assertEqual(mem.last_size, 4)
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 800)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
         self.assertEqual(mem.last_size, 8)
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 32)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
         self.assertEqual(mem.last_size, 8)
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 0)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)
@@ -50,7 +50,7 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(mem.last_size, 8)
         self.assertEqual(p.waiting, 1)
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 0)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)
@@ -58,7 +58,7 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(mem.last_size, 8)
         self.assertEqual(p.waiting, 1)
 
-        t = p.step(False)
+        t = p.step()
         self.assertEqual(t, 0)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)

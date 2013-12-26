@@ -3,7 +3,7 @@ import unittest
 
 from memsim import lex, machine, memory, vhdl
 from memsim.memory.cache import Cache, CachePolicy
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestCache(unittest.TestCase):

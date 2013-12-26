@@ -2,7 +2,7 @@
 import unittest
 
 from memsim import lex, memory
-from memsim.tests import mocks
+from tests import mocks
 
 
 class TestParser(unittest.TestCase):
