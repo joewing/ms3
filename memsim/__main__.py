@@ -192,6 +192,7 @@ def main():
         for experiment in args:
             thrd = start_experiment(db, directory, seed, iterations,
                                     experiment, tdata)
+            seed = (seed + 1) % (2 << 31)
             if thrd is not None:
                 thrd.start()
                 threads.append(thrd)
