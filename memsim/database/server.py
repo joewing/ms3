@@ -11,17 +11,29 @@ class DatabaseServer(object):
         self.db = db
         self.update_status = update_status
         self.signal_exit = signal_exit
+        self.request_count = 0
+        self.free = []
+
+    def get_client_count(self):
+        return len(self.queues) - len(self.free)
 
     def add_client(self, name):
-        request_queue = SimpleQueue()
-        response_queue = SimpleQueue()
-        result = request_queue, response_queue
-        self.queues.append(result)
-        return SharedDatabase(name, request_queue, response_queue)
+        if self.free:
+            return self.free.pop()
+        else:
+            request_queue = SimpleQueue()
+            response_queue = SimpleQueue()
+            result = request_queue, response_queue
+            self.queues.append(result)
+            return SharedDatabase(name, request_queue, response_queue)
+
+    def remove_client(self, key):
+        self.free.append(key)
 
     def process(self, ident, request_queue, response_queue):
         if request_queue.empty():
             return False
+        self.request_count += 1
         request = request_queue.get()
         response = None
         name = request[0]

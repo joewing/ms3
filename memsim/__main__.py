@@ -54,6 +54,12 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         if last_value != best_value or last_cost != best_cost:
             better = '*'
     data[key] = (name, best_value, best_cost, evaluation, status)
+    print('\x1b[2J\x1b[H')
+    thread_count = main_context.server.get_client_count()
+    request_count = main_context.server.request_count
+    print('Threads: {}    Database requests: {}'
+          .format(thread_count, request_count))
+    print()
     print('  {:<20}{:<12}{:<12}{:<12}{}'
           .format('name', 'value', 'cost', 'evaluation', 'status'))
     for ident in data:
@@ -172,6 +178,7 @@ def start_experiment(context):
 
 def signal_exit(key):
     """Signal that a process has exited; start the next."""
+    main_context.server.remove_client(key)
     for i in len(main_context.experiments):
         proc = start_experiment(main_context)
         if proc is not None:
@@ -207,6 +214,8 @@ def main():
             proc.start()
             thread_count += 1
         tries += 1
+        while main_context.server.run():
+            pass
 
     # Process database traffic and update status.
     while True:

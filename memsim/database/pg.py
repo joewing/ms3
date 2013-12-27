@@ -2,7 +2,6 @@
 from __future__ import print_function
 import json
 import sys
-import threading
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
                         UniqueConstraint)
@@ -82,7 +81,6 @@ class PGDatabase(base.Database):
         self.fpga_results = dict()
         self.models = dict()            # model_hash -> (id, state)
         self.memories = dict()          # memory_hash -> id
-        self.result_lock = threading.Lock()
 
     def connect(self):
         """Establish a database connection."""
@@ -103,8 +101,7 @@ class PGDatabase(base.Database):
     def save(self, mod, state):
         mod_id = self._get_model_id(mod)
         mod_hash = self.get_hash(mod)
-        with self.result_lock:
-            self.models[mod_hash] = mod_id, state
+        self.models[mod_hash] = mod_id, state
 
         stmt = models_table.update().where(
             models_table.c.id == mod_id
@@ -118,9 +115,8 @@ class PGDatabase(base.Database):
 
         # Check our local cache.
         mod_hash = self.get_hash(mod)
-        with self.result_lock:
-            if mod_hash in self.models:
-                return self.models[mod_hash]
+        if mod_hash in self.models:
+            return self.models[mod_hash]
 
         # Check the database.
         stmt = select([
@@ -133,8 +129,7 @@ class PGDatabase(base.Database):
         if row:
             ident = row['id']
             state = json.loads(row['data'])
-            with self.result_lock:
-                self.models[mod_hash] = ident, state
+            self.models[mod_hash] = ident, state
             return ident, state
 
         # Insert a new model.
@@ -159,9 +154,8 @@ class PGDatabase(base.Database):
     def _get_memory_id(self, mem):
 
         mem_hash = self.get_hash(mem)
-        with self.result_lock:
-            if mem_hash in self.memories:
-                return self.memories[mem_hash]
+        if mem_hash in self.memories:
+            return self.memories[mem_hash]
 
         stmt = select([memories_table.c.id]).where(
             memories_table.c.name_hash == mem_hash
@@ -169,8 +163,7 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             ident = row['id']
-            with self.result_lock:
-                self.memories[mem_hash] = ident
+            self.memories[mem_hash] = ident
             return ident
         try:
             stmt = memories_table.insert().values(
@@ -191,9 +184,8 @@ class PGDatabase(base.Database):
         mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
         result_hash = mod_hash + mem_hash
-        with self.result_lock:
-            if mem_hash in self.results:
-                return self.results[result_hash]
+        if mem_hash in self.results:
+            return self.results[result_hash]
 
         # Check the database.
         mod_id = self._get_model_id(mod)
@@ -207,8 +199,7 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             value = row['value']
-            with self.result_lock:
-                self.results[result_hash] = value
+            self.results[result_hash] = value
             return value
         else:
             return None
@@ -219,8 +210,7 @@ class PGDatabase(base.Database):
         mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
         result_hash = mod_hash + mem_hash
-        with self.result_lock:
-            self.results[result_hash] = value
+        self.results[result_hash] = value
 
         # Insert to the database.
         mod_id = self._get_model_id(mod)
@@ -289,9 +279,8 @@ class PGDatabase(base.Database):
     def get_fpga_result(self, name):
 
         name_hash = self.get_hash(name)
-        with self.result_lock:
-            if name_hash in self.fpga_results:
-                return self.fpga_results[name_hash]
+        if name_hash in self.fpga_results:
+            return self.fpga_results[name_hash]
 
         stmt = select([fpga_results_table.c.frequency,
                        fpga_results_table.c.bram_count]).where(
@@ -300,8 +289,7 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             temp = (row['frequency'], row['bram_count'])
-            with self.result_lock:
-                self.fpga_results[name_hash] = temp
+            self.fpga_results[name_hash] = temp
             return temp
         else:
             return None
@@ -309,8 +297,7 @@ class PGDatabase(base.Database):
     def add_fpga_result(self, name, frequency, bram_count):
 
         name_hash = self.get_hash(name)
-        with self.result_lock:
-            self.fpga_results[name_hash] = (frequency, bram_count)
+        self.fpga_results[name_hash] = (frequency, bram_count)
 
         stmt = fpga_results_table.insert().values(
             name_hash=name_hash,
@@ -330,9 +317,8 @@ class PGDatabase(base.Database):
     def get_cacti_result(self, name):
 
         name_hash = self.get_hash(name)
-        with self.result_lock:
-            if name_hash in self.cacti_results:
-                return self.cacti_results[name_hash]
+        if name_hash in self.cacti_results:
+            return self.cacti_results[name_hash]
 
         stmt = select([cacti_results_table.c.access_time,
                        cacti_results_table.c.cycle_time,
@@ -342,8 +328,7 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             temp = (row['access_time'], row['cycle_time'], row['area'])
-            with self.result_lock:
-                self.cacti_results[name_hash] = temp
+            self.cacti_results[name_hash] = temp
             return temp
         else:
             return None
@@ -351,8 +336,7 @@ class PGDatabase(base.Database):
     def add_cacti_result(self, name, access_time, cycle_time, area):
 
         name_hash = self.get_hash(name)
-        with self.result_lock:
-            self.cacti_results[name_hash] = (access_time, cycle_time, area)
+        self.cacti_results[name_hash] = (access_time, cycle_time, area)
 
         stmt = cacti_results_table.insert().values(
             name_hash=name_hash,
