@@ -112,6 +112,7 @@ class PGDatabase(base.Database):
             data=json.dumps(state)
         )
         self._execute(stmt)
+        return True
 
     def load_model(self, mod):
 
@@ -149,7 +150,7 @@ class PGDatabase(base.Database):
                 raise
         except IntegrityError:
             pass
-        return self._load_model(mod)
+        return self.load_model(mod)
 
     def _get_model_id(self, mod):
         ident, _ = self.load_model(mod)
@@ -237,6 +238,7 @@ class PGDatabase(base.Database):
                 raise
         except IntegrityError:
             pass
+        return True
 
     def get_status(self):
         stmt = select([
@@ -323,6 +325,7 @@ class PGDatabase(base.Database):
                 raise
         except IntegrityError:
             pass
+        return True
 
     def get_cacti_result(self, name):
 
@@ -365,6 +368,7 @@ class PGDatabase(base.Database):
                 raise
         except IntegrityError:
             pass
+        return True
 
     def get_states(self):
         stmt = select([models_table.c.id, models_table.c.name])
