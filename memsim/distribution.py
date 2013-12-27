@@ -20,15 +20,15 @@ class Distribution(random.Random):
         # Transform entries are pairs: (True, function).
         self.limits = []
 
-    def load(self, db, index):
+    def load(self, state, index):
         """Load the state of this distribution object."""
-        temp = db.get_value('distribution' + str(index))
+        temp = state.get('distribution' + str(index))
         if temp is not None:
-            self.ranges = db.get_value('distribution' + str(index))
+            self.ranges = state.get('distribution' + str(index))
 
-    def save(self, db, index):
+    def save(self, state, index):
         """Save the state of this distribution object."""
-        db.set_value('distribution' + str(index), self.ranges)
+        state['distribution' + str(index)] = self.ranges
 
     def reset(self):
         """Reset the random number generator using the original seed."""

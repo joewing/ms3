@@ -2,6 +2,7 @@
 from __future__ import print_function
 import json
 import sys
+import threading
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
                         UniqueConstraint)
@@ -77,9 +78,11 @@ class PGDatabase(base.Database):
         self.dbname = 'ms3'
         self.engine = None
         self.url = url
-        self.model_id = 0
         self.cacti_results = dict()
         self.fpga_results = dict()
+        self.models = dict()            # model_hash -> (id, state)
+        self.memories = dict()          # memory_hash -> id
+        self.result_lock = threading.Lock()
 
     def connect(self):
         """Establish a database connection."""
@@ -93,20 +96,51 @@ class PGDatabase(base.Database):
     def _execute(self, stmt):
         return self.engine.execute(stmt)
 
-    def load(self, m):
-        base.Database.load(self, m)
-        stmt = select([models_table.c.id, models_table.c.data]).where(
-            models_table.c.model_hash == self.model_hash
+    def load(self, mod):
+        _, state = self.load_model(mod)
+        return state
+
+    def save(self, mod, state):
+        mod_id = self._get_model_id(mod)
+        mod_hash = self.get_hash(mod)
+        with self.result_lock:
+            self.models[mod_hash] = mod_id, state
+
+        stmt = models_table.update().where(
+            models_table.c.id == mod_id
+        ).values(
+            data=json.dumps(state)
+        )
+        self._execute(stmt)
+
+    def load_model(self, mod):
+
+        # Check our local cache.
+        mod_hash = self.get_hash(mod)
+        with self.result_lock:
+            if mod_hash in self.models:
+                return self.models[mod_hash]
+
+        # Check the database.
+        stmt = select([
+            models_table.c.id,
+            models_table.c.data
+        ]).where(
+            models_table.c.model_hash == mod_hash
         )
         row = self._execute(stmt).first()
         if row:
-            self.model_id = row['id']
-            self.state = json.loads(row['data'])
-            return True
+            ident = row['id']
+            state = json.loads(row['data'])
+            with self.result_lock:
+                self.models[mod_hash] = ident, state
+            return ident, state
+
+        # Insert a new model.
         stmt = models_table.insert().values(
-            model_hash=self.model_hash,
-            name=str(m),
-            data=json.dumps(self.state),
+            model_hash=mod_hash,
+            name=str(mod),
+            data='{}',
         )
         try:
             self._execute(stmt)
@@ -115,25 +149,28 @@ class PGDatabase(base.Database):
                 raise
         except IntegrityError:
             pass
-        self.load(m)
-        return False
+        return self._load_model(mod)
 
-    def save(self):
-        stmt = models_table.update().where(
-            models_table.c.id == self.model_id
-        ).values(
-            data=json.dumps(self.state)
-        )
-        self._execute(stmt)
+    def _get_model_id(self, mod):
+        ident, _ = self.load_model(mod)
+        return ident
 
     def _get_memory_id(self, mem):
+
         mem_hash = self.get_hash(mem)
+        with self.result_lock:
+            if mem_hash in self.memories:
+                return self.memories[mem_hash]
+
         stmt = select([memories_table.c.id]).where(
             memories_table.c.name_hash == mem_hash
         )
         row = self._execute(stmt).first()
         if row:
-            return row['id']
+            ident = row['id']
+            with self.result_lock:
+                self.memories[mem_hash] = ident
+            return ident
         try:
             stmt = memories_table.insert().values(
                 name_hash=mem_hash,
@@ -147,31 +184,48 @@ class PGDatabase(base.Database):
             pass
         return self._get_memory_id(mem)
 
-    def get_result(self, mem):
+    def get_result(self, mod, mem):
+
+        # Check the local cache.
+        mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
-        if mem_hash in self.results:
-            return self.results[mem_hash]
+        result_hash = mod_hash + mem_hash
+        with self.result_lock:
+            if mem_hash in self.results:
+                return self.results[result_hash]
+
+        # Check the database.
+        mod_id = self._get_model_id(mod)
         memory_id = self._get_memory_id(mem)
         stmt = select([results_table.c.value]).where(
             and_(
-                results_table.c.model_id == self.model_id,
+                results_table.c.model_id == mod_id,
                 results_table.c.memory_id == memory_id,
             )
         )
         row = self._execute(stmt).first()
         if row:
             value = row['value']
-            self.results[mem_hash] = value
+            with self.result_lock:
+                self.results[result_hash] = value
             return value
         else:
             return None
 
-    def add_result(self, mem, value, cost):
+    def add_result(self, mod, mem, value, cost):
+
+        # Insert to our local cache.
+        mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
-        self.results[mem_hash] = value
+        result_hash = mod_hash + mem_hash
+        with self.result_lock:
+            self.results[result_hash] = value
+
+        # Insert to the database.
+        mod_id = self._get_model_id(mod)
         mem_id = self._get_memory_id(mem)
         stmt = results_table.insert().values(
-            model_id=self.model_id,
+            model_id=mod_id,
             memory_id=mem_id,
             value=value,
             cost=cost,
@@ -197,10 +251,11 @@ class PGDatabase(base.Database):
         for row in self._execute(stmt):
             yield row['name'], row['evals'], row['value']
 
-    def get_best(self):
+    def get_best(self, mod):
+        mod_id = self._get_model_id(mod)
         min_query = select([
             func.min(results_table.c.value)
-        ]).where(results_table.c.model_id == self.model_id)
+        ]).where(results_table.c.model_id == mod_id)
         stmt = select([
             memories_table.c.name,
             results_table.c.value,
@@ -208,7 +263,7 @@ class PGDatabase(base.Database):
         ]).where(
             and_(
                 memories_table.c.id == results_table.c.memory_id,
-                results_table.c.model_id == self.model_id,
+                results_table.c.model_id == mod_id,
                 results_table.c.value == min_query,
             )
         ).order_by(
@@ -221,17 +276,21 @@ class PGDatabase(base.Database):
         else:
             return None, 0, 0
 
-    def get_result_count(self):
+    def get_result_count(self, mod):
+        mod_id = self._get_model_id(mod)
         stmt = select([
             func.count(results_table.c.value)
-        ]).where(results_table.c.model_id == self.model_id)
+        ]).where(results_table.c.model_id == mod_id)
         row = self._execute(stmt).first()
         return row[0] if row else 0
 
     def get_fpga_result(self, name):
+
         name_hash = self.get_hash(name)
-        if name_hash in self.fpga_results:
-            return self.fpga_results[name_hash]
+        with self.result_lock:
+            if name_hash in self.fpga_results:
+                return self.fpga_results[name_hash]
+
         stmt = select([fpga_results_table.c.frequency,
                        fpga_results_table.c.bram_count]).where(
             fpga_results_table.c.name_hash == name_hash
@@ -239,14 +298,18 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             temp = (row['frequency'], row['bram_count'])
-            self.fpga_results[name_hash] = temp
+            with self.result_lock:
+                self.fpga_results[name_hash] = temp
             return temp
         else:
             return None
 
     def add_fpga_result(self, name, frequency, bram_count):
+
         name_hash = self.get_hash(name)
-        self.fpga_results[name_hash] = (frequency, bram_count)
+        with self.result_lock:
+            self.fpga_results[name_hash] = (frequency, bram_count)
+
         stmt = fpga_results_table.insert().values(
             name_hash=name_hash,
             name=str(name),
@@ -262,9 +325,12 @@ class PGDatabase(base.Database):
             pass
 
     def get_cacti_result(self, name):
+
         name_hash = self.get_hash(name)
-        if name_hash in self.cacti_results:
-            return self.cacti_results[name_hash]
+        with self.result_lock:
+            if name_hash in self.cacti_results:
+                return self.cacti_results[name_hash]
+
         stmt = select([cacti_results_table.c.access_time,
                        cacti_results_table.c.cycle_time,
                        cacti_results_table.c.area]).where(
@@ -273,14 +339,18 @@ class PGDatabase(base.Database):
         row = self._execute(stmt).first()
         if row:
             temp = (row['access_time'], row['cycle_time'], row['area'])
-            self.cacti_results[name_hash] = temp
+            with self.result_lock:
+                self.cacti_results[name_hash] = temp
             return temp
         else:
             return None
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
+
         name_hash = self.get_hash(name)
-        self.cacti_results[name_hash] = (access_time, cycle_time, area)
+        with self.result_lock:
+            self.cacti_results[name_hash] = (access_time, cycle_time, area)
+
         stmt = cacti_results_table.insert().values(
             name_hash=name_hash,
             name=str(name),

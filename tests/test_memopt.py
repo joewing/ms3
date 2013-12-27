@@ -5,19 +5,21 @@ from memsim.distribution import Distribution
 from memsim.memopt import MemoryOptimizer
 from memsim.machine import MachineType
 from memsim.memory import MemoryList
+from memsim.model import Model
 from tests.mocks import MockMemory
 
 
 class TestMemoryOptimizer(unittest.TestCase):
 
     def setUp(self):
-        self.machine = MachineType(word_size=8, addr_bits=32)
+        self.model = Model()
+        self.model.machine = MachineType(word_size=8, addr_bits=32)
         self.rand = Distribution(1)
         self.ml = MemoryList([])
-        self.optimizer = MemoryOptimizer(self.machine, self.ml, None, None)
+        self.optimizer = MemoryOptimizer(self.model, self.ml, None, None)
         self.optimizer.constructors = [self.mocks_constructor]
 
-    def mocks_constructor(self, machine, nxt, rand, cost):
+    def mocks_constructor(self, mod, nxt, rand, cost):
         return MockMemory(nxt)
 
     def test_insert1(self):

@@ -13,7 +13,7 @@ class TestMemsim(unittest.TestCase):
     def test_get_initial_memory1(self):
 
         class MockDB:
-            def get_best(self):
+            def get_best(self, mod):
                 return '(ram (latency 100))', 10, 20
 
         result = get_initial_memory(MockDB(), None, [], '.')
@@ -23,7 +23,7 @@ class TestMemsim(unittest.TestCase):
     def test_get_initial_memory2(self):
 
         class MockDB:
-            def get_best(self):
+            def get_best(self, mod):
                 return None, 0, 0
 
         class MockModel:

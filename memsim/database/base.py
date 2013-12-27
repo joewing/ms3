@@ -9,8 +9,6 @@ class Database:
         """Initialize."""
         self.state = dict()
         self.results = dict()
-        self.model = None
-        self.model_hash = None
 
     def connect(self):
         """Establish a database connection."""
@@ -20,8 +18,6 @@ class Database:
         """Load values from the database."""
         self.state = dict()
         self.results = dict()
-        self.model = str(m)
-        self.model_hash = self.get_hash(self.model)
         return True
 
     def save(self):

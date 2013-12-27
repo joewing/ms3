@@ -81,7 +81,7 @@ def get_initial_memory(db, m, dists, directory):
     """Get the initial subsystem and its total access time."""
 
     # First attempt to load the best subsystem from the database.
-    best_name, best_value, _ = db.get_best()
+    best_name, best_value, _ = db.get_best(m)
     if best_name:
         lexer = lex.Lexer(StringIO(best_name))
         ml = memory.parse_memory_list(lexer)
@@ -107,11 +107,7 @@ def get_initial_memory(db, m, dists, directory):
     return ml, best_value
 
 
-def run_experiment(url, mod, iterations, seed, directory, tdata):
-
-    # Connect to the database (each thread needs its own database object).
-    db = database.get_instance(url)
-    db.load(mod)
+def run_experiment(db, mod, iterations, seed, directory, tdata):
 
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
@@ -127,7 +123,7 @@ def run_experiment(url, mod, iterations, seed, directory, tdata):
     ml, t = get_initial_memory(db, mod, dists, directory)
 
     # Create the optimizer object and load state.
-    o = MemoryOptimizer(mod.machine, ml, seed, dists,
+    o = MemoryOptimizer(mod, ml, seed, dists,
                         use_prefetch=pl.has_delay())
     o.load(db)
 
@@ -135,8 +131,8 @@ def run_experiment(url, mod, iterations, seed, directory, tdata):
     while True:
 
         # Show the best and get its value.
-        result_count = db.get_result_count()
-        _, best_value, best_cost = db.get_best()
+        result_count = db.get_result_count(mod)
+        _, best_value, best_cost = db.get_best(mod)
         tdata.show_status(best_value, best_cost, result_count, str(o))
 
         # Exit if we've performed enough evaluations.
@@ -150,23 +146,21 @@ def run_experiment(url, mod, iterations, seed, directory, tdata):
     tdata.stop_thread()
 
 
-def start_experiment(url, directory, seed, iterations, experiment, tdata):
+def start_experiment(db, directory, seed, iterations, experiment, tdata):
 
     # Load the model and its current state.
     m = model.parse_model_file(experiment)
     if not m:
         print('ERROR: could not read model')
         sys.exit(-1)
-    db = database.get_instance(url)
-    db.load(m)
 
     # Only start the thread if there is work to do.
-    if db.get_result_count() >= iterations:
+    if db.get_result_count(m) >= iterations:
         return None
 
     # Start the thread.
     kwargs = {
-        'url': url,
+        'db': db,
         'iterations': iterations,
         'mod': m,
         'directory': directory,
@@ -187,7 +181,7 @@ def main():
     directory = options.directory if options.directory else os.getcwd()
     seed = int(options.seed) if options.seed else int(time.time())
     iterations = int(options.iterations)
-    url = options.url
+    db = database.get_instance(options.url)
 
     # Run the experiments.
     tdata = ThreadData()
@@ -196,7 +190,7 @@ def main():
     while True:
         started_thread = False
         for experiment in args:
-            thrd = start_experiment(url, directory, seed, iterations,
+            thrd = start_experiment(db, directory, seed, iterations,
                                     experiment, tdata)
             if thrd is not None:
                 thrd.start()

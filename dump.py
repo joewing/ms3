@@ -34,10 +34,8 @@ def show_state(db):
         key = db.get_hash(mname)
         if key in names:
             print(mname)
-            key = db.get_hash(mname)
-            db.load(mname)
-            best_name, best_value, best_cost = db.get_best()
-            print('  Hash:', key)
+            best_name, best_value, best_cost = db.get_best(mname)
+            print('  Hash:', db.get_hash(mname))
             print('  Iter:', evals)
             print('  Best:', best_name)
             print('  Time:', best_value)

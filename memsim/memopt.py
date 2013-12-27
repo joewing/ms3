@@ -29,52 +29,55 @@ class MemoryOptimizer(Optimizer):
         xor.random_xor
     ]
 
-    def __init__(self, machine, ml, seed,
+    def __init__(self, mod, ml, seed,
                  distributions,
                  use_prefetch=False):
         Optimizer.__init__(self, ml)
         self.rand = random.Random(seed)
-        self.machine = machine
+        self.model = mod
         self.distributions = distributions
-        ml.reset(machine)
+        ml.reset(mod.machine)
         if use_prefetch:
             self.constructors.append(prefetch.random_prefetch)
 
     def load(self, db):
         """Load state from the database."""
-        use_prefetch = db.get_value('use_prefetch', False)
+        state = db.load(self.model)
+        use_prefetch = state.get('use_prefetch', False)
         if use_prefetch and prefetch.random_prefetch not in self.constructors:
             self.constructors.append(prefetch.random_prefetch)
         for i in xrange(len(self.distributions)):
             dist = self.distributions[i]
-            dist.load(db, i)
+            dist.load(state, i)
 
     def save(self, db):
         """Save the current state to the database."""
+        state = dict()
         use_prefetch = prefetch.random_prefetch in self.constructors
-        db.set_value('use_prefetch', use_prefetch)
+        state['use_prefetch'] = use_prefetch
         for i in xrange(len(self.distributions)):
             dist = self.distributions[i]
-            dist.save(db, i)
-        db.save()
+            dist.save(state, i)
+        db.save(self.model, state)
 
     def store_result(self, db, current, value):
         """Store a result."""
         simplified = current.simplified()
-        db.add_result(str(simplified), value, simplified.get_cost())
+        db.add_result(self.model, str(simplified), value,
+                      simplified.get_cost())
 
     def load_result(self, db, current):
         """Load a result.
         Returns None if the state has not yet been evaluated.
         """
-        return db.get_result(str(current.simplified()))
+        return db.get_result(self.model, str(current.simplified()))
 
     def create_memory(self, dist, nxt, cost, in_bank):
         index = self.rand.randint(0, len(self.constructors) - 1)
         constructor = self.constructors[index]
-        result = constructor(self.machine, nxt, dist, cost)
+        result = constructor(self.model.machine, nxt, dist, cost)
         if result is not None:
-            result.reset(self.machine)
+            result.reset(self.model.machine)
             return result
         else:
             return nxt
@@ -169,8 +172,8 @@ class MemoryOptimizer(Optimizer):
         """Modify the memory subsystem."""
 
         # Loop until we successfully modify the memory subsystem.
-        max_path = self.machine.max_path_length
-        max_cost = self.machine.max_cost - last.get_cost()
+        max_path = self.model.machine.max_path_length
+        max_cost = self.model.machine.max_cost - last.get_cost()
         while True:
 
             # Select an action to perform.  We make multiple
@@ -215,8 +218,8 @@ class MemoryOptimizer(Optimizer):
                             return current
 
     def restart(self, db):
-        best_name, best_value, _ = db.get_best()
+        best_name, best_value, _ = db.get_best(self.model)
         lexer = lex.Lexer(StringIO(best_name))
         current = memory.parse_memory_list(lexer)
-        current.reset(self.machine)
+        current.reset(self.model.machine)
         return current, best_value
