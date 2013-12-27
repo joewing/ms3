@@ -57,11 +57,11 @@ def get_memory(db, mem, mod, baseline, replace):
 
     if replace:
         with open(replace, 'r') as f:
-            m.memory = memory.parse_memory(lex.Lexer(f))
+            mod.memory = memory.parse_memory(lex.Lexer(f))
         ptr = subsystem
         while not isinstance(ptr.get_next(), MainMemory):
             ptr = ptr.get_next()
-        ptr.set_next(m.memory)
+        ptr.set_next(mod.memory)
 
     return subsystem
 

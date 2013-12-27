@@ -1,37 +1,46 @@
 
-import multiprocessing
-import time
+from multiprocessing.queues import SimpleQueue
+
+from memsim.database.shared import SharedDatabase
+
 
 class DatabaseServer(object):
 
-    def __init__(self, db):
+    def __init__(self, db, update_status, signal_exit):
         self.queues = []
         self.db = db
+        self.update_status = update_status
+        self.signal_exit = signal_exit
 
-    def add_client(self):
-        request_queue = multiprocessing.Queue(2)
-        response_queue = multiprocessing.Queue(2)
+    def add_client(self, name):
+        request_queue = SimpleQueue()
+        response_queue = SimpleQueue()
         result = request_queue, response_queue
         self.queues.append(result)
-        return result
+        return SharedDatabase(name, request_queue, response_queue)
 
-    def process(self, request_queue, response_queue):
+    def process(self, ident, request_queue, response_queue):
         if request_queue.empty():
             return False
-        if response_queue.full():
-            return False
         request = request_queue.get()
-        func = getattr(self, request[0])
+        response = None
+        name = request[0]
         args = request[1]
-        response = func(self.db, *args)
+        if name == 'update_status':
+            self.update_status(ident, *args)
+        elif name == 'signal_exit':
+            self.signal_exit(ident, *args)
+        else:
+            func = getattr(self.db, request[0])
+            args = request[1]
+            response = func(*args)
         response_queue.put(response)
         return True
 
     def run(self):
-        while True:
-            got_data = False
-            for queue in self.queues:
-                if self.process(queue[0], queue[1]):
-                    got_data = True
-            if not got_data:
-                time.sleep(1)
+        got_data = False
+        for i in xrange(len(self.queues)):
+            request_queue, response_queue = self.queues[i]
+            if self.process(i, request_queue, response_queue):
+                got_data = True
+        return got_data

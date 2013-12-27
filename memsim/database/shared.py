@@ -1,22 +1,28 @@
 
 from __future__ import print_function
 import json
-import multiprocessing
 
 from memsim.database import base
 
 
 class SharedDatabase(base.Database):
 
-    def __init__(self, request_queue, response_queue):
+    def __init__(self, name, request_queue, response_queue):
+        self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue
 
     def _execute(self, func, *args):
         request = (func, args)
         self.request_queue.put(request)
-        result = self.response_queue.get()
-        return json.loads(result)
+        return self.response_queue.get()
+
+    def update_status(self, best_value, best_cost, evaluation, status):
+        return self._execute('update_status', self.name,
+                             best_value, best_cost, evaluation, status)
+
+    def signal_exit(self):
+        return self._execute('signal_exit', self.name)
 
     def load(self, mod):
         return self._execute('load', str(mod))
