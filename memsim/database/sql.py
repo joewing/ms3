@@ -69,14 +69,15 @@ results_table = Table(
 )
 
 
-class PGDatabase(base.Database):
-    """PostgreSQL database connector."""
+class SQLDatabase(base.BaseDatabase):
+    """SQL database connector."""
 
-    def __init__(self, url):
-        base.Database.__init__(self)
-        self.dbname = 'ms3'
+    def __init__(self, url, dbname='ms3'):
+        base.BaseDatabase.__init__(self)
+        self.dbname = dbname
         self.engine = None
         self.url = url
+        self.results = dict()
         self.cacti_results = dict()
         self.fpga_results = dict()
         self.models = dict()            # model_hash -> (id, state)
@@ -84,21 +85,38 @@ class PGDatabase(base.Database):
 
     def connect(self):
         """Establish a database connection."""
-        connection_str = '/'.join([self.url, self.dbname])
-        self.engine = create_engine(connection_str)
+        cstr = '/'.join([self.url, self.dbname]) if self.dbname else self.url
+        self.engine = create_engine(cstr)
         if not self.engine:
             return False
-#        metadata.create_all(bind=self.engine)
+        try:
+            metadata.create_all(bind=self.engine)
+        except:
+            # This doesn't work with the pg8000 connector.
+            pass
         return True
 
     def _execute(self, stmt):
+        """Execute a query."""
         return self.engine.execute(stmt)
 
+    def _try_insert(self, stmt):
+        """Attempt to insert ignoring errors from duplicate values."""
+        try:
+            self._execute(stmt)
+        except ProgrammingError as e:
+            if e.orig[1] != '23505':
+                raise
+        except IntegrityError:
+            pass
+
     def load(self, mod):
-        _, state = self.load_model(mod)
+        """Load state data from the database for the specified model."""
+        _, state = self._load_model(mod)
         return state
 
     def save(self, mod, state):
+        """Save state data to the database."""
         mod_id = self._get_model_id(mod)
         mod_hash = self.get_hash(mod)
         self.models[mod_hash] = mod_id, state
@@ -111,7 +129,7 @@ class PGDatabase(base.Database):
         self._execute(stmt)
         return True
 
-    def load_model(self, mod):
+    def _load_model(self, mod):
 
         # Check our local cache.
         mod_hash = self.get_hash(mod)
@@ -138,25 +156,21 @@ class PGDatabase(base.Database):
             name=str(mod),
             data='{}',
         )
-        try:
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
-        return self.load_model(mod)
+        self._try_insert(stmt)
+        return self._load_model(mod)
 
     def _get_model_id(self, mod):
-        ident, _ = self.load_model(mod)
+        ident, _ = self._load_model(mod)
         return ident
 
     def _get_memory_id(self, mem):
 
+        # Check the local cache.
         mem_hash = self.get_hash(mem)
         if mem_hash in self.memories:
             return self.memories[mem_hash]
 
+        # Check the database.
         stmt = select([memories_table.c.id]).where(
             memories_table.c.name_hash == mem_hash
         )
@@ -165,20 +179,17 @@ class PGDatabase(base.Database):
             ident = row['id']
             self.memories[mem_hash] = ident
             return ident
-        try:
-            stmt = memories_table.insert().values(
-                name_hash=mem_hash,
-                name=str(mem),
-            )
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
+
+        # Attempt to insert a new memory.
+        stmt = memories_table.insert().values(
+            name_hash=mem_hash,
+            name=str(mem),
+        )
+        self._try_insert(stmt)
         return self._get_memory_id(mem)
 
     def get_result(self, mod, mem):
+        """Look up the result for the specified model."""
 
         # Check the local cache.
         mod_hash = self.get_hash(mod)
@@ -205,6 +216,7 @@ class PGDatabase(base.Database):
             return None
 
     def add_result(self, mod, mem, value, cost):
+        """Add a result for the specified model."""
 
         # Insert to our local cache.
         mod_hash = self.get_hash(mod)
@@ -221,29 +233,14 @@ class PGDatabase(base.Database):
             value=value,
             cost=cost,
         )
-        try:
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
+        self._try_insert(stmt)
         return True
 
-    def get_status(self):
-        stmt = select([
-            models_table.c.name.label('name'),
-            func.min(results_table.c.value).label('value'),
-            func.count(results_table.c.value).label('evals'),
-        ]).where(
-            results_table.c.model_id == models_table.c.id
-        ).group_by(
-            models_table.c.name
-        )
-        for row in self._execute(stmt):
-            yield row['name'], row['evals'], row['value']
-
     def get_best(self, mod):
+        """Get the best result for the specified model.
+
+        Returns (name, value, cost).
+        """
         mod_id = self._get_model_id(mod)
         min_query = select([
             func.min(results_table.c.value)
@@ -269,6 +266,7 @@ class PGDatabase(base.Database):
             return None, 0, 0
 
     def get_result_count(self, mod):
+        """Get the total number of results for the specified model."""
         mod_id = self._get_model_id(mod)
         stmt = select([
             func.count(results_table.c.value)
@@ -277,11 +275,14 @@ class PGDatabase(base.Database):
         return row[0] if row else 0
 
     def get_fpga_result(self, name):
+        """Get an FPGA timing result."""
 
+        # Check the local cache.
         name_hash = self.get_hash(name)
         if name_hash in self.fpga_results:
             return self.fpga_results[name_hash]
 
+        # Check the database.
         stmt = select([fpga_results_table.c.frequency,
                        fpga_results_table.c.bram_count]).where(
             fpga_results_table.c.name_hash == name_hash
@@ -295,31 +296,31 @@ class PGDatabase(base.Database):
             return None
 
     def add_fpga_result(self, name, frequency, bram_count):
+        """Add an FPGA timing result."""
 
+        # Insert into the local cache.
         name_hash = self.get_hash(name)
         self.fpga_results[name_hash] = (frequency, bram_count)
 
+        # Insert into the database.
         stmt = fpga_results_table.insert().values(
             name_hash=name_hash,
             name=str(name),
             frequency=frequency,
             bram_count=bram_count,
         )
-        try:
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
+        self._try_insert(stmt)
         return True
 
     def get_cacti_result(self, name):
+        """Get a CACTI result."""
 
+        # Check the local cache.
         name_hash = self.get_hash(name)
         if name_hash in self.cacti_results:
             return self.cacti_results[name_hash]
 
+        # Check the database.
         stmt = select([cacti_results_table.c.access_time,
                        cacti_results_table.c.cycle_time,
                        cacti_results_table.c.area]).where(
@@ -334,10 +335,13 @@ class PGDatabase(base.Database):
             return None
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
+        """Add a CACTI result."""
 
+        # Insert into the local cache.
         name_hash = self.get_hash(name)
         self.cacti_results[name_hash] = (access_time, cycle_time, area)
 
+        # Insert into the database.
         stmt = cacti_results_table.insert().values(
             name_hash=name_hash,
             name=str(name),
@@ -345,16 +349,28 @@ class PGDatabase(base.Database):
             access_time=access_time,
             cycle_time=cycle_time,
         )
-        try:
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
+        self._try_insert(stmt)
         return True
 
+    def get_status(self):
+        """Get the status of all models.
+
+        Returns (name, evaluations, value).
+        """
+        stmt = select([
+            models_table.c.name.label('name'),
+            func.min(results_table.c.value).label('value'),
+            func.count(results_table.c.value).label('evals'),
+        ]).where(
+            results_table.c.model_id == models_table.c.id
+        ).group_by(
+            models_table.c.name
+        )
+        for row in self._execute(stmt):
+            yield row['name'], row['evals'], row['value']
+
     def get_states(self):
+        """Get all model IDs and names from the database."""
         stmt = select([models_table.c.id, models_table.c.name])
         for row in self._execute(stmt):
             yield row['id'], row['name']

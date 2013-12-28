@@ -1,17 +1,18 @@
 
+from __future__ import print_function
 import os
 import sys
 
-from memsim.database import simple, pg
+from memsim.database import sql
 
 db_instance = None
 
 
-def connect_pg(url):
+def connect_sql(url, dbname):
     global db_instance
-    db = pg.PGDatabase(url)
+    db = sql.SQLDatabase(url, dbname)
     if db.connect():
-        sys.stderr.write('Connected to PostgreSQL\n')
+        print('Connected to', url, file=sys.stderr)
         db_instance = db
         return db
     print('ERROR: could not connect to PostgreSQL\n')
@@ -27,15 +28,14 @@ def get_instance(url=None):
 
     # Handle an explicit URL.
     if url:
-        return connect_pg(url)
+        return connect_sql(url, 'ms3')
 
-    # Check for Postgres.
+    # Check for PostgreSQL URL.
     if 'PSQL_URL' in os.environ:
-        return connect_pg(os.environ['PSQL_URL'])
+        return connect_sql(os.environ['PSQL_URL'])
 
     # Fall back to the local database.
-    sys.stderr.write('Using local database\n')
-    db_instance = simple.SimpleDatabase()
+    db_instance = connect_sql('sqlite://', None)
     return db_instance
 
 

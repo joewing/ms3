@@ -5,9 +5,10 @@ import json
 from memsim.database import base
 
 
-class SharedDatabase(base.Database):
+class SharedDatabase(base.BaseDatabase):
 
     def __init__(self, name, request_queue, response_queue):
+        base.BaseDatabase.__init__(self)
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue

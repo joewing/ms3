@@ -75,7 +75,7 @@ def simulate(experiment, mem, baseline, replace, directory):
     time = db.get_result(mod, ml)
     if time is None:
         time, cost = evaluate(mod, ml, directory)
-        db.add_result(m, ml, time, cost)
+        db.add_result(mod, ml, time, cost)
     print(get_experiment_name(experiment) + ',' + str(time))
 
 
@@ -92,7 +92,6 @@ def generate_matrix(experiments, mem, baseline, replace, directory):
         model_ml = get_best(db, mod)
         for experiment in experiments:
             mod = model.parse_model_file(experiment)
-            name = str(model_ml)
             time = db.get_result(mod, model_ml)
             if not time:
                 time, cost = evaluate(mod, model_ml, directory)

@@ -1,83 +1,66 @@
 
+from abc import ABCMeta, abstractmethod
 import hashlib
 
 
-class Database:
-    """Database used for saving state."""
+class BaseDatabase(object):
+    """Database functionality used for saving state."""
+    __metaclass__ = ABCMeta
 
     def __init__(self):
         """Initialize."""
-        self.state = dict()
-        self.results = dict()
-
-    def connect(self):
-        """Establish a database connection."""
-        return True
-
-    def load(self, m):
-        """Load values from the database."""
-        self.state = dict()
-        self.results = dict()
-        return True
-
-    def save(self):
-        """Save values to the database."""
         pass
 
-    def has_data(self):
-        """Determine if there is state data for the current model."""
-        return len(self.state) > 0
+    @abstractmethod
+    def load(self, mod):
+        """Load state."""
+        return None
 
-    def get_result(self, mem):
+    @abstractmethod
+    def save(self, mod, state):
+        """Save state."""
+        pass
+
+    @abstractmethod
+    def get_result(self, mod, mem):
         """Load a cached result."""
-        mem_hash = self.get_hash(mem)
-        return self.results.get(mem_hash)
+        return None
 
-    def add_result(self, mem, value, cost):
+    @abstractmethod
+    def add_result(self, mod, mem, value, cost):
         """Insert a result to the database."""
-        mem_hash = self.get_hash(mem)
-        self.results[mem_hash] = value
+        return True
 
-    def get_status(self):
-        """Get status for all models."""
-        return None, None, None
-
-    def get_best(self):
-        """Get the best for the current model."""
+    @abstractmethod
+    def get_best(self, mod):
+        """Get the best for the specified model."""
         return None, 0, 0
 
-    def get_result_count(self):
-        """Get the number of results for this model."""
+    @abstractmethod
+    def get_result_count(self, mod):
+        """Get the number of results for specified model."""
         return 0
 
-    def get_fpga_result(self, key):
+    @abstractmethod
+    def get_fpga_result(self, name):
         """Load FPGA timing data."""
         return None
 
+    @abstractmethod
     def add_fpga_result(self, key, frequency, bram_count):
         """Save FPGA timing data."""
-        pass
+        return True
 
+    @abstractmethod
     def get_cacti_result(self, key):
         """Load CACTI timing data."""
-        pass
+        return None
 
+    @abstractmethod
     def add_cacti_result(self, key, access_time, cycle_time, area):
         """Save CACTI timing data."""
-        pass
-
-    def set_value(self, key, value):
-        """Set a value for the current state."""
-        self.state[key] = value
-
-    def get_value(self, key, default=None):
-        """Get a value from the current state."""
-        return self.state.get(key, default)
+        return True
 
     def get_hash(self, value):
         """Get the hash for a value."""
         return hashlib.sha1(str(value)).hexdigest()
-
-    def get_states(self):
-        """Generator to return all persisted states."""
-        raise StopIteration
