@@ -2,7 +2,7 @@
 from __future__ import print_function
 import sys
 
-from memsim import memory, priorityqueue
+from memsim import priorityqueue
 
 
 class AccessType(object):
@@ -152,13 +152,10 @@ class ProcessList(object):
         return self.machine.time
 
 
-def evaluate(m, directory):
-    """Evaluate the specified model."""
+def evaluate(mod, ml, directory):
+    """Evaluate the specified memory."""
     processes = []
-    memories = []
-    for i in xrange(len(m.benchmarks)):
-        processes.append(Process(m.benchmarks[i]))
-        memories.append(m.memory)
-    pl = ProcessList(m.machine, processes, directory)
-    ml = memory.MemoryList(memories)
+    for i in xrange(len(mod.benchmarks)):
+        processes.append(Process(mod.benchmarks[i]))
+    pl = ProcessList(mod.machine, processes, directory)
     return pl.run(ml, 0), ml.get_cost()

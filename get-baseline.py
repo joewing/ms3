@@ -86,10 +86,8 @@ def run_simulation(mem, experiment):
     pl = process.ProcessList(mach, procs, directory)
     pl.first = False
     db = database.get_instance()
-    db.load(m)
     mem.set_next(m.memory)
-    m.memory = mem
-    result = db.get_result(mem)
+    result = db.get_result(m, mem)
     if not result:
         ml = memory.MemoryList([mem])
         result = pl.run(ml, 0)
