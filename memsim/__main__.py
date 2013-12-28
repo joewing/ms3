@@ -190,10 +190,11 @@ def start_experiment(context):
 def signal_exit(key):
     """Signal that a process has exited; start the next."""
     main_context.server.remove_client(key)
-    for i in len(main_context.experiments):
+    for i in xrange(len(main_context.experiments)):
         proc = start_experiment(main_context)
         if proc is not None:
             proc.start()
+            break
 
 
 def main():
