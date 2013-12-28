@@ -30,10 +30,10 @@ parser.add_option('-r', '--replace', dest='replace', default=None,
 def get_best(db, mod):
     best_name, _, _ = db.get_best(mod)
     best_file = StringIO.StringIO(best_name)
-    return memory.parse_memory(lex.Lexer(best_file))
+    return memory.parse_memory_list(lex.Lexer(best_file))
 
 
-def get_memory(db, mem, mod, baseline, replace):
+def get_memory_list(db, mem, mod, baseline, replace):
     """Get the specified memory.
     mem is the name of the memory to get.
     mod is the model.
@@ -43,14 +43,15 @@ def get_memory(db, mem, mod, baseline, replace):
     """
     if mem == 'model':
         # Use the subsystem from the model.
-        subsystem = mod.memory
+        ml = [mod.memory for _ in mod.benchmarks]
     elif mem == 'baseline':
         # Use the baseline subsystem.
         with open(baseline, 'r') as f:
-            subsystem = memory.parse_memory(lex.Lexer(f))
+            main_mem = memory.parse_memory(lex.Lexer(f))
+        ml = [main_mem for _ in mod.benchmarks]
     elif mem == 'best':
         # Use the best subsystem.
-        subsystem = get_best(db, mod)
+        ml = get_best(db, mod)
     else:
         print('ERROR: invalid memory selected:', mem)
         sys.exit(-1)
@@ -58,30 +59,24 @@ def get_memory(db, mem, mod, baseline, replace):
     if replace:
         with open(replace, 'r') as f:
             mod.memory = memory.parse_memory(lex.Lexer(f))
-        ptr = subsystem
-        while not isinstance(ptr.get_next(), MainMemory):
-            ptr = ptr.get_next()
-        ptr.set_next(mod.memory)
+        for m in ml.memories:
+            ptr = m
+            while not isinstance(ptr.get_next(), MainMemory):
+                ptr = ptr.get_next()
+            ptr.set_next(mod.memory)
 
-    return subsystem
+    return ml
 
 
 def simulate(experiment, mem, baseline, replace, directory):
-    m = model.parse_model_file(experiment)
+    mod = model.parse_model_file(experiment)
     db = database.get_instance()
-    subsystem = get_memory(db, mem, m, baseline, replace)
-    fixup_model(m)
-    time = db.get_result(m, subsystem)
+    ml = get_memory_list(db, mem, mod, baseline, replace)
+    time = db.get_result(mod, ml)
     if time is None:
-        m.memory = subsystem
-        time, cost = evaluate(m, subsystem, directory)
-        db.add_result(m, subsystem, time, cost)
+        time, cost = evaluate(mod, ml, directory)
+        db.add_result(m, ml, time, cost)
     print(get_experiment_name(experiment) + ',' + str(time))
-
-
-def fixup_model(m):
-    m.skip = 0
-    m.on = 1000000
 
 
 def generate_array(experiments, mem, baseline, replace, directory):
@@ -93,19 +88,15 @@ def generate_matrix(experiments, mem, baseline, replace, directory):
     assert(mem == 'best')
     db = database.get_instance()
     for mem_model in experiments:
-        m = model.parse_model_file(mem_model)
-        best_name, _, _ = db.get_best(m)
-        best_file = StringIO.StringIO(best_name)
-        model_memory = memory.parse_memory(lex.Lexer(best_file))
+        mod = model.parse_model_file(mem_model)
+        model_ml = get_best(db, mod)
         for experiment in experiments:
-            m = model.parse_model_file(experiment)
-            subsystem = model_memory
-            fixup_model(m)
-            name = str(subsystem)
-            time = db.get_result(m, name)
+            mod = model.parse_model_file(experiment)
+            name = str(model_ml)
+            time = db.get_result(mod, model_ml)
             if not time:
-                time, cost = evaluate(m, subsystem, directory)
-                db.add_result(m, name, time, cost)
+                time, cost = evaluate(mod, model_ml, directory)
+                db.add_result(mod, model_ml, time, cost)
             print(get_experiment_name(experiment) + ',' +
                   get_experiment_name(mem_model) + ',' + str(time))
 
