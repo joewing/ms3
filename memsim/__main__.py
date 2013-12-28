@@ -6,6 +6,7 @@ import optparse
 import os
 import sys
 import time
+import traceback
 
 from memsim import (
     database,
@@ -99,9 +100,7 @@ def get_initial_memory(db, m, dists, directory):
     return ml, best_value
 
 
-def run_experiment(db, mod, iterations, seed, directory):
-
-    database.set_instance(db)
+def optimize(db, mod, iterations, seed, directory):
 
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
@@ -116,12 +115,10 @@ def run_experiment(db, mod, iterations, seed, directory):
     # This will gather statistics if necessary.
     ml, t = get_initial_memory(db, mod, dists, directory)
 
-    # Create the optimizer object and load state.
+    # Perform the optimization.
     o = MemoryOptimizer(mod, ml, seed, dists,
                         use_prefetch=pl.has_delay())
     o.load(db)
-
-    # Perform the optimization.
     while True:
 
         # Show the best and get its value.
@@ -136,6 +133,20 @@ def run_experiment(db, mod, iterations, seed, directory):
         # Evaluate this memory subsystem.
         ml = o.optimize(db, t).simplified()
         t = pl.run(ml, 10 * best_value)
+
+
+def run_experiment(db, mod, iterations, seed, directory):
+
+    # Wrap the execution in a try block so we can start a new thread
+    # if something bad happens (most likely missing cacti or xst).
+    try:
+        database.set_instance(db)
+        optimize(db, mod, iterations, seed, directory)
+    except:
+        traceback.print_exc()
+
+    # Signal that this thread is exiting.
+    db.signal_exit()
 
 
 def start_experiment(context):
