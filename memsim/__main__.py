@@ -220,7 +220,7 @@ def main():
     # Process database traffic and update status.
     while True:
         if not main_context.server.run():
-            time.sleep(1)
+            time.sleep(0.25)
 
 
 if __name__ == '__main__':
