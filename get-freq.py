@@ -24,14 +24,13 @@ parser.add_option('-b', '--baseline', dest='baseline', default=None,
 def get_frequency(experiment, mem, baseline, keep):
     m = model.parse_model_file(experiment)
     db = database.get_instance()
-    db.load(m)
     if mem == 'model':
         pass
     elif mem == 'baseline':
         with open(baseline, 'r') as f:
             m.memory = memory.parse_memory(lex.Lexer(f))
     elif mem == 'best':
-        best_name, _, _ = db.get_best()
+        best_name, _, _ = db.get_best(m)
         best_file = StringIO.StringIO(best_name)
         m.memory = memory.parse_memory(lex.Lexer(best_file))
     else:
