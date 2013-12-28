@@ -23,7 +23,7 @@ class SharedDatabase(base.BaseDatabase):
                              best_value, best_cost, evaluation, status)
 
     def signal_exit(self):
-        return self._execute('signal_exit', self.name)
+        return self._execute('signal_exit')
 
     def load(self, mod):
         return self._execute('load', str(mod))
