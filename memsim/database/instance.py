@@ -32,7 +32,7 @@ def get_instance(url=None):
 
     # Check for PostgreSQL URL.
     if 'PSQL_URL' in os.environ:
-        return connect_sql(os.environ['PSQL_URL'])
+        return connect_sql(os.environ['PSQL_URL'], 'ms3')
 
     # Fall back to the local database.
     db_instance = connect_sql('sqlite://', None)
