@@ -212,7 +212,7 @@ def signal_exit(key):
 @atexit.register
 def handle_term():
     global main_context
-    print('Terminating')
+    print('Exiting')
     for proc in main_context.procs.itervalues():
         proc.terminate()
 
@@ -253,7 +253,6 @@ def main():
         if not main_context.server.run():
             time.sleep(0.25)
 
-    print('Exiting')
     sys.exit(0)
 
 
