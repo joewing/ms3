@@ -19,16 +19,18 @@ class DatabaseServer(object):
 
     def add_client(self, name):
         if self.free:
-            request_queue, response_queue = self.free.pop()
+            key = self.free.pop()
+            request_queue, response_queue = self.queues[key]
         else:
             request_queue = SimpleQueue()
             response_queue = SimpleQueue()
             temp = request_queue, response_queue
+            key = len(self.queues)
             self.queues.append(temp)
-        return SharedDatabase(name, request_queue, response_queue)
+        return SharedDatabase(key, name, request_queue, response_queue)
 
     def remove_client(self, key):
-        self.free.append(self.queues[key])
+        self.free.append(key)
 
     def process(self, ident, request_queue, response_queue):
         if request_queue.empty():

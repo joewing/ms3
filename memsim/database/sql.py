@@ -82,6 +82,7 @@ class SQLDatabase(base.BaseDatabase):
         self.fpga_results = dict()
         self.models = dict()            # model_hash -> (id, state)
         self.memories = dict()          # memory_hash -> id
+        self.send_count = 0
 
     def connect(self):
         """Establish a database connection."""
@@ -98,6 +99,7 @@ class SQLDatabase(base.BaseDatabase):
 
     def _execute(self, stmt):
         """Execute a query."""
+        self.send_count += 1
         return self.engine.execute(stmt)
 
     def _try_insert(self, stmt):

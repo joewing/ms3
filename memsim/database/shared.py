@@ -7,8 +7,9 @@ from memsim.database import base
 
 class SharedDatabase(base.BaseDatabase):
 
-    def __init__(self, name, request_queue, response_queue):
+    def __init__(self, ident, name, request_queue, response_queue):
         base.BaseDatabase.__init__(self)
+        self.ident = ident
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue

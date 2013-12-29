@@ -1,6 +1,7 @@
 
 from __future__ import print_function
 from StringIO import StringIO
+import atexit
 import multiprocessing
 import optparse
 import os
@@ -42,6 +43,7 @@ class MainContext(object):
     iterations = 0
     server = None
     data = dict()
+    procs = dict()
 
 
 main_context = MainContext()
@@ -52,9 +54,10 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
     data[key] = (name, best_value, best_cost, evaluation, status)
     thread_count = main_context.server.get_client_count()
     request_count = main_context.server.request_count
+    send_count = main_context.server.db.send_count
     print()
-    print('Threads: {}    Database requests: {}'
-          .format(thread_count, request_count))
+    print('Threads: {}    Database requests: {} / {}'
+          .format(thread_count, request_count, send_count))
     print('  {:<20}{:<12}{:<12}{:<12}{}'
           .format('name', 'value', 'cost', 'evaluation', 'status'))
     for ident in data:
@@ -160,8 +163,8 @@ def start_experiment(context):
     # Load the model and its current state.
     m = model.parse_model_file(experiment)
     if not m:
-        print('ERROR: could not read model')
-        sys.exit(-1)
+        print('ERROR: could not read model:', experiment)
+        return False
 
     # Only start the thread if there is work to do.
     if server.db.get_result_count(m) >= iterations:
@@ -183,20 +186,34 @@ def start_experiment(context):
     }
     proc = multiprocessing.Process(target=run_experiment, kwargs=kwargs)
     proc.start()
+    main_context.procs[db.ident] = proc
     return True
 
 
 def signal_exit(key):
     """Signal that a process has exited; start the next."""
 
+    # Log a message.
     data = main_context.data[key]
     print('Finished {}'.format(data[0]))
     main_context.data[key] = ['-' for _ in data]
 
+    # Join the old thread.
+    main_context.procs[key].join()
     main_context.server.remove_client(key)
+
+    # Start the next thread.
     for _ in xrange(len(main_context.experiments)):
         if start_experiment(main_context):
             break
+
+
+@atexit.register
+def handle_term():
+    global main_context
+    print('Terminating')
+    for proc in main_context.procs.itervalues():
+        proc.terminate()
 
 
 def main():
@@ -231,9 +248,12 @@ def main():
             pass
 
     # Process database traffic and update status.
-    while True:
+    while main_context.thread_count > 0:
         if not main_context.server.run():
             time.sleep(0.25)
+
+    print('Exiting')
+    sys.exit(0)
 
 
 if __name__ == '__main__':
