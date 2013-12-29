@@ -48,26 +48,21 @@ main_context = MainContext()
 
 
 def show_status(key, name, best_value, best_cost, evaluation, status):
-    better = ' '
     data = main_context.data
-    if key in data:
-        name, last_value, last_cost, _, _ = data[key]
-        if last_value != best_value or last_cost != best_cost:
-            better = '*'
     data[key] = (name, best_value, best_cost, evaluation, status)
-    print('\x1b[2J\x1b[H')
     thread_count = main_context.server.get_client_count()
     request_count = main_context.server.request_count
+    print()
     print('Threads: {}    Database requests: {}'
           .format(thread_count, request_count))
-    print()
     print('  {:<20}{:<12}{:<12}{:<12}{}'
           .format('name', 'value', 'cost', 'evaluation', 'status'))
     for ident in data:
-        marker = (better + '>') if key == ident else '  '
+        marker = '> ' if key == ident else '  '
         name, value, cost, ev, stat = data[ident]
         print('{:<2}{:<20}{:<12}{:<12}{:<12}{}'
               .format(marker, name, value, cost, ev, stat))
+    print()
 
 
 def get_initial_memory(db, m, dists, directory):
@@ -170,11 +165,13 @@ def start_experiment(context):
 
     # Only start the thread if there is work to do.
     if server.db.get_result_count(m) >= iterations:
-        return None
+        return False
 
     # Create a shared database instance.
     name = os.path.basename(experiment)
     db = server.add_client(name)
+
+    print('Starting {}'.format(name))
 
     # Start the thread.
     kwargs = {
@@ -184,16 +181,21 @@ def start_experiment(context):
         'directory': directory,
         'seed': seed,
     }
-    return multiprocessing.Process(target=run_experiment, kwargs=kwargs)
+    proc = multiprocessing.Process(target=run_experiment, kwargs=kwargs)
+    proc.start()
+    return True
 
 
 def signal_exit(key):
     """Signal that a process has exited; start the next."""
+
+    data = main_context.data[key]
+    print('Finished {}'.format(data[0]))
+    main_context.data[key] = ['-' for _ in data]
+
     main_context.server.remove_client(key)
-    for i in xrange(len(main_context.experiments)):
-        proc = start_experiment(main_context)
-        if proc is not None:
-            proc.start()
+    for _ in xrange(len(main_context.experiments)):
+        if start_experiment(main_context):
             break
 
 
@@ -217,15 +219,14 @@ def main():
 
     # Run the experiments.
     max_threads = int(options.threads)
+    max_tries = len(main_context.experiments)
     thread_count = 0
-    max_tries = int(options.threads) * int(len(main_context.experiments))
     tries = 0
     while thread_count < max_threads and tries < max_tries:
-        proc = start_experiment(main_context)
-        if proc is not None:
-            proc.start()
-            thread_count += 1
         tries += 1
+        if start_experiment(main_context):
+            thread_count += 1
+            tries = 0
         while main_context.server.run():
             pass
 
