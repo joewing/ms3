@@ -196,11 +196,12 @@ def signal_exit(key):
     # Log a message.
     data = main_context.data[key]
     print('Finished {}'.format(data[0]))
-    main_context.data[key] = ['-' for _ in data]
+    del main_context.data[key]
 
     # Join the old thread.
     main_context.procs[key].join()
     main_context.server.remove_client(key)
+    del main_context.procs[key]
 
     # Start the next thread.
     for _ in xrange(len(main_context.experiments)):
@@ -248,7 +249,7 @@ def main():
             pass
 
     # Process database traffic and update status.
-    while main_context.thread_count > 0:
+    while len(main_context.procs) > 0:
         if not main_context.server.run():
             time.sleep(0.25)
 
