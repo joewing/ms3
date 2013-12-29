@@ -199,7 +199,7 @@ def signal_exit(key):
     del main_context.data[key]
 
     # Join the old thread.
-    main_context.procs[key].join()
+    main_context.procs[key].terminate()
     main_context.server.remove_client(key)
     del main_context.procs[key]
 
@@ -250,8 +250,10 @@ def main():
 
     # Process database traffic and update status.
     while len(main_context.procs) > 0:
-        if not main_context.server.run():
-            time.sleep(0.25)
+        while main_context.server.run():
+            pass
+        time.sleep(0.25)
+    print('Done')
 
     sys.exit(0)
 
