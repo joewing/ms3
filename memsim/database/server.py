@@ -6,24 +6,21 @@ from memsim.database.shared import SharedDatabase
 
 class DatabaseServer(object):
 
-    def __init__(self, db, update_status, signal_exit):
+    def __init__(self, manager, db, update_status):
         self.queues = []
+        self.manager = manager
         self.db = db
         self.update_status = update_status
-        self.signal_exit = signal_exit
         self.request_count = 0
         self.free = []
-
-    def get_client_count(self):
-        return len(self.queues) - len(self.free)
 
     def add_client(self, name):
         if self.free:
             key = self.free.pop()
             request_queue, response_queue = self.queues[key]
         else:
-            request_queue = SimpleQueue()
-            response_queue = SimpleQueue()
+            request_queue = self.manager.Queue(1)
+            response_queue = self.manager.Queue(1)
             temp = request_queue, response_queue
             key = len(self.queues)
             self.queues.append(temp)
@@ -39,16 +36,15 @@ class DatabaseServer(object):
         request = request_queue.get()
         response = None
         name = request[0]
-        args = request[1]
+        needs_response = request[1]
+        args = request[2]
         if name == 'update_status':
             self.update_status(ident, *args)
-        elif name == 'signal_exit':
-            self.signal_exit(ident, *args)
         else:
-            func = getattr(self.db, request[0])
-            args = request[1]
+            func = getattr(self.db, name)
             response = func(*args)
-        response_queue.put(response)
+        if needs_response:
+            response_queue.put(response)
         return True
 
     def run(self):

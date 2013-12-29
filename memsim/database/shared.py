@@ -14,45 +14,47 @@ class SharedDatabase(base.BaseDatabase):
         self.request_queue = request_queue
         self.response_queue = response_queue
 
-    def _execute(self, func, *args):
-        request = (func, args)
+    def _execute(self, func, needs_response, *args):
+        request = (func, needs_response, args)
         self.request_queue.put(request)
-        return self.response_queue.get()
+        if needs_response:
+            return self.response_queue.get()
+        else:
+            return None
 
     def update_status(self, best_value, best_cost, evaluation, status):
-        return self._execute('update_status', self.name,
+        return self._execute('update_status', False, self.name,
                              best_value, best_cost, evaluation, status)
 
-    def signal_exit(self):
-        return self._execute('signal_exit')
-
     def load(self, mod):
-        return self._execute('load', str(mod))
+        return self._execute('load', True, str(mod))
 
     def save(self, mod, state):
-        return self._execute('save', str(mod), json.dumps(state))
+        return self._execute('save', False, str(mod), json.dumps(state))
 
     def get_result(self, mod, mem):
-        return self._execute('get_result', str(mod), str(mem))
+        return self._execute('get_result', True, str(mod), str(mem))
 
     def add_result(self, mod, mem, value, cost):
-        return self._execute('add_result', str(mod), str(mem), value, cost)
+        return self._execute('add_result', False,
+                             str(mod), str(mem), value, cost)
 
     def get_best(self, mod):
-        return self._execute('get_best', str(mod))
+        return self._execute('get_best', True, str(mod))
 
     def get_result_count(self, mod):
-        return self._execute('get_result_count', str(mod))
+        return self._execute('get_result_count', True, str(mod))
 
     def get_fpga_result(self, name):
-        return self._execute('get_fpga_result', name)
+        return self._execute('get_fpga_result', True, name)
 
     def add_fpga_result(self, name, frequency, bram_count):
-        return self._execute('add_fpga_result', name, frequency, bram_count)
+        return self._execute('add_fpga_result', False,
+                             name, frequency, bram_count)
 
     def get_cacti_result(self, name):
-        return self._execute('get_cacti_result', name)
+        return self._execute('get_cacti_result', True, name)
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
-        return self._execute('add_cacti_result', name, access_time,
+        return self._execute('add_cacti_result', False, name, access_time,
                              cycle_time, area)

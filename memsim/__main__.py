@@ -43,7 +43,8 @@ class MainContext(object):
     iterations = 0
     server = None
     data = dict()
-    procs = dict()
+    thread_count = 0
+    pool = None
 
 
 main_context = MainContext()
@@ -52,7 +53,7 @@ main_context = MainContext()
 def show_status(key, name, best_value, best_cost, evaluation, status):
     data = main_context.data
     data[key] = (name, best_value, best_cost, evaluation, status)
-    thread_count = main_context.server.get_client_count()
+    thread_count = main_context.thread_count
     request_count = main_context.server.request_count
     send_count = main_context.server.db.send_count
     print()
@@ -142,9 +143,7 @@ def run_experiment(db, mod, iterations, seed, directory):
         optimize(db, mod, iterations, seed, directory)
     except:
         traceback.print_exc()
-
-    # Signal that this thread is exiting.
-    db.signal_exit()
+    return db.ident
 
 
 def start_experiment(context):
@@ -177,33 +176,32 @@ def start_experiment(context):
     print('Starting {}'.format(name))
 
     # Start the thread.
-    kwargs = {
+    args = {
         'db': db,
         'iterations': iterations,
         'mod': m,
         'directory': directory,
         'seed': seed,
     }
-    proc = multiprocessing.Process(target=run_experiment, kwargs=kwargs)
-    proc.start()
-    main_context.procs[db.ident] = proc
+    pool = main_context.pool
+    main_context.thread_count += 1
+    pool.apply_async(run_experiment, kwds=args, callback=experiment_done)
     return True
 
 
-def signal_exit(key):
-    """Signal that a process has exited; start the next."""
+def experiment_done(ident):
+    """Signal that an experiment has completed; start the next."""
 
     # Log a message.
-    data = main_context.data[key]
+    main_context.thread_count -= 1
+    data = main_context.data[ident]
     print('Finished {}'.format(data[0]))
-    del main_context.data[key]
 
-    # Join the old thread.
-    main_context.procs[key].terminate()
-    main_context.server.remove_client(key)
-    del main_context.procs[key]
+    # Remove this client.
+    main_context.server.remove_client(ident)
+    del main_context.data[ident]
 
-    # Start the next thread.
+    # Start the next experiment.
     for _ in xrange(len(main_context.experiments)):
         if start_experiment(main_context):
             break
@@ -213,8 +211,8 @@ def signal_exit(key):
 def handle_term():
     global main_context
     print('Exiting')
-    for proc in main_context.procs.itervalues():
-        proc.terminate()
+    if main_context.pool is not None:
+        main_context.pool.terminate()
 
 
 def main():
@@ -233,26 +231,34 @@ def main():
     db = database.get_instance(options.url)
 
     # Create the database server.
-    main_context.server = DatabaseServer(db, show_status, signal_exit)
+    manager = multiprocessing.Manager()
+    main_context.server = DatabaseServer(manager, db, show_status)
 
-    # Run the experiments.
+    # Create the thread pool.
     max_threads = int(options.threads)
+    main_context.pool = multiprocessing.Pool(max_threads)
+
+    # Start the initial set of experiments.
+    # Additional experiments will be run as running experiments complete.
     max_tries = len(main_context.experiments)
-    thread_count = 0
+    started = 0
     tries = 0
-    while thread_count < max_threads and tries < max_tries:
+    while started < max_threads and tries < max_tries:
         tries += 1
         if start_experiment(main_context):
-            thread_count += 1
+            started += 1
             tries = 0
         while main_context.server.run():
             pass
 
     # Process database traffic and update status.
-    while len(main_context.procs) > 0:
+    while main_context.thread_count > 0:
         while main_context.server.run():
             pass
         time.sleep(0.25)
+    main_context.pool.close()
+    main_context.pool.join()
+    main_context.pool = None
     print('Done')
 
     sys.exit(0)
