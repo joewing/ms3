@@ -75,12 +75,20 @@ def get_initial_memory(db, m, dists, directory):
     # First attempt to load the best subsystem from the database.
     best_name, best_value, _ = db.get_best(m)
     if best_name:
+
+        # Load statistics from the database.
+        state = db.load(m)
+        use_prefetch = state['use_prefetch']
+        for i in xrange(len(dists)):
+            dists[i].load(state, i)
+
+        # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
         ml = memory.parse_memory_list(lexer)
-        return ml, best_value
+        return ml, best_value, use_prefetch
 
     # No previous memory subsystem is stored, so we need run the
-    # empty memory subsystem and collect statistics.
+    # empty memory subsystem to collect statistics.
 
     # Create a memory subsystem to collect statistics.
     processes = []
@@ -94,9 +102,17 @@ def get_initial_memory(db, m, dists, directory):
     # Collect statistics and get the execution time.
     best_value = pl.run(ml, 0)
 
+    # Save statistics to the database.
+    state = dict()
+    use_prefetch = pl.has_delay()
+    state['use_prefetch'] = use_prefetch
+    for i in xrange(len(dists)):
+        dists[i].save(state, i)
+    db.save(m, state)
+
     # Return the empty memory subsystem and execution time.
     ml = memory.MemoryList(map(lambda _: m.memory, m.benchmarks))
-    return ml, best_value
+    return ml, best_value, use_prefetch
 
 
 def optimize(db, mod, iterations, seed, directory):
@@ -112,12 +128,10 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t = get_initial_memory(db, mod, dists, directory)
+    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory)
 
     # Perform the optimization.
-    o = MemoryOptimizer(mod, ml, seed, dists,
-                        use_prefetch=pl.has_delay())
-    o.load(db)
+    o = MemoryOptimizer(mod, ml, seed, dists, use_prefetch)
     while True:
 
         # Show the best and get its value.
@@ -131,6 +145,8 @@ def optimize(db, mod, iterations, seed, directory):
 
         # Evaluate this memory subsystem.
         ml = o.optimize(db, t).simplified()
+        if ml is None:
+            break
         t = pl.run(ml, 10 * best_value)
 
 

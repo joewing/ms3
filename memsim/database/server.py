@@ -1,6 +1,4 @@
 
-from multiprocessing.queues import SimpleQueue
-
 from memsim.database.shared import SharedDatabase
 
 

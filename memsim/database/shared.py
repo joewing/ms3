@@ -1,6 +1,5 @@
 
 from __future__ import print_function
-import json
 
 from memsim.database import base
 
@@ -30,7 +29,7 @@ class SharedDatabase(base.BaseDatabase):
         return self._execute('load', True, str(mod))
 
     def save(self, mod, state):
-        return self._execute('save', False, str(mod), json.dumps(state))
+        return self._execute('save', False, str(mod), state)
 
     def get_result(self, mod, mem):
         return self._execute('get_result', True, str(mod), str(mem))

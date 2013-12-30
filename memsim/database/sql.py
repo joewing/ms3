@@ -191,7 +191,13 @@ class SQLDatabase(base.BaseDatabase):
         return self._get_memory_id(mem)
 
     def get_result(self, mod, mem):
-        """Look up the result for the specified model."""
+        """Look up the result for the specified model.
+
+        This will return the result if found.  If not found and the
+        first request for the result, it will return None, otherwise
+        it will return -1 (indicating that another process is computing
+        the result).
+        """
 
         # Check the local cache.
         mod_hash = self.get_hash(mod)
@@ -215,10 +221,13 @@ class SQLDatabase(base.BaseDatabase):
             self.results[result_hash] = value
             return value
         else:
+            self.results[result_hash] = -1
             return None
 
     def add_result(self, mod, mem, value, cost):
         """Add a result for the specified model."""
+
+        assert(value > 0)
 
         # Insert to our local cache.
         mod_hash = self.get_hash(mod)

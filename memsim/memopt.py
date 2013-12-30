@@ -40,26 +40,6 @@ class MemoryOptimizer(Optimizer):
         if use_prefetch:
             self.constructors.append(prefetch.random_prefetch)
 
-    def load(self, db):
-        """Load state from the database."""
-        state = db.load(self.model)
-        use_prefetch = state.get('use_prefetch', False)
-        if use_prefetch and prefetch.random_prefetch not in self.constructors:
-            self.constructors.append(prefetch.random_prefetch)
-        for i in xrange(len(self.distributions)):
-            dist = self.distributions[i]
-            dist.load(state, i)
-
-    def save(self, db):
-        """Save the current state to the database."""
-        state = dict()
-        use_prefetch = prefetch.random_prefetch in self.constructors
-        state['use_prefetch'] = use_prefetch
-        for i in xrange(len(self.distributions)):
-            dist = self.distributions[i]
-            dist.save(state, i)
-        db.save(self.model, state)
-
     def store_result(self, db, current, value):
         """Store a result."""
         simplified = current.simplified()

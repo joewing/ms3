@@ -22,10 +22,6 @@ class Optimizer(object):
         """Load state from the database."""
         pass
 
-    def save(self, db):
-        """Save the current state to the database."""
-        pass
-
     def restart(self, db):
         """Start a new chain."""
         return self.current, 1
@@ -44,7 +40,8 @@ class Optimizer(object):
 
     def optimize(self, db, value):
         """This function is to be called after each evaluation.
-            It returns the next memory list to evaluate, None when complete.
+            It returns the next memory list to evaluate or None if
+            this is a duplicate chain.
         """
 
         # Store the current result.
@@ -58,20 +55,24 @@ class Optimizer(object):
             denom = self.max_tries
             diff = value - self.last_value
             if diff <= self.threshold:
-                # Keep the current memory.
+                # Keep the current state.
                 self.last_value = value
                 self.last = self.current
                 self.threshold -= (self.threshold + denom - 1) // denom
             else:
-                # Revert to the last memory.
+                # Revert to the last state.
                 self.current = self.last
                 self.threshold += (self.threshold + denom - 1) // denom
             self.current = self.modify(self.current)
             value = self.load_result(db, self.current)
             if value is None:
+                # Current state needs to be evaluated.
                 return self.current
+            elif value < 0:
+                # Current state is pending evaluation.
+                return None
             else:
-                # If we get stuck, restart from the best.
+                # Stuck; restart from the best.
                 tries += 1
                 if tries > self.max_tries:
                     self.max_tries += 1
