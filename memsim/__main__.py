@@ -264,8 +264,7 @@ def main():
         if start_experiment(main_context):
             started += 1
             tries = 0
-        while main_context.server.run():
-            pass
+        main_context.server.run()
 
     # Process database traffic and update status.
     while main_context.thread_count > 0:
