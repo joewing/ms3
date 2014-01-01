@@ -72,9 +72,8 @@ results_table = Table(
 class SQLDatabase(base.BaseDatabase):
     """SQL database connector."""
 
-    def __init__(self, url, dbname='ms3'):
+    def __init__(self, url):
         base.BaseDatabase.__init__(self)
-        self.dbname = dbname
         self.engine = None
         self.url = url
         self.results = dict()
@@ -86,8 +85,7 @@ class SQLDatabase(base.BaseDatabase):
 
     def connect(self):
         """Establish a database connection."""
-        cstr = '/'.join([self.url, self.dbname]) if self.dbname else self.url
-        self.engine = create_engine(cstr)
+        self.engine = create_engine(self.url)
         if not self.engine:
             return False
         try:

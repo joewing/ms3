@@ -177,15 +177,14 @@ class Split(base.Memory):
             result = self._do_process(result, addr, size, write)
         return result
 
-    def _do_process(self, start, addr, size, write):
+    def _do_process(self, t, addr, size, write):
         last = (addr + size - 1) & self.machine.addr_mask
-        result = start
         if addr < self.offset:
             if last <= self.offset:
                 temp_size = size
             else:
                 temp_size = self.offset - addr
-            result = self.bank0.process(result, write, addr, temp_size)
+            t = base.send_request(self.bank0, t, write, addr, temp_size)
         if last >= self.offset:
             if addr >= self.offset:
                 temp_addr = addr - self.offset
@@ -193,15 +192,13 @@ class Split(base.Memory):
             else:
                 temp_addr = 0
                 temp_size = last - self.offset + 1
-            result = self.bank1.process(result, write, temp_addr, temp_size)
-        return result
+            t = base.send_request(self.bank1, t, write, temp_addr, temp_size)
+        return t
 
     def forward(self, index, start, write, addr, size):
         if index == 1:
             addr = (addr + self.offset) & self.machine.addr_mask
-            return self.mem.process(start, write, addr, size)
-        else:
-            return self.mem.process(start, write, addr, size)
+        return base.send_request(self.mem, start, write, addr, size)
 
 
 def _create_split(lexer, args):

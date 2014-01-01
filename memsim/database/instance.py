@@ -8,9 +8,9 @@ from memsim.database import sql
 db_instance = None
 
 
-def connect_sql(url, dbname):
+def connect_sql(url):
     global db_instance
-    db = sql.SQLDatabase(url, dbname)
+    db = sql.SQLDatabase(url)
     if db.connect():
         print('Connected to', url, file=sys.stderr)
         db_instance = db
@@ -28,15 +28,14 @@ def get_instance(url=None):
 
     # Handle an explicit URL.
     if url:
-        return connect_sql(url, 'ms3')
+        return connect_sql(url)
 
     # Check for PostgreSQL URL.
     if 'PSQL_URL' in os.environ:
-        return connect_sql(os.environ['PSQL_URL'], 'ms3')
+        return connect_sql(os.environ['PSQL_URL'])
 
     # Fall back to the local database.
-    db_instance = connect_sql('sqlite://', None)
-    return db_instance
+    return connect_sql('sqlite://')
 
 
 def set_instance(db):

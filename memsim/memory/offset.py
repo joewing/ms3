@@ -59,12 +59,12 @@ class Offset(transform.Transform):
 
     def process(self, start, write, addr, size):
         addr = (addr + self.offset) & self.machine.addr_mask
-        return self.bank.process(start, write, addr, size)
+        return base.send_request(self.bank, start, write, addr, size)
 
     def forward(self, index, start, write, addr, size):
         assert(index == 0)
         addr = (addr - self.offset) & self.machine.addr_mask
-        return self.mem.process(start, write, addr, size)
+        return base.send_request(self.mem, start, write, addr, size)
 
 
 def _create_offset(lexer, args):

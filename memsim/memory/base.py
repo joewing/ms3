@@ -185,6 +185,25 @@ class MemoryList(object):
         return new
 
 
+def send_request(mem, start, write, addr, size):
+    """Send a memory request to the specified memory subsystem."""
+    word_mask = mem.machine.word_mask
+    word_size = mem.machine.word_size
+    addr_mask = mem.machine.addr_mask
+    offset = addr & word_mask
+    if offset:
+        first_size = min(word_size - offset, size)
+        start = mem.process(start, write, addr, first_size)
+        addr = (addr + first_size) & addr_mask
+        size -= first_size
+    while size:
+        temp_size = min(word_size, size)
+        start = mem.process(start, write, addr, temp_size)
+        addr = (addr + temp_size) & addr_mask
+        size -= temp_size
+    return start
+
+
 def parse_memory(lexer):
     return parser.parse(lexer, constructors)
 

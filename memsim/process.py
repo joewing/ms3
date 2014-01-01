@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 
 from memsim import priorityqueue
+from memory.base import send_request
 
 
 class AccessType(object):
@@ -50,6 +51,26 @@ class Process(object):
         """
         return self.mem.done()
 
+    def _process(self, write, addr, size):
+
+        # Perform the first part of the access.
+        result = 0
+        offset = addr & self.machine.word_mask
+        if offset:
+            first_size = self.machine.word_size - offset
+            result = self.mem.process(result, write, addr, first_size)
+            addr += first_size
+            size -= first_size
+
+        # Perform remaining accesses.
+        while size > 0:
+            current_size = min(size, self.machine.word_size)
+            result = self.mem.process(result, write, addr, current_size)
+            addr += current_size
+            size -= current_size
+
+        return result
+
     def step(self):
         """Peform the next event.
             This returns the amount of time used (a delta).
@@ -66,23 +87,26 @@ class Process(object):
         # Perform the access.
         at, addr, size = next(self.generator)
         if at == AccessType.READ:
-            return self.mem.process(0, False, addr, size)
+            return send_request(self.mem, 0, False, addr, size)
         elif at == AccessType.WRITE:
-            return self.mem.process(0, True, addr, size)
+            return send_request(self.mem, 0, True, addr, size)
         elif at == AccessType.IDLE:
             self.delay = self.delay or (addr > 0)
             return addr
         elif at == AccessType.PRODUCE:
             self.machine.produce(addr)
+            return 0
         elif at == AccessType.CONSUME:
             self.delay = True
             if not self.machine.consume(addr):
                 self.waiting = addr
+            return 0
         elif at == AccessType.END:
             self.machine.end(addr)
+            return 0
         else:
             assert(False)
-        return 0
+            return 0
 
 
 class ProcessList(object):
@@ -97,7 +121,6 @@ class ProcessList(object):
         self.heap = priorityqueue.PriorityQueue()
         self.machine = machine
         self.processes = processes
-        self.trace_length = 0
         self.directory = directory
 
     def has_delay(self):
@@ -106,7 +129,7 @@ class ProcessList(object):
         """
         return any(map(lambda p: p.has_delay(), self.processes))
 
-    def run(self, ml, limit):
+    def run(self, ml):
         """Run a simulation.
             ml is the MemoryList describing the memories to use.
         """
@@ -119,7 +142,6 @@ class ProcessList(object):
             self.heap.push(0, p)
 
         # Run the simulation until there are no more events to process.
-        current_length = 0
         while not self.heap.empty():
             self.machine.time = max(self.machine.time, self.heap.key())
             p = self.heap.value()
@@ -135,13 +157,6 @@ class ProcessList(object):
                     sys.exit(-1)
             except StopIteration:
                 pass
-            current_length += 1
-            if current_length > self.trace_length:
-                self.trace_length = current_length
-            elif self.machine.time > limit and limit > 0:
-                multiplier = float(self.trace_length) / current_length
-                self.machine.time = long(self.machine.time * multiplier)
-                break
 
         # Take into account any leftover time.
         for p in self.processes:
@@ -158,4 +173,4 @@ def evaluate(mod, ml, directory):
     for i in xrange(len(mod.benchmarks)):
         processes.append(Process(mod.benchmarks[i]))
     pl = ProcessList(mod.machine, processes, directory)
-    return pl.run(ml, 0), ml.get_cost()
+    return pl.run(ml), ml.get_cost()

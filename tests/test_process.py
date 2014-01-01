@@ -11,6 +11,7 @@ class TestProcess(unittest.TestCase):
         actions = [
             (process.AccessType.READ, 8, 4),
             (process.AccessType.WRITE, 16, 8),
+            (process.AccessType.READ, 7, 16),
             (process.AccessType.IDLE, 32, 0),
             (process.AccessType.CONSUME, 1, 0),
             (process.AccessType.PRODUCE, 2, 0),
@@ -36,32 +37,39 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(mem.last_size, 8)
 
         t = p.step()
+        self.assertEqual(t, 1600)
+        self.assertEqual(mem.reads, 4)
+        self.assertEqual(mem.writes, 1)
+        self.assertEqual(mem.last_addr, 16)
+        self.assertEqual(mem.last_size, 7)
+
+        t = p.step()
         self.assertEqual(t, 32)
-        self.assertEqual(mem.reads, 1)
+        self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
-        self.assertEqual(mem.last_size, 8)
+        self.assertEqual(mem.last_size, 7)
 
         t = p.step()
         self.assertEqual(t, 0)
-        self.assertEqual(mem.reads, 1)
+        self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
-        self.assertEqual(mem.last_size, 8)
+        self.assertEqual(mem.last_size, 7)
         self.assertEqual(p.waiting, 1)
 
         t = p.step()
         self.assertEqual(t, 0)
-        self.assertEqual(mem.reads, 1)
+        self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
-        self.assertEqual(mem.last_size, 8)
+        self.assertEqual(mem.last_size, 7)
         self.assertEqual(p.waiting, 1)
 
         t = p.step()
         self.assertEqual(t, 0)
-        self.assertEqual(mem.reads, 1)
+        self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
         self.assertEqual(mem.last_addr, 16)
-        self.assertEqual(mem.last_size, 8)
+        self.assertEqual(mem.last_size, 7)
         self.assertEqual(p.waiting, 1)

@@ -283,6 +283,9 @@ class Cache(container.Container):
         self.pending += max(self.cycle_time - self.access_time, 0)
         return result
 
+    def _access_line(self, write, t, addr):
+        return base.send_request(self.mem, t, write, addr, self.line_size)
+
     def _do_process(self, start, write, addr, size):
         tag = addr & ~(self.line_size - 1)
         set_size = self.line_count // self.associativity
@@ -316,7 +319,7 @@ class Cache(container.Container):
                     line.dirty = line.dirty or write
                     return start + self.access_time
                 else:
-                    t = self.mem.process(start, True, tag, self.line_size)
+                    t = self._access_line(True, start, tag)
                     return t + self.access_time
             elif self.policy == CachePolicy.MRU:
                 if line.age < age:
@@ -338,8 +341,7 @@ class Cache(container.Container):
             # Evict this entry if necessary.
             time = start + self.access_time
             if to_replace.dirty:
-                time = self.mem.process(time, True, to_replace.tag,
-                                        self.line_size)
+                time = self._access_line(True, time, to_replace.tag)
                 to_replace.dirty = False
             to_replace.tag = tag
             to_replace.dirty = write
@@ -355,14 +357,14 @@ class Cache(container.Container):
 
             # Read the new entry.
             if (not write) or size != self.line_size:
-                time = self.mem.process(time, False, tag, self.line_size)
+                time = self._access_line(False, time, tag)
 
             return time
 
         else:
             # Write on a write-through cache.
-            return (self.mem.process(start, True, addr, size) +
-                    self.access_time)
+            t = self.mem.process(start, True, addr, size)
+            return t + self.access_time
 
 
 def _create_cache(lexer, args):

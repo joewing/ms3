@@ -100,7 +100,7 @@ def get_initial_memory(db, m, dists, directory):
     pl = process.ProcessList(m.machine, processes, directory)
 
     # Collect statistics and get the execution time.
-    best_value = pl.run(ml, 0)
+    best_value = pl.run(ml)
 
     # Save statistics to the database.
     state = dict()
@@ -147,7 +147,7 @@ def optimize(db, mod, iterations, seed, directory):
         ml = o.optimize(db, t).simplified()
         if ml is None:
             break
-        t = pl.run(ml, 10 * best_value)
+        t = pl.run(ml)
 
 
 def run_experiment(db, mod, iterations, seed, directory):

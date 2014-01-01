@@ -66,7 +66,7 @@ class TestCache(unittest.TestCase):
     def test_set(self):
         cache = Cache(self.main,
                       line_count=4,
-                      line_size=2,
+                      line_size=4,
                       associativity=2,
                       policy=CachePolicy.LRU,
                       access_time=1,
@@ -77,7 +77,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(cache.cycle_time, 3)
 
         t = cache.process(10, False, 0, 1)
-        self.assertEqual(t, 203 + 10)
+        self.assertEqual(t, 403 + 10)
         self.machine.time += t
 
         t = cache.process(11, False, 1, 1)
@@ -89,19 +89,19 @@ class TestCache(unittest.TestCase):
         self.machine.time += t
 
         t = cache.process(13, False, 8, 1)
-        self.assertEqual(t, 203 + 13)
+        self.assertEqual(t, 403 + 13)
         self.machine.time += t
 
-        t = cache.process(14, False, 2, 2)
-        self.assertEqual(t, 203 + 14)
+        t = cache.process(14, False, 12, 2)
+        self.assertEqual(t, 403 + 14)
         self.machine.time += t
 
         t = cache.process(15, True, 4, 2)
-        self.assertEqual(t, 203 + 15)
+        self.assertEqual(t, 403 + 15)
         self.machine.time += t
 
-        t = cache.process(16, True, 6, 1)
-        self.assertEqual(t, 203 + 16)
+        t = cache.process(16, True, 16, 1)
+        self.assertEqual(t, 803 + 16)
         self.machine.time += t
 
         t = cache.done()
@@ -120,76 +120,77 @@ class TestCache(unittest.TestCase):
         self.assertEqual(cache.access_time, 3)
         self.assertEqual(cache.cycle_time, 3)
 
-        # Miss [-, -] -> [(0,4), -] (read 0)
+        # Miss [-, -] -> [(0,4), -] (read 0,4)
         t = cache.process(0, False, 0, 1)
-        self.assertEqual(t, 803)
-        self.assertEqual(self.main.reads, 1)
-        self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 0)
-        self.machine.time += t
-
-        # Miss [0, -] -> [(8,12), (0,4)] (read 8)
-        t = cache.process(0, False, 8, 1)
         self.assertEqual(t, 803)
         self.assertEqual(self.main.reads, 2)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 8)
+        self.assertEqual(self.main.last_addr, 4)
+        self.machine.time += t
+
+        # Miss [0, -] -> [(8,12), (0,4)] (read 8,12)
+        t = cache.process(0, False, 8, 1)
+        self.assertEqual(t, 803)
+        self.assertEqual(self.main.reads, 4)
+        self.assertEqual(self.main.writes, 0)
+        self.assertEqual(self.main.last_addr, 12)
         self.machine.time += t
 
         # Hit [(8,12), (0,4)] -> [(8,12), (0,4)]
         t = cache.process(0, False, 0, 1)
         self.assertEqual(t, 3)
-        self.assertEqual(self.main.reads, 2)
+        self.assertEqual(self.main.reads, 4)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 8)
+        self.assertEqual(self.main.last_addr, 12)
         self.machine.time += t
 
         # Hit [(8,12), (0,4)] -> [(8,12), (0,4)]
         t = cache.process(0, False, 8, 1)
         self.assertEqual(t, 3)
-        self.assertEqual(self.main.reads, 2)
+        self.assertEqual(self.main.reads, 4)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 8)
+        self.assertEqual(self.main.last_addr, 12)
         self.machine.time += t
 
-        # Miss [(8,12), (0,4)] -> [(16,20), (8,12)] (read 16)
+        # Miss [(8,12), (0,4)] -> [(16,20), (8,12)] (read 16,20)
         t = cache.process(0, False, 16, 1)
         self.assertEqual(t, 803)
-        self.assertEqual(self.main.reads, 3)
+        self.assertEqual(self.main.reads, 6)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 16)
+        self.assertEqual(self.main.last_addr, 20)
         self.machine.time += t
 
         # Hit [(16,20), (8,12)] -> [(16,20), (8,12)]
         t = cache.process(0, False, 8, 1)
         self.assertEqual(t, 3)
-        self.assertEqual(self.main.reads, 3)
+        self.assertEqual(self.main.reads, 6)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 16)
+        self.assertEqual(self.main.last_addr, 20)
         self.machine.time += t
 
         # Miss [(16,20), (8,12)] -> [(24*,28*), (16,20)]
         t = cache.process(0, True, 24, 8)
         self.assertEqual(t, 3)
-        self.assertEqual(self.main.reads, 3)
+        self.assertEqual(self.main.reads, 6)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 16)
+        self.assertEqual(self.main.last_addr, 20)
         self.machine.time += t
 
-        # Miss [(24*,28*), (16,20)] -> [(32,36), (24*,28*)] (read 32)
+        # Miss [(24*,28*), (16,20)] -> [(32,36), (24*,28*)] (read 32, 36)
         t = cache.process(0, False, 32, 1)
         self.assertEqual(t, 803)
-        self.assertEqual(self.main.reads, 4)
+        self.assertEqual(self.main.reads, 8)
         self.assertEqual(self.main.writes, 0)
-        self.assertEqual(self.main.last_addr, 32)
+        self.assertEqual(self.main.last_addr, 36)
         self.machine.time += t
 
-        # Miss [(32,36), (24*,28*)] -> [(40,44), (32,36)] (write 24, read 40)
+        # Miss [(32,36), (24*,28*)] -> [(40,44), (32,36)]
+        # (write 24,28; read 40,44)
         t = cache.process(0, False, 40, 1)
         self.assertEqual(t, 1603)
-        self.assertEqual(self.main.reads, 5)
-        self.assertEqual(self.main.writes, 1)
-        self.assertEqual(self.main.last_addr, 40)
+        self.assertEqual(self.main.reads, 10)
+        self.assertEqual(self.main.writes, 2)
+        self.assertEqual(self.main.last_addr, 44)
         self.machine.time += t
 
         t = cache.done()
