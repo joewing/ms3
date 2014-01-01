@@ -24,11 +24,11 @@ class RAM(main.MainMemory):
 
     def process(self, start, write, addr, size):
         assert(size > 0)
-        word_size = self.machine.word_size
-        offset = addr % word_size
-        count = (size + word_size + offset - 1) // word_size
+#        word_size = self.machine.word_size
+#        offset = addr % word_size
+#        count = (size + word_size + offset - 1) // word_size
         if self.burst == 0:
-            return start + count * self.latency
+            return self.latency
         else:
             return start + self.latency + self.burst * (count - 1)
 

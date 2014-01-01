@@ -43,12 +43,12 @@ def get_memory_list(db, mem, mod, baseline, replace):
     """
     if mem == 'model':
         # Use the subsystem from the model.
-        ml = [mod.memory for _ in mod.benchmarks]
+        ml = memory.MemoryList([mod.memory for _ in mod.benchmarks])
     elif mem == 'baseline':
         # Use the baseline subsystem.
         with open(baseline, 'r') as f:
             main_mem = memory.parse_memory(lex.Lexer(f))
-        ml = [main_mem for _ in mod.benchmarks]
+        ml = memory.MemoryList([main_mem for _ in mod.benchmarks])
     elif mem == 'best':
         # Use the best subsystem.
         ml = get_best(db, mod)
