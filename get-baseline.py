@@ -4,7 +4,8 @@ import math
 import optparse
 import sys
 
-from memsim import database, machine, memory, model, process, util
+from memsim import database, machine, memory, model, util
+from memsim.sim import evaluate
 from memsim.memory import cache, ram
 
 
@@ -82,16 +83,13 @@ def run_simulation(mem, experiment):
     if m.machine.max_cost != mach.max_cost:
         print('ERROR: wrong max cost for', experiment)
         sys.exit(-1)
-    procs = [process.Process(m.benchmarks[0])]
-    pl = process.ProcessList(mach, procs, directory)
-    pl.first = False
     db = database.get_instance()
-    mem.set_next(m.memory)
     result = db.get_result(m, mem)
-    if not result:
-        ml = memory.MemoryList([mem])
-        result = pl.run(ml, 0)
-        db.add_result(mem, result, ml.get_cost())
+    if result is None:
+        ml = memory.MemoryList(m.memory)
+        ml.add_memory(mem)
+        result, cost = evaluate(m, ml, directory)
+        db.add_result(m, mem, result, cost)
     return result
 
 
