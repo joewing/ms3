@@ -1,5 +1,5 @@
 
-from memsim.process import AccessType
+from memsim.access import AccessType
 from memsim import parser
 
 

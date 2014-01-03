@@ -6,7 +6,7 @@ import re
 
 from memsim import benchmarks, lex
 from memsim.benchmarks.trace import Trace
-from memsim.process import AccessType
+from memsim.access import AccessType
 from tests import mocks
 
 

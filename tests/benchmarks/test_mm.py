@@ -3,7 +3,7 @@ import unittest
 
 from memsim import benchmarks, lex
 from memsim.benchmarks.mm import MM
-from memsim.process import AccessType
+from memsim.access import AccessType
 from tests import mocks
 
 

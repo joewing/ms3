@@ -37,6 +37,14 @@ class Memory(object):
         """Create a deep copy of this memory."""
         return copy.deepcopy(self)
 
+    def set_main(self, mem):
+        """Set the main memory.
+        Returns the updated memory subsystem.
+        """
+        n = self.get_next()
+        self.set_next(n.set_main(mem))
+        return self
+
     def get_id(self, prefix='m'):
         """Get this memory's identifier."""
         return prefix + str(self.memory_id)
@@ -148,21 +156,25 @@ class Memory(object):
 
 class MemoryList(object):
 
-    def __init__(self, memories):
-        self.memories = memories
+    def __init__(self, main_memory):
+        self.main_memory = main_memory
+        self.memories = []
 
     def __len__(self):
         return len(self.memories)
 
     def __str__(self):
         if len(self.memories) > 0:
-            names = map(str, self.memories)
-            return reduce(lambda a, b: a + ":" + b, names)
+            return ':'.join(map(str, self.memories))
         else:
-            return ""
+            return ''
 
     def clone(self):
         return copy.deepcopy(self)
+
+    def add_memory(self, mem=None):
+        mem = mem.set_main(self.main_memory) if mem else self.main_memory
+        self.memories.append(mem)
 
     def get_cost(self):
         costs = map(lambda m: m.get_total_cost(), self.memories)
@@ -208,10 +220,10 @@ def parse_memory(lexer):
     return parser.parse(lexer, constructors)
 
 
-def parse_memory_list(lexer):
-    memories = []
-    memories.append(parse_memory(lexer))
+def parse_memory_list(lexer, main):
+    ml = MemoryList(main)
+    ml.add_memory(parse_memory(lexer))
     while lexer.get_type() == lex.TOKEN_COLON:
         lexer.match(lex.TOKEN_COLON)
-        memories.append(parse_memory(lexer))
-    return MemoryList(memories)
+        ml.add_memory(parse_memory(lexer))
+    return ml

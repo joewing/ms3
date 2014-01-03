@@ -50,6 +50,9 @@ class MockMemory(memory.Memory):
         result += ")"
         return result
 
+    def set_main(self, m):
+        return self
+
     def get_next(self):
         return self.mem
 

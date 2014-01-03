@@ -1,10 +1,9 @@
 
 import unittest
 
-from memsim import benchmarks
+from memsim import benchmarks, lex
 from memsim.benchmarks.hash import Hash
-from memsim import lex
-from memsim.process import AccessType
+from memsim.access import AccessType
 from tests import mocks
 
 

@@ -2,7 +2,7 @@
 import re
 
 from memsim import parser
-from memsim.process import AccessType
+from memsim.access import AccessType
 from memsim.benchmarks import base
 
 

@@ -8,6 +8,9 @@ class MainMemory(base.Memory):
     def __init__(self):
         base.Memory.__init__(self)
 
+    def set_main(self, mem):
+        return mem
+
     def get_ports(self, mach):
         name = self.get_id()
         word_size = mach.word_size

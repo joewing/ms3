@@ -14,7 +14,7 @@ class TestMemsim(unittest.TestCase):
 
         class MockDB:
             def get_best(self, mod):
-                return '(ram (latency 100))', 10, 20
+                return '(ram)', 10, 20
 
             def load(self, mod):
                 state = {'use_prefetch': True}
@@ -24,9 +24,12 @@ class TestMemsim(unittest.TestCase):
             def load(self, state, index):
                 assert(index == 0)
 
+        class MockModel:
+            memory = MockMemory()
+
         dists = [MockDist()]
-        result = get_initial_memory(MockDB(), None, dists, '.')
-        self.assertEqual(str(result[0]), '(ram (latency 100))')
+        result = get_initial_memory(MockDB(), MockModel(), dists, '.')
+        self.assertEqual(str(result[0]), '(mock)')
         self.assertEqual(result[1], 10)
 
     def test_get_initial_memory2(self):
@@ -41,6 +44,7 @@ class TestMemsim(unittest.TestCase):
         class MockModel:
             machine = MachineType()
             benchmarks = [MockBenchmark([])]
+            fifos = []
             memory = MockMemory()
 
         class MockDist:

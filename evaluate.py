@@ -30,7 +30,7 @@ parser.add_option('-r', '--replace', dest='replace', default=None,
 def get_best(db, mod):
     best_name, _, _ = db.get_best(mod)
     best_file = StringIO.StringIO(best_name)
-    return memory.parse_memory_list(lex.Lexer(best_file))
+    return memory.parse_memory_list(lex.Lexer(best_file), mod.memory)
 
 
 def get_memory_list(db, mem, mod, baseline, replace):

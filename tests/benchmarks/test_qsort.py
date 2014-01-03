@@ -3,7 +3,7 @@ import unittest
 
 from memsim import benchmarks, lex
 from memsim.benchmarks.qsort import QSort
-from memsim.process import AccessType
+from memsim.access import AccessType
 from tests import mocks
 
 

@@ -15,7 +15,7 @@ from memsim import (
     lex,
     memory,
     model,
-    process,
+    sim,
 )
 from memsim.memory import stats
 from memsim.memopt import MemoryOptimizer
@@ -84,20 +84,24 @@ def get_initial_memory(db, m, dists, directory):
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
-        ml = memory.parse_memory_list(lexer)
+        ml = memory.parse_memory_list(lexer, m.memory)
         return ml, best_value, use_prefetch
 
     # No previous memory subsystem is stored, so we need run the
     # empty memory subsystem to collect statistics.
 
+    # Divide up the address space.
+    total_size = 1 << m.machine.addr_bits
+    fifo_size = sum(m.fifos)
+    proc_size = total_size - fifo_size
+    size = proc_size // len(m.benchmarks)
+
     # Create a memory subsystem to collect statistics.
-    processes = []
-    memories = []
+    pl = sim.ProcessList(m.machine, directory)
+    ml = memory.MemoryList(m.memory)
     for i in xrange(len(m.benchmarks)):
-        memories.append(stats.Stats(dists[i], m.memory))
-        processes.append(process.Process(m.benchmarks[i]))
-    ml = memory.MemoryList(memories)
-    pl = process.ProcessList(m.machine, processes, directory)
+        pl.add_benchmark(m.benchmarks[i], size)
+        ml.add_memory(stats.Stats(dists[i], m.memory))
 
     # Collect statistics and get the execution time.
     best_value = pl.run(ml)
@@ -111,20 +115,27 @@ def get_initial_memory(db, m, dists, directory):
     db.save(m, state)
 
     # Return the empty memory subsystem and execution time.
-    ml = memory.MemoryList(map(lambda _: m.memory, m.benchmarks))
+    ml = memory.MemoryList(m.memory)
+    for i in xrange(len(m.benchmarks)):
+        ml.add_memory(m.memory)
     return ml, best_value, use_prefetch
 
 
 def optimize(db, mod, iterations, seed, directory):
 
+    # Divide up the address space.
+    total_size = 1 << mod.machine.addr_bits
+    fifo_size = sum(mod.fifos)
+    proc_size = total_size - fifo_size
+    size = proc_size // len(mod.benchmarks)
+
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
     dists = []
-    procs = []
+    pl = sim.ProcessList(mod.machine, directory)
     for i in xrange(len(mod.benchmarks)):
         dists.append(distribution.Distribution(seed))
-        procs.append(process.Process(mod.benchmarks[i]))
-    pl = process.ProcessList(mod.machine, procs, directory)
+        pl.add_benchmark(mod.benchmarks[i], size)
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
@@ -157,6 +168,8 @@ def run_experiment(db, mod, iterations, seed, directory):
     try:
         database.set_instance(db)
         optimize(db, mod, iterations, seed, directory)
+    except KeyboardInterrupt:
+        return -1
     except:
         traceback.print_exc()
     return db.ident
@@ -208,8 +221,14 @@ def start_experiment(context):
 def experiment_done(ident):
     """Signal that an experiment has completed; start the next."""
 
-    # Log a message.
+    # Update the number of active threads.
     main_context.thread_count -= 1
+
+    # Check if we should exit.
+    if ident < 0:
+        return
+
+    # Log a message.
     data = main_context.data[ident]
     print('Finished {}'.format(data[0]))
 
@@ -256,23 +275,26 @@ def main():
 
     # Start the initial set of experiments.
     # Additional experiments will be run as running experiments complete.
-    max_tries = len(main_context.experiments)
-    started = 0
-    tries = 0
-    while started < max_threads and tries < max_tries:
-        tries += 1
-        if start_experiment(main_context):
-            started += 1
-            tries = 0
-        main_context.server.run()
+    try:
+        max_tries = len(main_context.experiments)
+        started = 0
+        tries = 0
+        while started < max_threads and tries < max_tries:
+            tries += 1
+            if start_experiment(main_context):
+                started += 1
+                tries = 0
+            main_context.server.run()
 
-    # Process database traffic and update status.
-    while main_context.thread_count > 0:
-        while main_context.server.run():
-            pass
-        time.sleep(0.25)
-    main_context.pool.close()
-    main_context.pool.join()
+        # Process database traffic and update status.
+        while main_context.thread_count > 0:
+            while main_context.server.run():
+                pass
+            time.sleep(0.25)
+        main_context.pool.close()
+        main_context.pool.join()
+    except KeyboardInterrupt:
+        main_context.pool.terminate()
     main_context.pool = None
     print('Done')
 

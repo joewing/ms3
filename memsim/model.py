@@ -8,15 +8,22 @@ class Model(object):
         self.machine = machine.MachineType()
         self.memory = None
         self.benchmarks = []
+        self.fifos = []         # FIFO sizes.
 
     def __str__(self):
-        result = '(machine ' + str(self.machine) + ')'
+        result = []
+        result += '(machine ' + str(self.machine) + ')'
         result += '(memory ' + str(self.memory) + ')'
         result += '(benchmarks '
         for b in self.benchmarks:
             result += str(b)
         result += ')'
-        return result
+        if self.fifos:
+            result += '(fifos '
+            for f in self.fifos:
+                result += str(f)
+            result += ')'
+        return ''.join(result)
 
 
 def parse_model_file(filename):
@@ -41,6 +48,8 @@ def parse_model(lexer, model=None):
             model.memory = memory.parse_memory(lexer)
         elif name == 'benchmarks':
             model.benchmarks = _parse_benchmarks(lexer)
+        elif name == 'fifos':
+            model.fifos = _parse_fifos(lexer)
         elif name == 'include':
             value = lexer.get_value()
             lexer.match(lex.TOKEN_LITERAL)
@@ -62,3 +71,10 @@ def _parse_benchmarks(lexer):
     while lexer.get_type() == lex.TOKEN_OPEN:
         bms.append(benchmarks.parse_benchmark(lexer))
     return bms
+
+
+def _parse_fifos(lexer):
+    fifos = []
+    while lexer.get_type() == lex.TOKEN_LITERAL:
+        fifos += _parse_int(lexer)
+    return fifos
