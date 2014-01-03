@@ -7,7 +7,7 @@ import StringIO
 
 from memsim import database, lex, memory, model
 from memsim.util import get_experiment_name
-from memsim.process import evaluate
+from memsim.sim import evaluate
 from memsim.memory.main import MainMemory
 
 
