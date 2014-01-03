@@ -8,6 +8,7 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String,
 from sqlalchemy.sql import select, and_, func
 from sqlalchemy.exc import ProgrammingError, IntegrityError
 
+from memsim.resultcache import ResultCache
 from memsim.database import base
 
 try:
@@ -28,6 +29,11 @@ except ImportError:
             print("psycopg2 not available", file=sys.stderr)
 
 
+# Number of items of each type to cache.
+CACHE_SIZE = 100000
+
+
+# Schema
 metadata = MetaData()
 models_table = Table(
     'models', metadata,
@@ -76,11 +82,11 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = dict()
-        self.cacti_results = dict()
-        self.fpga_results = dict()
-        self.models = dict()            # model_hash -> (id, state)
-        self.memories = dict()          # memory_hash -> id
+        self.results = ResultCache(CACHE_SIZE)
+        self.cacti_results = ResultCache(CACHE_SIZE)
+        self.fpga_results = ResultCache(CACHE_SIZE)
+        self.models = ResultCache(CACHE_SIZE)       # model_hash -> (id, state)
+        self.memories = ResultCache(CACHE_SIZE)     # memory_hash -> id
         self.send_count = 0
 
     def connect(self):

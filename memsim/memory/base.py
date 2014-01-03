@@ -199,6 +199,7 @@ class MemoryList(object):
 
 def send_request(mem, start, write, addr, size):
     """Send a memory request to the specified memory subsystem."""
+    assert(size > 0)
     word_mask = mem.machine.word_mask
     word_size = mem.machine.word_size
     addr_mask = mem.machine.addr_mask

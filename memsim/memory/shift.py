@@ -73,11 +73,11 @@ class Shift(transform.Transform):
 
     def process(self, start, write, addr, size):
         addr = self._rotate(addr, self.shift)
-        return self.bank.process(start, write, addr, size)
+        return base.send_request(self.bank, start, write, addr, size)
 
     def forward(self, index, start, write, addr, size):
         addr = self._rotate(addr, -self.shift)
-        return self.mem.process(start, write, addr, size)
+        return base.send_request(self.mem, start, write, addr, size)
 
 
 def _create_shift(lexer, args):
