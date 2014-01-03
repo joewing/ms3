@@ -19,7 +19,7 @@ class MockFile(object):
 
 class MockBenchmark(benchmarks.Benchmark):
 
-    def __init__(self, seq, word_size=4):
+    def __init__(self, seq=[], word_size=4):
         benchmarks.Benchmark.__init__(self, word_size)
         self.seq = seq
 
