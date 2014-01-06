@@ -392,7 +392,7 @@ begin
    -- Update the state and transfer count.
    process(clk)
    begin
-      if clk'event and  clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             state          <= STATE_IDLE;
             transfer_count <= (others => '0');
@@ -603,7 +603,7 @@ begin
       variable write_ok    : boolean;
       variable fill_ok     : boolean;
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
 
          -- Note that rindex is registered in STATE_IDLE.
          case state is
@@ -749,7 +749,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if INDEX_BITS > 0 then
             current_index <= addr(INDEX_TOP downto INDEX_BOTTOM);
             rindex <= to_integer(unsigned(addr(INDEX_TOP downto INDEX_BOTTOM)));

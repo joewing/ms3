@@ -14,7 +14,7 @@ class MainMemory(base.Memory):
     def get_ports(self, mach):
         name = self.get_id()
         word_size = mach.word_size
-        addr_width = mach.addr_bits
+        addr_width = mach.addr_bits - mach.word_bits
         return [base.MemoryPort(name, word_size, addr_width)]
 
     def generate(self, gen, mach):

@@ -75,7 +75,7 @@ begin
    -- State machine.
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             state <= STATE_IDLE;
          else
@@ -87,7 +87,7 @@ begin
    -- Register the address to be prefetched.
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if state = STATE_IDLE and (re = '1' or we = '1')  then
             prefetch_addr  <= std_logic_vector(unsigned(addr) + STRIDE);
          end if;
@@ -139,7 +139,7 @@ begin
    -- Enqueue reads and writes that happen during prefetching.
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          case state is
             when STATE_IDLE =>
                -- Reads and writes can happen immediately.

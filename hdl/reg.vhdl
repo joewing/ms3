@@ -34,7 +34,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          dout  <= min;
          ready <= mready;
       end if;

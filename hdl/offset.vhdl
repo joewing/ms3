@@ -86,7 +86,7 @@ begin
       -- State machine.
       process(clk)
       begin
-         if clk'event and clk = '1' then
+         if rising_edge(clk) then
             if rst = '1' then
                state       <= 0;
             elsif state = 0 and (re = '1' or we = '1') then
@@ -190,7 +190,7 @@ begin
       -- This is used for driving dout.
       process(clk)
       begin
-         if clk'event and clk = '1' and rst = '0' then
+         if rising_edge(clk) then
             if state = 1 and mready = '1' then
                saved <= min;
             end if;

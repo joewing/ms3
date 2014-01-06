@@ -55,7 +55,7 @@ class VHDLGenerator(object):
         mem.generate(self, mach)
         self.leave()
         assert(self.indent == 0)
-        ports = mem.get_ports(mach)
+        addr_width = mach.addr_bits - mach.word_bits
         self.append("library ieee;")
         self.append("use ieee.std_logic_1164.all;")
         self.append("use ieee.numeric_std.all;")
@@ -63,7 +63,7 @@ class VHDLGenerator(object):
         self.enter()
         self.append("generic (")
         self.enter()
-        self.append("ADDR_WIDTH : in natural := " + str(mach.addr_bits) + ";")
+        self.append("ADDR_WIDTH : in natural := " + str(addr_width) + ";")
         self.append("WORD_WIDTH : in natural := " + str(mach.word_size * 8))
         self.leave()
         self.append(");")
@@ -71,6 +71,7 @@ class VHDLGenerator(object):
         self.enter()
         self.append("clk : in std_logic;")
         self.append("rst : in std_logic;")
+        ports = mem.get_ports(mach)
         for p in xrange(len(ports)):
             pname = "port" + str(p)
             addr_top = str(ports[p].addr_width - 1)

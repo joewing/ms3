@@ -7,7 +7,7 @@ entity split is
    generic (
       ADDR_WIDTH  : in natural := 64;
       WORD_WIDTH  : in natural := 64;
-      BOFFSET     : in natural := 7
+      OFFSET      : in unsigned
    );
    port (
       clk      : in  std_logic;
@@ -38,16 +38,12 @@ end split;
 
 architecture split_arch of split is
 
-   constant OFFSET   : natural := 2 ** BOFFSET;
-
-   signal addr_slice : std_logic_vector(ADDR_WIDTH - 1 downto BOFFSET);
    signal bank0      : std_logic;
    signal bank1      : std_logic;
 
 begin
 
-   addr_slice  <= addr(ADDR_WIDTH - 1 downto BOFFSET);
-   bank0       <= '1' when unsigned(addr_slice) = 0 else '0';
+   bank0       <= '1' when unsigned(addr) < OFFSET else '0';
    bank1       <= not bank0;
 
    maddr0   <= addr;

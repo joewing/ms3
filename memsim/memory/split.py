@@ -40,19 +40,28 @@ class Split(base.Memory):
         name = self.get_id()
         oname = self.get_next().get_id()
         word_width = mach.word_size * 8
-        boffset = util.log2(self.offset) - 1
         b0name = self.bank0.get_id()
         b1name = self.bank1.get_id()
         j0name = join.find_join(self.bank0, self).get_id()
         j1name = join.find_join(self.bank1, self).get_id()
 
+        offset_bits = []
+        addr_width = mach.addr_bits - mach.word_bits
+        word_offset = self.offset // mach.word_size
+        for i in reversed(xrange(0, addr_width)):
+            if word_offset & (1 << i):
+                offset_bits.append('1')
+            else:
+                offset_bits.append('0')
+        offset_str = ''.join(offset_bits)
+
         gen.add_code(name + "_combine : entity work.combine")
         gen.enter()
         gen.add_code("generic map (")
         gen.enter()
-        gen.add_code("ADDR_WIDTH => ADDR_WIDTH,")
-        gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
-        gen.add_code("BOFFSET => " + str(boffset))
+        gen.add_code('ADDR_WIDTH => ADDR_WIDTH,')
+        gen.add_code('WORD_WIDTH => ' + str(word_width) + ',')
+        gen.add_code('OFFSET => "' + offset_str + '"')
         gen.leave()
         gen.add_code(")")
         gen.add_code("port map (")
@@ -91,7 +100,7 @@ class Split(base.Memory):
         gen.enter()
         gen.add_code("ADDR_WIDTH        => ADDR_WIDTH,")
         gen.add_code("WORD_WIDTH        => " + str(word_width) + ",")
-        gen.add_code("BOFFSET            => " + str(boffset))
+        gen.add_code('OFFSET            => "' + offset_str + '"')
         gen.leave()
         gen.add_code(")")
         gen.add_code("port map (")

@@ -40,7 +40,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             counter <= to_unsigned(1, LATENCY);
             do_read <= '0';
@@ -78,7 +78,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             nat_addr <= 0;
          elsif re = '1' or we = '1' then

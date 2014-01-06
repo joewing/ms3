@@ -54,7 +54,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '0' then
             if rwe = '1' then
                for b in 0 to WORD_BYTES - 1 loop
@@ -76,7 +76,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             rre      <= '0';
             rwe      <= '0';

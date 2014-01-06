@@ -294,7 +294,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if rst = '1' then
             cycle_count <= 0;
          else
@@ -309,7 +309,7 @@ begin
 
    process(clk)
    begin
-      if clk'event and clk = '1' then
+      if rising_edge(clk) then
          if mem_ready = '1' then
             mem_addr <= next_addr;
          end if;
