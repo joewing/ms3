@@ -154,11 +154,14 @@ def optimize(db, mod, iterations, seed, directory):
         if result_count >= iterations:
             break
 
-        # Evaluate this memory subsystem.
-        ml = o.optimize(db, t).simplified()
+        # Get the next subsystem to evaluate.
+        ml = o.optimize(db, t)
         if ml is None:
+            # Another process is working on this value.
             break
-        t = pl.run(ml)
+
+        # Evaluate the memory subsystem.
+        t = pl.run(ml.simplified())
 
 
 def run_experiment(db, mod, iterations, seed, directory):

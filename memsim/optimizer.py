@@ -78,5 +78,3 @@ class Optimizer(object):
                     self.max_tries += 1
                     tries = 0
                     self.current, self.threshold = self.restart(db)
-
-        return self.current
