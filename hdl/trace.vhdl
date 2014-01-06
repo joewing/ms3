@@ -9,8 +9,8 @@ end trace;
 
 architecture trace_arch of trace is
 
-   constant ADDR_BITS : natural := 64;
-   constant WORD_BITS : natural := 64;
+   constant ADDR_BITS : natural := 30;
+   constant WORD_BITS : natural := 32;
 
    function log2(n : natural) return natural is
       variable i        : natural := n;
@@ -257,7 +257,7 @@ begin
                      if value < 0 then
                         state := STATE_ACTION;
                      else
-                        address := address(ADDR_BITS - 5 downto 0) & "0000";
+                        address := address(ADDR_BITS - 3 downto 0) & "00";
                         address := address + to_unsigned(value, ADDR_BITS);
                         read(temp, ch, good);
                      end if;
