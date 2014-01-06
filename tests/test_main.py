@@ -52,7 +52,8 @@ class TestMemsim(unittest.TestCase):
 
     @patch('memsim.__main__.MemoryOptimizer', autospec=True)
     @patch('memsim.__main__.get_initial_memory', autospec=True)
-    def test_optimize(self, mock_init, mock_opt):
+    def test_optimize1(self, mock_init, mock_opt):
+        """Test the typical case."""
 
         result_count = [2]
 
@@ -74,6 +75,30 @@ class TestMemsim(unittest.TestCase):
 
         self.assertEqual(mock_init.call_count, 1)
         self.assertEqual(mock_db.get_best.call_count, 9)
+        self.assertEqual(mock_opt.call_count, 1)
+
+    @patch('memsim.__main__.MemoryOptimizer', autospec=True)
+    @patch('memsim.__main__.get_initial_memory', autospec=True)
+    def test_optimize2(self, mock_init, mock_opt):
+        """Test the case where the optimizer returns None (conflict)."""
+
+        print('test\ntest\n')
+
+        mock_db = Mock()
+        mock_db.get_best.return_value = '(mock)', 1, 2
+        mock_db.get_result_count.return_value = 2
+        mock_model = Mock()
+        mock_model.machine = MachineType()
+        mock_model.fifos = []
+        mock_model.benchmarks = [MockBenchmark()]
+        mock_init.return_value = Mock(), 10, 20
+        mock_opt(1, 2, 3, 4, 5).optimize.return_value = None
+        mock_opt.reset_mock()
+
+        optimize(mock_db, mock_model, 10, 5, '.')
+
+        self.assertEqual(mock_init.call_count, 1)
+        self.assertEqual(mock_db.get_best.call_count, 1)
         self.assertEqual(mock_opt.call_count, 1)
 
     @patch('memsim.database.set_instance', autospec=True)
