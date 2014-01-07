@@ -28,8 +28,6 @@ class DatabaseServer(object):
         self.free.append(key)
 
     def process(self, ident, request_queue, response_queue):
-        if request_queue.empty():
-            return False
         self.request_count += 1
         request = request_queue.get()
         response = None
@@ -43,12 +41,12 @@ class DatabaseServer(object):
             response = func(*args)
         if needs_response:
             response_queue.put(response)
-        return True
 
     def run(self):
         got_data = False
         for i in xrange(len(self.queues)):
             request_queue, response_queue = self.queues[i]
-            if self.process(i, request_queue, response_queue):
+            if not request_queue.empty():
+                self.process(i, request_queue, response_queue)
                 got_data = True
         return got_data

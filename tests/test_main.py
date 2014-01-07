@@ -82,8 +82,6 @@ class TestMemsim(unittest.TestCase):
     def test_optimize2(self, mock_init, mock_opt):
         """Test the case where the optimizer returns None (conflict)."""
 
-        print('test\ntest\n')
-
         mock_db = Mock()
         mock_db.get_best.return_value = '(mock)', 1, 2
         mock_db.get_result_count.return_value = 2
