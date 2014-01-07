@@ -1,5 +1,5 @@
 
-from memsim import parser, util
+from memsim import parser
 from memsim.memory import base, join
 
 

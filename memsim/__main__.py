@@ -293,9 +293,8 @@ def main():
         while main_context.thread_count > 0:
             while main_context.server.run():
                 pass
-            time.sleep(0.25)
-        main_context.pool.close()
-        main_context.pool.join()
+            time.sleep(0.125)
+        main_context.pool.terminate()
     except KeyboardInterrupt:
         main_context.pool.terminate()
     main_context.pool = None

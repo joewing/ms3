@@ -30,7 +30,7 @@ except ImportError:
 
 
 # Number of items of each type to cache.
-CACHE_SIZE = 100000
+CACHE_SIZE = 65536
 
 
 # Schema

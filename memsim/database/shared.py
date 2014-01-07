@@ -1,6 +1,7 @@
 
 from __future__ import print_function
 
+from memsim.resultcache import ResultCache
 from memsim.database import base
 
 
@@ -12,6 +13,9 @@ class SharedDatabase(base.BaseDatabase):
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue
+        self.result_cache = ResultCache(1024)
+        self.fpga_cache = ResultCache(128)
+        self.cacti_cache = ResultCache(128)
 
     def _execute(self, func, needs_response, *args):
         request = (func, needs_response, args)
@@ -32,9 +36,16 @@ class SharedDatabase(base.BaseDatabase):
         return self._execute('save', False, str(mod), state)
 
     def get_result(self, mod, mem):
-        return self._execute('get_result', True, str(mod), str(mem))
+        result_hash = self.get_hash(mod) + self.get_hash(mem)
+        if result_hash in self.result_cache:
+            return self.result_cache[result_hash]
+        result = self._execute('get_result', True, str(mod), str(mem))
+        self.result_cache[result_hash] = result
+        return result
 
     def add_result(self, mod, mem, value, cost):
+        result_hash = self.get_hash(mod) + self.get_hash(mem)
+        self.result_cache[result_hash] = value
         return self._execute('add_result', False,
                              str(mod), str(mem), value, cost)
 
@@ -45,15 +56,29 @@ class SharedDatabase(base.BaseDatabase):
         return self._execute('get_result_count', True, str(mod))
 
     def get_fpga_result(self, name):
-        return self._execute('get_fpga_result', True, name)
+        name_hash = self.get_hash(name)
+        if name_hash in self.fpga_cache:
+            return self.fpga_cache[name_hash]
+        result = self._execute('get_fpga_result', True, name)
+        self.fpga_cache[name_hash] = result
+        return result
 
     def add_fpga_result(self, name, frequency, bram_count):
+        name_hash = self.get_hash(name)
+        self.fpga_cache[name_hash] = (frequency, bram_count)
         return self._execute('add_fpga_result', False,
                              name, frequency, bram_count)
 
     def get_cacti_result(self, name):
-        return self._execute('get_cacti_result', True, name)
+        name_hash = self.get_hash(name)
+        if name_hash in self.cacti_cache:
+            return self.cacti_cache[name_hash]
+        result = self._execute('get_cacti_result', True, name)
+        self.cacti_cache[name_hash] = result
+        return result
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
+        name_hash = self.get_hash(name)
+        self.cacti_cache[name_hash] = (access_time, cycle_time, area)
         return self._execute('add_cacti_result', False, name, access_time,
                              cycle_time, area)
