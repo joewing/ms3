@@ -122,7 +122,7 @@ class TestDRAM(unittest.TestCase):
         ports = dram.get_ports(self.machine)
         self.assertEqual(len(ports), 1)
         self.assertEqual(ports[0].word_size, self.machine.word_size)
-        self.assertEqual(ports[0].addr_width, self.machine.addr_bits)
+        self.assertEqual(ports[0].addr_width, 30)
 
     def test_parse(self):
         s = "(dram (frequency 1024)(cas_cycles 1)(rcd_cycles 2)"
