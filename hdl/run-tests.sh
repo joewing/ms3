@@ -18,7 +18,7 @@ function run()
     pypy ../memgen.py input.model > mem.vhdl 2> /dev/null
     ghdl -a mem.vhdl tb.vhdl
     ghdl -e tb
-    ghdl -r tb --ieee-asserts=disable --stop-time=5ms --vcd=dump.vcd
+    ghdl -r tb --ieee-asserts=disable --stop-time=5ms
     if [[ $? -ne 0 ]] ; then
         echo "Run failed"
         exit -1

@@ -36,16 +36,15 @@ architecture offset_arch of offset is
     constant ZERO_MASK  : std_logic_vector(WORD_BYTES - 1 downto 0)
                         := (others => '0');
 
-    signal shifted_mask : std_logic_vector(2 * WORD_BYTES - 1 downto 0);
     signal maska        : std_logic_vector(WORD_BYTES - 1 downto 0);
     signal maskb        : std_logic_vector(WORD_BYTES - 1 downto 0);
     signal first_word   : std_logic;
     signal split_access : std_logic;
-    signal next_addr    : std_logic_vector(ADDR_WIDTH - 1 downto 0);
     signal rre          : std_logic;
     signal rwe          : std_logic;
     signal saved        : std_logic_vector(WORD_WIDTH - 1 downto 0);
     signal state        : natural;
+    signal next_state   : natural;
 
 begin
 
@@ -74,14 +73,43 @@ begin
 
         -- Get the shifted mask used for byte offsets.
         process(mask)
+            variable shifted : std_logic_vector(2 * WORD_BYTES - 1 downto 0);
         begin
-            shifted_mask <= (others => '0');
+            shifted := (others => '0');
             for b in 0 to WORD_BYTES - 1 loop
-                shifted_mask(b + BOFFSET) <= mask(b);
+                shifted(b + BOFFSET) := mask(b);
             end loop;
+            maska <= shifted(WORD_BYTES - 1 downto 0);
+            maskb <= shifted(2 * WORD_BYTES - 1 downto WORD_BYTES);
         end process;
-        maska <= shifted_mask(WORD_BYTES - 1 downto 0);
-        maskb <= shifted_mask(2 * WORD_BYTES - 1 downto WORD_BYTES);
+
+        -- Determine if this is a split access.
+        split_access <= '1' when maska /= ZERO_MASK and maskb /= ZERO_MASK
+                            else '0';
+
+        -- Determine the next state.
+        process(state, re, we, mready, split_access)
+        begin
+            next_state <= state;
+            case state is
+                when 1 =>       -- First access.
+                    if mready = '1' then
+                        if split_access = '1' then
+                            next_state <= 2;
+                        else
+                            next_state <= 0;
+                        end if;
+                    end if;
+                when 2 =>       -- Second access.
+                    if mready = '1' then
+                        next_state <= 0;
+                    end if;
+                when others =>  -- Idle.
+                    if re = '1' or we = '1' then
+                        next_state <= 1;
+                    end if;
+            end case;
+        end process;
 
         -- State machine.
         process(clk)
@@ -89,41 +117,42 @@ begin
             if rising_edge(clk) then
                 if rst = '1' then
                     state <= 0;
-                elsif state = 0 and (re = '1' or we = '1') then
-                    state <= 1;
-                elsif state = 1 and mready = '1' then
-                    if split_access = '1' then
-                        state <= 2;
-                    else
-                        state <= 0;
-                    end if;
-                elsif state = 2 and mready = '1' then
-                    state <= 0;
+                else
+                    state <= next_state;
                 end if;
             end if;
         end process;
 
-        -- Determine if this is a split access.
-        split_access <= '1' when maska /= ZERO_MASK and maskb /= ZERO_MASK
-                            else '0';
+        -- Register read/write enable.
+        process(clk)
+        begin
+            if rising_edge(clk) then
+                if state = 0 then
+                    rre <= re;
+                    rwe <= we;
+                end if;
+            end if;
+        end process;
 
         -- Determine if we should be accessing the first word.
-        process(state, maska, mready)
+        process(next_state, maska, mready)
         begin
-            if state = 0 and maska /= ZERO_MASK then
+            if next_state = 0 and maska /= ZERO_MASK then
                 first_word <= '1';
-            elsif state = 1 and maska /= ZERO_MASK and mready = '0' then
+            elsif next_state = 1 and maska /= ZERO_MASK then
                 first_word <= '1';
             else
                 first_word <= '0';
             end if;
         end process;
 
-        -- Drive maddr and mmask.
-        process(addr, next_addr, maska, maskb, first_word)
-            variable woffset : signed(ADDR_WIDTH - 1 downto 0);
+        -- Drive maddr and mmask (address and mask for the next memory).
+        process(addr, maska, maskb, first_word)
+            variable next_addr : std_logic_vector(ADDR_WIDTH - 1 downto 0);
+            variable woffset   : signed(ADDR_WIDTH - 1 downto 0);
         begin
-            woffset  := to_signed(VALUE / WORD_WIDTH, ADDR_WIDTH);
+            next_addr := std_logic_vector(unsigned(addr) + 1);
+            woffset := to_signed(VALUE / WORD_WIDTH, ADDR_WIDTH);
             if first_word = '1' then
                 maddr <= std_logic_vector(signed(addr) + woffset);
                 mmask <= maska;
@@ -132,43 +161,27 @@ begin
                 mmask <= maskb;
             end if;
         end process;
-        next_addr <= std_logic_vector(unsigned(addr) + 1);
 
-        -- Drive mre and mwe.
-        process(state, re, we, rre, rwe, mready, split_access)
+        -- Drive mre and mwe (read/write enable to the next memory).
+        process(state, re, we, mready)
         begin
             mre <= '0';
             mwe <= '0';
             if state = 0 then
-                -- Start first access and save access type.
                 mre <= re;
                 mwe <= we;
-                rre <= re;
-                rwe <= we;
-            elsif state = 1 and mready = '1' and split_access = '1' then
-                -- Start second access.
+            elsif state = 1 and mready = '1' and maskb /= ZERO_MASK then
                 mre <= rre;
                 mwe <= rwe;
             end if;
         end process;
 
         -- Drive ready.
-        process(state, mready, maska, maskb)
-        begin
-            if state = 1 then
-                if split_access = '0' then
-                    ready <= mready;
-                else
-                    ready <= '0';
-                end if;
-            else
-                ready <= mready;
-            end if;
-        end process;
+        ready <= mready when next_state = 0 else '0';
 
-        -- Drive mout.
+        -- Drive mout (data to the next memory).
         process(din, first_word)
-            variable start         : integer;
+            variable start : integer;
         begin
             mout <= (others => 'Z');
             for b in 0 to WORD_BYTES - 1 loop
@@ -193,7 +206,7 @@ begin
         process(clk)
         begin
             if rising_edge(clk) then
-                if state = 1 and mready = '1' then
+                if state = 1 then
                     saved <= min;
                 end if;
             end if;
