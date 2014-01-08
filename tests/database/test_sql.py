@@ -106,4 +106,39 @@ class TestSQLDatabase(TestCase):
         self.assertEqual(result, (4, 5))
 
     def test_cacti_result(self):
-        pass
+
+        result = self.db.get_cacti_result('1')
+        self.assertEqual(result, None)
+
+        self.db.add_cacti_result('2', 3, 4, 5)
+        result = self.db.get_cacti_result('1')
+        self.assertEqual(result, None)
+
+        self.db.add_cacti_result('1', 4, 5, 6)
+        result = self.db.get_cacti_result('1')
+        self.assertEqual(result, (4, 5, 6))
+
+    def test_get_status(self):
+
+        result = len(list(self.db.get_status()))
+        self.assertEqual(result, 0)
+
+        self.db.add_result('m1', 'a', 1, 2)
+        self.db.add_result('m2', 'b', 2, 3)
+        self.db.add_result('m1', 'c', 4, 5)
+        result = self.db.get_status()
+        result = sorted(list(result))
+        expected = [('m1', 2, 1), ('m2', 1, 2)]
+        self.assertEqual(result, expected)
+
+    def test_get_states(self):
+
+        result = len(list(self.db.get_states()))
+        self.assertEqual(result, 0)
+
+        self.db.add_result('m1', 'a', 1, 2)
+        self.db.add_result('m2', 'b', 5, 6)
+        result = self.db.get_states()
+        result = sorted(list(result))
+        expected = [(1, 'm1'), (2, 'm2')]
+        self.assertEqual(result, expected)
