@@ -29,10 +29,6 @@ except ImportError:
             print("psycopg2 not available", file=sys.stderr)
 
 
-# Number of items of each type to cache.
-CACHE_SIZE = 65536
-
-
 # Schema
 metadata = MetaData()
 models_table = Table(
@@ -82,11 +78,11 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(CACHE_SIZE)
-        self.cacti_results = ResultCache(CACHE_SIZE)
-        self.fpga_results = ResultCache(CACHE_SIZE)
-        self.models = ResultCache(CACHE_SIZE)       # model_hash -> (id, state)
-        self.memories = ResultCache(CACHE_SIZE)     # memory_hash -> id
+        self.results = ResultCache(16384)
+        self.cacti_results = ResultCache(512)
+        self.fpga_results = ResultCache(1024)
+        self.models = ResultCache(32)       # model_hash -> (id, state)
+        self.memories = ResultCache(16384)  # memory_hash -> id
         self.send_count = 0
 
     def connect(self):
