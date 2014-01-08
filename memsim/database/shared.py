@@ -40,7 +40,8 @@ class SharedDatabase(base.BaseDatabase):
         if result_hash in self.result_cache:
             return self.result_cache[result_hash]
         result = self._execute('get_result', True, str(mod), str(mem))
-        self.result_cache[result_hash] = result
+        if result is not None and result >= 0:
+            self.result_cache[result_hash] = result
         return result
 
     def add_result(self, mod, mem, value, cost):
@@ -60,7 +61,8 @@ class SharedDatabase(base.BaseDatabase):
         if name_hash in self.fpga_cache:
             return self.fpga_cache[name_hash]
         result = self._execute('get_fpga_result', True, name)
-        self.fpga_cache[name_hash] = result
+        if result is not None:
+            self.fpga_cache[name_hash] = result
         return result
 
     def add_fpga_result(self, name, frequency, bram_count):
@@ -74,7 +76,8 @@ class SharedDatabase(base.BaseDatabase):
         if name_hash in self.cacti_cache:
             return self.cacti_cache[name_hash]
         result = self._execute('get_cacti_result', True, name)
-        self.cacti_cache[name_hash] = result
+        if result is not None:
+            self.cacti_cache[name_hash] = result
         return result
 
     def add_cacti_result(self, name, access_time, cycle_time, area):
