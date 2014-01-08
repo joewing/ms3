@@ -76,5 +76,5 @@ def _parse_benchmarks(lexer):
 def _parse_fifos(lexer):
     fifos = []
     while lexer.get_type() == lex.TOKEN_LITERAL:
-        fifos += _parse_int(lexer)
+        fifos.append(_parse_int(lexer))
     return fifos

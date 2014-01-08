@@ -207,7 +207,7 @@ class SQLDatabase(base.BaseDatabase):
         mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
         result_hash = mod_hash + mem_hash
-        if mem_hash in self.results:
+        if result_hash in self.results:
             return self.results[result_hash]
 
         # Check the database.

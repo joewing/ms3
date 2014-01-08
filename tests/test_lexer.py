@@ -1,11 +1,11 @@
 
-import unittest
+from unittest import TestCase
 
 from memsim import lex
 from tests import mocks
 
 
-class TestLexer(unittest.TestCase):
+class TestLexer(TestCase):
 
     def test_match(self):
         l = lex.Lexer(mocks.MockFile("()asdf ( ) (123)"))
