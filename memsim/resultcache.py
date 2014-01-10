@@ -41,14 +41,20 @@ class ResultCache(object):
     def __setitem__(self, key, value):
         """Set a value."""
 
-        # Create an item and add it to our list.
-        item = CacheItem(key, value)
-        self._insert(item)
-
         # Remove the oldest mapping if there are too many.
         if len(self.mapping) >= self.max_size:
             del self.mapping[self.oldest.key]
             self._remove(self.oldest)
+
+        # Remove duplicates.
+        if key in self.mapping:
+            dup = self.mapping[key]
+            del self.mapping[key]
+            self._remove(dup)
+
+        # Create an item and add it to our list.
+        item = CacheItem(key, value)
+        self._insert(item)
 
         # Add the new item to the dictionary.
         self.mapping[key] = item

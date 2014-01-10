@@ -28,6 +28,21 @@ class TestResultCache(unittest.TestCase):
         self.assertEqual(cache[3], 4)
         self.assertEqual(cache[4], 5)
 
+    def test_dup(self):
+        """Test that inserting twice works correctly."""
+        cache = resultcache.ResultCache(2)
+
+        cache[0] = 1
+        cache[0] = 2
+        self.assertEqual(cache[0], 2)
+
+        cache[1] = 3
+        cache[2] = 4
+        cache[0] = 5
+        self.assertEqual(cache[1], None)
+        self.assertEqual(cache[2], 4)
+        self.assertEqual(cache[0], 5)
+
     def test_get(self):
         """Test that get updates the cache."""
         cache = resultcache.ResultCache(3)
