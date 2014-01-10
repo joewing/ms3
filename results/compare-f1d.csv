@@ -1,11 +1,11 @@
-bitcount,bitcount,222840448
-dijkstra,bitcount,192412406
-fft,bitcount,440710505
+bitcount,bitcount,222840442
+dijkstra,bitcount,192414782
+fft,bitcount,440710487
 hash,bitcount,117427254
 heap,bitcount,1278411213
-jpegd,bitcount,51147865
+jpegd,bitcount,51148027
 mm,bitcount,470679519
-patricia,bitcount,701589635
+patricia,bitcount,701589119
 qsort,bitcount,333457078
 sha,bitcount,118390293
 bitcount,dijkstra,222840682
