@@ -83,6 +83,7 @@ def run_simulation(mem, experiment):
     if m.machine.max_cost != mach.max_cost:
         print('ERROR: wrong max cost for', experiment)
         sys.exit(-1)
+    mem.set_main(m.memory)
     db = database.get_instance()
     result = db.get_result(m, mem)
     if result is None:

@@ -10,14 +10,14 @@ qsort,bitcount,333457078
 sha,bitcount,118390293
 bitcount,dijkstra,222840682
 dijkstra,dijkstra,175731766
-fft,dijkstra,728252818
+fft,dijkstra,726679942
 hash,dijkstra,117079589
 heap,dijkstra,909560871
-jpegd,dijkstra,63147864
+jpegd,dijkstra,63145536
 mm,dijkstra,470678309
 patricia,dijkstra,690877029
 qsort,dijkstra,248147888
-sha,dijkstra,180679246
+sha,dijkstra,180680338
 bitcount,fft,222851178
 dijkstra,fft,175803019
 fft,fft,414306949
