@@ -1,3 +1,5 @@
+import gc
+
 
 class CacheItem(object):
     def __init__(self, key, value):
@@ -45,6 +47,7 @@ class ResultCache(object):
         if len(self.mapping) >= self.max_size:
             del self.mapping[self.oldest.key]
             self._remove(self.oldest)
+            gc.collect()
 
         # Remove duplicates.
         if key in self.mapping:

@@ -4,6 +4,7 @@ from StringIO import StringIO
 import atexit
 import multiprocessing
 import optparse
+import gc
 import os
 import sys
 import time
@@ -162,6 +163,8 @@ def optimize(db, mod, iterations, seed, directory):
 
         # Evaluate the memory subsystem.
         t = pl.run(ml.simplified())
+
+        gc.collect()
 
 
 def run_experiment(db, mod, iterations, seed, directory):
