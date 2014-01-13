@@ -1,5 +1,6 @@
 
 from __future__ import print_function
+import re
 import os
 import sys
 
@@ -8,11 +9,17 @@ from memsim.database import sql
 db_instance = None
 
 
+def clean_url(url):
+    """Return a copy of the URL with the username/password removed."""
+    return re.sub(r'^(.+://)[^:]+:[^@]+@(.*)$', r'\1*:*@\2', url)
+
+
 def connect_sql(url):
     global db_instance
     db = sql.SQLDatabase(url)
     if db.connect():
-        print('Connected to', url, file=sys.stderr)
+        disp_url = clean_url(url)
+        print('Connected to', disp_url, file=sys.stderr)
         db_instance = db
         return db
     print('ERROR: could not connect to PostgreSQL\n')
