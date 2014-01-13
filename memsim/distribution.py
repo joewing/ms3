@@ -20,6 +20,8 @@ class Distribution(random.Random):
         # Transform entries are pairs: (True, function).
         self.limits = []
 
+        self.access_count = 0
+
     def load(self, state, index):
         """Load the state of this distribution object."""
         temp = state.get('distribution' + str(index))
@@ -56,6 +58,8 @@ class Distribution(random.Random):
     def insert_range(self, addr, size):
         """Insert a new range into the set of address ranges."""
 
+        self.access_count += 1
+
         # Check if this address already exists.
         for i in xrange(len(self.ranges)):
             r = self.ranges[i]
@@ -78,6 +82,9 @@ class Distribution(random.Random):
 
         # Insert the new range.
         self.ranges.append(new)
+
+    def get_access_count(self):
+        return self.access_count
 
     def get_min_address(self):
         """Get the minimum address encountered."""
