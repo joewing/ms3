@@ -3,8 +3,9 @@ from __future__ import print_function
 import optparse
 import sys
 
-from memsim import distribution, lex, memory, model, process
+from memsim import distribution, lex, memory, model
 from memsim.memory import stats
+from memsim.sim import evaluate
 
 
 parser = optparse.OptionParser()
@@ -22,23 +23,27 @@ def main():
     with open(options.model) as f:
         m = model.parse_model(lex.Lexer(f))
 
+    # Divide up the address space.
+    total_size = 1 << m.machine.addr_bits
+    fifo_size = sum(m.fifos)
+    proc_size = total_size - fifo_size
+    size = proc_size // len(m.benchmarks)
+
     dists = []
-    processes = []
-    memories = []
-    for i in range(len(m.benchmarks)):
+    ml = memory.MemoryList(m.memory)
+    for b in m.benchmarks:
         dist = distribution.Distribution(1)
         dists.append(dist)
-        processes.append(process.Process(m.benchmarks[i]))
-        memories.append(stats.Stats(dist, m.memory))
-    pl = process.ProcessList(m.machine, processes, options.directory)
-    ml = memory.MemoryList(memories)
-    pl.run(ml, 0)
+        ml.add_memory(stats.Stats(dist, m.memory))
+    evaluate(m, ml, options.directory)
 
     for d in dists:
         min_addr = d.get_min_address()
         max_addr = d.get_max_address()
         size = d.get_size()
-        print("[{}:{}): {}".format(min_addr, max_addr, size))
+        access_count = d.get_access_count()
+        print("{} accesses; [{}:{}): {}"
+              .format(access_count, min_addr, max_addr, size))
 
 
 if __name__ == '__main__':
