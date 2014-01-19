@@ -227,11 +227,9 @@ def start_experiment(context):
 def experiment_done(ident):
     """Signal that an experiment has completed; start the next."""
 
-    # Update the number of active threads.
-    main_context.thread_count -= 1
-
     # Check if we should exit.
     if ident < 0:
+        main_context.thread_count -= 1
         return
 
     # Log a message.
@@ -246,6 +244,11 @@ def experiment_done(ident):
     for _ in xrange(len(main_context.experiments)):
         if start_experiment(main_context):
             break
+
+    # Update the number of active threads.
+    # We do this after starting the next experiment to ensure
+    # that the main thread doesn't exit too soon.
+    main_context.thread_count -= 1
 
 
 @atexit.register
