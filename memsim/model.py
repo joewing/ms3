@@ -1,5 +1,5 @@
-
 from memsim import benchmarks, lex, machine, memory
+from memsim.sim import fifo
 
 
 class Model(object):
@@ -19,6 +19,7 @@ class Model(object):
             result += str(b)
         result += ')'
         if self.fifos:
+
             result += '(fifos '
             for f in self.fifos:
                 result += str(f)
@@ -55,7 +56,7 @@ def parse_model(lexer, model=None):
             lexer.match(lex.TOKEN_LITERAL)
             parse_model(lex.Lexer(open(value, 'r')), model)
         else:
-            lex.ParseError(lexer, "invalid top-level component: " + name)
+            lex.ParseError(lexer, 'invalid top-level component: ' + name)
         lexer.match(lex.TOKEN_CLOSE)
     return model
 
@@ -75,6 +76,12 @@ def _parse_benchmarks(lexer):
 
 def _parse_fifos(lexer):
     fifos = []
-    while lexer.get_type() == lex.TOKEN_LITERAL:
-        fifos.append(_parse_int(lexer))
+    while lexer.get_type() == lex.TOKEN_OPEN:
+        lexer.match(lex.TOKEN_OPEN)
+        name = lexer.get_value()
+        if name != 'fifo':
+            lex.ParseError(lexer, 'invalid FIFO type: ' + name)
+        lexer.match(lex.TOKEN_LITERAL)
+        fifos.append(fifo.parse_fifo(lexer))
+        lexer.match(lex.TOKEN_CLOSE)
     return fifos

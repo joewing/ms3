@@ -37,7 +37,8 @@ class TestModel(TestCase):
         to_parse = '(machine (word_size 2))'
         to_parse += '(memory (ram))'
         to_parse += '(benchmarks (mm) (heap))'
-        to_parse += '(fifos 8 16)'
+        to_parse += '(fifos (fifo (size 16)(item_size 8))'
+        to_parse += '       (fifo (size 8)(item_size 4)))'
         l = Lexer(StringIO(to_parse))
         m = parse_model(l)
         self.assertEqual(m.machine.word_size, 2)
@@ -46,5 +47,5 @@ class TestModel(TestCase):
         self.assertIsInstance(m.benchmarks[0], mm.MM)
         self.assertIsInstance(m.benchmarks[1], heap.Heap)
         self.assertEqual(len(m.fifos), 2)
-        self.assertEqual(m.fifos[0], 8)
-        self.assertEqual(m.fifos[1], 16)
+        self.assertEqual(m.fifos[0].total_size(), 8 * 16)
+        self.assertEqual(m.fifos[1].total_size(), 8 * 4)

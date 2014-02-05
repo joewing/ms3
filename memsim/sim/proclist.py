@@ -30,20 +30,21 @@ class ProcessList(object):
             size: The amount of memory to allocate for the benchmark.
         """
         offset = self.address_offset
-        self.address_offset += offset
+        self.address_offset += size
         proc = Process(self, benchmark, offset, self.directory)
         self.processes.append(proc)
 
-    def add_fifo(self, index, size):
+    def add_fifo(self, index, f):
         """Add a simulated FIFO.
 
         Arguments:
             index: The FIFO index (used in traces).
-            size: The FIFO size in bytes.
+            f: The FIFO.
         """
         offset = self.address_offset
-        self.address_offset += size
-        self.fifos[index] = FIFO(offset, size)
+        self.address_offset += f.total_size()
+        f.set_offset(offset)
+        self.fifos[index] = f
 
     def has_delay(self):
         """Determine if there are blocking operations.

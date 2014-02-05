@@ -93,12 +93,14 @@ def get_initial_memory(db, m, dists, directory):
 
     # Divide up the address space.
     total_size = 1 << m.machine.addr_bits
-    fifo_size = sum(m.fifos)
+    fifo_size = sum(map(lambda f: f.total_size(), m.fifos))
     proc_size = total_size - fifo_size
     size = proc_size // len(m.benchmarks)
 
     # Create a memory subsystem to collect statistics.
     pl = sim.ProcessList(m.machine, directory)
+    for f in m.fifos:
+        pl.add_fifo(f)
     ml = memory.MemoryList(m.memory)
     for i in xrange(len(m.benchmarks)):
         pl.add_benchmark(m.benchmarks[i], size)
@@ -126,7 +128,7 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Divide up the address space.
     total_size = 1 << mod.machine.addr_bits
-    fifo_size = sum(mod.fifos)
+    fifo_size = sum(map(lambda f: f.total_size(), mod.fifos))
     proc_size = total_size - fifo_size
     size = proc_size // len(mod.benchmarks)
 
@@ -134,6 +136,8 @@ def optimize(db, mod, iterations, seed, directory):
     # the memory subsystems and create the benchmark processes.
     dists = []
     pl = sim.ProcessList(mod.machine, directory)
+    for f in mod.fifos:
+        pl.add_fifo(f)
     for i in xrange(len(mod.benchmarks)):
         dists.append(distribution.Distribution(seed))
         pl.add_benchmark(mod.benchmarks[i], size)

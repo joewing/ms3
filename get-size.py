@@ -25,7 +25,7 @@ def main():
 
     # Divide up the address space.
     total_size = 1 << m.machine.addr_bits
-    fifo_size = sum(m.fifos)
+    fifo_size = sum(map(lambda f: f.total_size(), m.fifos))
     proc_size = total_size - fifo_size
     size = proc_size // len(m.benchmarks)
 
