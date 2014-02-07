@@ -39,6 +39,8 @@ class Process(object):
         """
         self.mem = mem
         self.machine = machine
+        self.consume_waiting = -1
+        self.produce_waiting = -1
         self.benchmark.reset(self.offset, self.directory)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)

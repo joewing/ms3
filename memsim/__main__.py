@@ -55,10 +55,10 @@ main_context = MainContext()
 
 
 def show_status(key, name, best_value, best_cost, evaluation, status):
-    if main_context.verbose:
-        return
     data = main_context.data
     data[key] = (name, best_value, best_cost, evaluation, status)
+    if main_context.verbose:
+        return
     thread_count = main_context.thread_count
     request_count = main_context.server.request_count
     send_count = main_context.server.db.send_count
