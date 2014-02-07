@@ -5,26 +5,29 @@ from memsim.parser import parse_arguments, get_argument
 class FIFO(object):
     """Class to simulate a FIFO between processes."""
 
-    def __init__(self, size, item_size):
+    def __init__(self, index, size, item_size):
         """Create a simulated FIFO between processes.
 
         Arguments:
+            index: A unique identifier for this FIFO.
             size: The size of the FIFO in items.
             item_size: The size of each item in the FIFO in bytes.
         """
-        self.offset = 0
-        self.item_size = item_size
+        self.index = index
         self.size = size
+        self.item_size = item_size
+        self.offset = 0
         self.machine = None
         self.mem = None
         self.read_ptr = 0
         self.write_ptr = 0
 
     def __str__(self):
-        result = "(fifo "
-        result += "(size " + self.size + ")"
-        result += "(item_size " + self.item_size + ")"
-        result += ")"
+        result = '(fifo '
+        result += '(id ' + str(self.index) + ')'
+        result += '(size ' + str(self.size) + ')'
+        result += '(item_size ' + str(self.item_size) + ')'
+        result += ')'
         return result
 
     def total_size(self):
@@ -70,6 +73,7 @@ class FIFO(object):
 
 def parse_fifo(lexer):
     args = parse_arguments(lexer)
+    index = get_argument(lexer, args, 'id', 0)
     size = get_argument(lexer, args, 'size', 1024)
     item_size = get_argument(lexer, args, 'item_size', 4)
-    return FIFO(size=size, item_size=item_size)
+    return FIFO(index=index, size=size, item_size=item_size)

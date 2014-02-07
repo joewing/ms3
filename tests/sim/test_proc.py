@@ -22,8 +22,8 @@ class TestProcess(unittest.TestCase):
         ml.add_memory()
         pl = sim.ProcessList(mach, '.')
         pl.add_benchmark(mocks.MockBenchmark(actions), 0)
-        pl.add_fifo(1, sim.fifo.FIFO(128, 8))
-        pl.add_fifo(2, sim.fifo.FIFO(256, 8))
+        pl.add_fifo(sim.fifo.FIFO(1, 128, 8))
+        pl.add_fifo(sim.fifo.FIFO(2, 256, 8))
         p = pl.processes[0]
         p.reset(mach, mem)
         pl.fifos[1].reset(mach, mem)

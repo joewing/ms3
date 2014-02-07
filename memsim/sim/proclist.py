@@ -34,7 +34,7 @@ class ProcessList(object):
         proc = Process(self, benchmark, offset, self.directory)
         self.processes.append(proc)
 
-    def add_fifo(self, index, f):
+    def add_fifo(self, f):
         """Add a simulated FIFO.
 
         Arguments:
@@ -44,7 +44,7 @@ class ProcessList(object):
         offset = self.address_offset
         self.address_offset += f.total_size()
         f.set_offset(offset)
-        self.fifos[index] = f
+        self.fifos[f.index] = f
 
     def has_delay(self):
         """Determine if there are blocking operations.
@@ -81,7 +81,7 @@ class ProcessList(object):
             p.reset(self.machine, mem)
             self.heap.push(0, p)
             memory_index += 1
-        for f in self.fifos:
+        for f in self.fifos.values():
             mem = ml.memories[memory_index]
             f.reset(self.machine, mem)
             memory_index += 1

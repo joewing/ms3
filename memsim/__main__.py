@@ -80,8 +80,8 @@ def get_initial_memory(db, m, dists, directory):
         # Load statistics from the database.
         state = db.load(m)
         use_prefetch = state['use_prefetch']
-        for i in xrange(len(dists)):
-            dists[i].load(state, i)
+        for i, d in enumerate(dists):
+            d.load(state, i)
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
@@ -98,13 +98,17 @@ def get_initial_memory(db, m, dists, directory):
     size = proc_size // len(m.benchmarks)
 
     # Create a memory subsystem to collect statistics.
+    ml = memory.MemoryList(m.memory)
     pl = sim.ProcessList(m.machine, directory)
+    dist_index = 0
     for f in m.fifos:
         pl.add_fifo(f)
-    ml = memory.MemoryList(m.memory)
-    for i in xrange(len(m.benchmarks)):
-        pl.add_benchmark(m.benchmarks[i], size)
-        ml.add_memory(stats.Stats(dists[i], m.memory))
+        ml.add_memory(stats.Stats(dists[dist_index], m.memory))
+        dist_index += 1
+    for i, b in enumerate(m.benchmarks):
+        pl.add_benchmark(b, size)
+        ml.add_memory(stats.Stats(dists[dist_index], m.memory))
+        dist_index += 1
 
     # Collect statistics and get the execution time.
     best_value = pl.run(ml)
@@ -113,13 +117,13 @@ def get_initial_memory(db, m, dists, directory):
     state = dict()
     use_prefetch = pl.has_delay()
     state['use_prefetch'] = use_prefetch
-    for i in xrange(len(dists)):
-        dists[i].save(state, i)
+    for i, d in enumerate(dists):
+        d.save(state, i)
     db.save(m, state)
 
     # Return the empty memory subsystem and execution time.
     ml = memory.MemoryList(m.memory)
-    for i in xrange(len(m.benchmarks)):
+    for i in xrange(len(dists)):
         ml.add_memory(m.memory)
     return ml, best_value, use_prefetch
 
@@ -137,10 +141,11 @@ def optimize(db, mod, iterations, seed, directory):
     dists = []
     pl = sim.ProcessList(mod.machine, directory)
     for f in mod.fifos:
-        pl.add_fifo(f)
-    for i in xrange(len(mod.benchmarks)):
         dists.append(distribution.Distribution(seed))
-        pl.add_benchmark(mod.benchmarks[i], size)
+        pl.add_fifo(f)
+    for i, b in enumerate(mod.benchmarks):
+        dists.append(distribution.Distribution(seed))
+        pl.add_benchmark(b, size)
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
@@ -309,7 +314,6 @@ def main():
         main_context.pool.terminate()
     main_context.pool = None
     print('Done')
-
     sys.exit(0)
 
 

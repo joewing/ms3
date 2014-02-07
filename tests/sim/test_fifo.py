@@ -12,7 +12,7 @@ class TestFIFO(TestCase):
         mach = MachineType(word_size=4)
         self.mem = Mock()
         self.mem.process.return_value = 123
-        self.fifo = FIFO(16, 4)
+        self.fifo = FIFO(1, 16, 4)
         self.fifo.set_offset(8)
         self.fifo.reset(mach, self.mem)
 
