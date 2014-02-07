@@ -1,6 +1,6 @@
-
 from memsim import lex
 from memsim.parser import parse_arguments, get_argument
+from memsim.memory.base import send_request
 
 class FIFO(object):
     """Class to simulate a FIFO between processes."""
@@ -40,9 +40,16 @@ class FIFO(object):
     def reset(self, machine, mem):
         self.machine = machine
         self.mem = mem
+        self.mem.reset(machine)
         self.read_ptr = 0
         self.write_ptr = 0
         self.used = 0
+
+    def is_full(self):
+        return self.used == self.size
+
+    def is_empty(self):
+        return self.used == 0
 
     def done(self):
         return self.mem.done()
@@ -58,7 +65,7 @@ class FIFO(object):
             addr = self.offset + self.write_ptr * self.item_size
             self.write_ptr = (self.write_ptr + 1) % self.size
             self.used += 1
-            return self.mem.process(0, True, addr, self.item_size)
+            return send_request(self.mem, 0, True, addr, self.item_size)
 
     def consume(self):
         """Remove a value from the FIFO.
@@ -71,7 +78,7 @@ class FIFO(object):
             addr = self.offset + self.read_ptr * self.item_size
             self.read_ptr = (self.read_ptr + 1) % self.size
             self.used -= 1
-            return self.mem.process(0, False, addr, self.item_size)
+            return send_request(self.mem, 0, False, addr, self.item_size)
 
 
 def parse_fifo(lexer):

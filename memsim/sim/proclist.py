@@ -67,6 +67,18 @@ class ProcessList(object):
         """
         return self.fifos[index].consume()
 
+    def is_deadlocked(self):
+        for p in self.heap.values():
+            if p.consume_waiting < 0 and p.produce_waiting < 0:
+                return False
+            if p.consume_waiting >= 0:
+                if not self.fifos[p.consume_waiting].is_empty():
+                    return False
+            elif p.produce_waiting >= 0:
+                if not self.fifos[p.produce_waiting].is_full():
+                    return False
+        return True
+
     def run(self, ml):
         """Run a simulation.
 
@@ -85,8 +97,7 @@ class ProcessList(object):
             memory_index += 1
 
         # Run the simulation until there are no more events to process.
-        no_progress = 0
-        while no_progress < self.heap.size:
+        while not self.heap.empty():
             self.machine.time = max(self.machine.time, self.heap.key())
             p = self.heap.value()
             self.heap.pop()
@@ -94,11 +105,8 @@ class ProcessList(object):
                 delta = p.step()
                 if delta >= 0:
                     next_time = self.machine.time + delta
-                    no_progress = 0
-                elif not self.heap.empty():
-                    next_time = self.heap.key() + 1
-                    if all([p.waiting() for p in self.heap.values()]):
-                        no_progress += 1
+                elif not self.heap.empty() and not self.is_deadlocked():
+                    next_time = self.heap.key() + 100
                 else:
                     break
                 self.heap.push(next_time, p)

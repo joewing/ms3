@@ -98,7 +98,7 @@ def get_initial_memory(db, m, dists, directory, name):
 
     # Divide up the address space.
     total_size = 1 << m.machine.addr_bits
-    fifo_size = sum(map(lambda f: f.total_size(), m.fifos))
+    fifo_size = sum([f.total_size() for f in m.fifos])
     proc_size = total_size - fifo_size
     size = proc_size // len(m.benchmarks)
 
@@ -137,7 +137,7 @@ def get_initial_memory(db, m, dists, directory, name):
 
     # Return the empty memory subsystem and execution time.
     ml = memory.MemoryList(main)
-    for i in xrange(len(dists)):
+    for _ in dists:
         ml.add_memory(main)
     db.add_result(m, ml, best_value, best_cost)
     return ml, best_value, use_prefetch
@@ -275,7 +275,7 @@ def experiment_done(ident):
     del main_context.data[ident]
 
     # Start the next experiment.
-    for _ in xrange(len(main_context.experiments)):
+    for _ in main_context.experiments:
         if start_experiment(main_context):
             break
 

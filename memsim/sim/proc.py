@@ -26,9 +26,6 @@ class Process(object):
         self.produce_waiting = -1
         self.delay = False
 
-    def waiting(self):
-        return self.consume_waiting >= 0 or self.produce_waiting >= 0
-
     def has_delay(self):
         """Determine if prefetching would be beneficial."""
         return self.delay

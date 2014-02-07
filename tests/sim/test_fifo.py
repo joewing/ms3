@@ -11,6 +11,7 @@ class TestFIFO(TestCase):
     def setUp(self):
         mach = MachineType(word_size=4)
         self.mem = Mock()
+        self.mem.machine = mach
         self.mem.process.return_value = 123
         self.fifo = FIFO(1, 16, 4)
         self.fifo.set_offset(8)
