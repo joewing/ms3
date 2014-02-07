@@ -185,7 +185,8 @@ def optimize(db, mod, iterations, seed, directory):
             break
 
         # Get the next subsystem to evaluate.
-        print('Iteration {} / {}'.format(result_count  + 1, iterations))
+        if main_context.verbose:
+            print('Iteration {} / {}'.format(result_count + 1, iterations))
         ml = o.optimize(db, t)
         if ml is None:
             # Another process is working on this value.
