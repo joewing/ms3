@@ -49,7 +49,7 @@ class TestXOR(unittest.TestCase):
         xor1 = XOR(self.bank, join.Join(), 8)
         xor2 = XOR(xor1, self.main, 16)
         simplified = xor2.simplify()
-        s = "(xor (value 24)(bank (mock (join)))(memory (mock)))"
+        s = '(xor (value 24)(bank (mock (join)))(memory (mock)))'
         self.assertEqual(str(simplified), s)
 
     def test_simplify5(self):
@@ -59,10 +59,11 @@ class TestXOR(unittest.TestCase):
         self.assertEqual(str(simplified), "(mock (mock))")
 
     def test_parse(self):
-        s = "(xor (value 1024)(bank (join))(memory (ram (latency 100))))"
-        l = lex.Lexer(mocks.MockFile(s))
+        to_parse = '(xor (value 1024)(bank (join))(memory (ram)))'
+        expected = '(xor (value 1024)(bank (join))(memory (main)))'
+        l = lex.Lexer(mocks.MockFile(to_parse))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        self.assertEqual(str(result), expected)
 
     def test_generate(self):
         xor = XOR(self.bank, self.main, 16)

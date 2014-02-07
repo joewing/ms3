@@ -8,6 +8,9 @@ class MainMemory(base.Memory):
     def __init__(self):
         base.Memory.__init__(self)
 
+    def get_name(self):
+        return '(main)'
+
     def set_main(self, mem):
         return mem
 

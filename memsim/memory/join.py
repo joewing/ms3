@@ -10,7 +10,7 @@ class Join(base.Memory):
         self.parent = None
 
     def __str__(self):
-        return "(join)"
+        return '(join)'
 
     def generate(self, gen, mach):
         gen.declare_signals(self.get_id(), mach.word_size)

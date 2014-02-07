@@ -85,7 +85,8 @@ class ProcessList(object):
             memory_index += 1
 
         # Run the simulation until there are no more events to process.
-        while not self.heap.empty():
+        no_progress = 0
+        while no_progress < self.heap.size:
             self.machine.time = max(self.machine.time, self.heap.key())
             p = self.heap.value()
             self.heap.pop()
@@ -93,8 +94,13 @@ class ProcessList(object):
                 delta = p.step()
                 if delta >= 0:
                     next_time = self.machine.time + delta
+                    no_progress = 0
+                elif not self.heap.empty():
+                    next_time = self.heap.key() + 1
+                    if all([p.waiting() for p in self.heap.values()]):
+                        no_progress += 1
                 else:
-                    next_time = self.heap.key() + max(1, delta)
+                    break
                 self.heap.push(next_time, p)
             except StopIteration:
                 pass

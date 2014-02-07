@@ -46,7 +46,7 @@ def parse_model(lexer, model=None):
         if name == 'machine':
             model.machine = machine.parse_machine(lexer)
         elif name == 'memory':
-            model.memory = memory.parse_memory(lexer)
+            model.memory = memory.parse_memory_list(lexer)
         elif name == 'benchmarks':
             model.benchmarks = _parse_benchmarks(lexer)
         elif name == 'fifos':

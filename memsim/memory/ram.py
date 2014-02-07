@@ -37,3 +37,4 @@ def _create_ram(lexer, args):
     latency = parser.get_argument(lexer, args, 'latency', 100)
     return RAM(latency)
 base.constructors['ram'] = _create_ram
+base.constructors['main'] = _create_ram

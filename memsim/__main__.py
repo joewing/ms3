@@ -35,6 +35,8 @@ parser.add_option('-d', '--directory', dest='directory', default='.',
                   help='directory containing trace data')
 parser.add_option('-t', '--threads', dest='threads', default=1,
                   help='number of threads')
+parser.add_option('-v', '--verbose', dest='verbose', default=False,
+                  action='store_true', help='be verbose')
 
 
 class MainContext(object):
@@ -46,12 +48,15 @@ class MainContext(object):
     data = dict()
     thread_count = 0
     pool = None
+    verbose = False
 
 
 main_context = MainContext()
 
 
 def show_status(key, name, best_value, best_cost, evaluation, status):
+    if main_context.verbose:
+        return
     data = main_context.data
     data[key] = (name, best_value, best_cost, evaluation, status)
     thread_count = main_context.thread_count
@@ -70,7 +75,7 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
     print()
 
 
-def get_initial_memory(db, m, dists, directory):
+def get_initial_memory(db, m, dists, directory, name):
     """Get the initial subsystem and its total access time."""
 
     # First attempt to load the best subsystem from the database.
@@ -85,7 +90,7 @@ def get_initial_memory(db, m, dists, directory):
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
-        ml = memory.parse_memory_list(lexer, m.memory)
+        ml = memory.parse_memory_list(lexer)
         return ml, best_value, use_prefetch
 
     # No previous memory subsystem is stored, so we need run the
@@ -98,20 +103,29 @@ def get_initial_memory(db, m, dists, directory):
     size = proc_size // len(m.benchmarks)
 
     # Create a memory subsystem to collect statistics.
-    ml = memory.MemoryList(m.memory)
+    main = m.memory.main_memory
+    ml = memory.MemoryList(main)
     pl = sim.ProcessList(m.machine, directory)
     dist_index = 0
     for f in m.fifos:
         pl.add_fifo(f)
-        ml.add_memory(stats.Stats(dists[dist_index], m.memory))
+        ml.add_memory(stats.Stats(dists[dist_index], main))
         dist_index += 1
     for i, b in enumerate(m.benchmarks):
         pl.add_benchmark(b, size)
-        ml.add_memory(stats.Stats(dists[dist_index], m.memory))
+        ml.add_memory(stats.Stats(dists[dist_index], main))
         dist_index += 1
+
+    if main_context.verbose:
+        print('{}: Initial Memory: {}'.format(name, ml))
 
     # Collect statistics and get the execution time.
     best_value = pl.run(ml)
+    best_cost = ml.get_cost()
+
+    if main_context.verbose:
+        print('{}: Time: {}'.format(name, best_value))
+        print('{}: Cost: {}'.format(name, best_cost))
 
     # Save statistics to the database.
     state = dict()
@@ -122,13 +136,14 @@ def get_initial_memory(db, m, dists, directory):
     db.save(m, state)
 
     # Return the empty memory subsystem and execution time.
-    ml = memory.MemoryList(m.memory)
+    ml = memory.MemoryList(main)
     for i in xrange(len(dists)):
-        ml.add_memory(m.memory)
+        ml.add_memory(main)
+    db.add_result(m, ml, best_value, best_cost)
     return ml, best_value, use_prefetch
 
 
-def optimize(db, mod, iterations, seed, directory):
+def optimize(db, mod, iterations, seed, directory, name):
 
     # Divide up the address space.
     total_size = 1 << mod.machine.addr_bits
@@ -149,7 +164,7 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory)
+    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory, name)
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, ml, seed, dists, use_prefetch)
@@ -157,8 +172,13 @@ def optimize(db, mod, iterations, seed, directory):
 
         # Show the best and get its value.
         result_count = db.get_result_count(mod)
-        _, best_value, best_cost = db.get_best(mod)
+        best_mem, best_value, best_cost = db.get_best(mod)
         db.update_status(best_value, best_cost, result_count, str(o))
+
+        if main_context.verbose:
+            print('{}: Best Memory: {}'.format(name, best_mem))
+            print('{}: Best Value:  {}'.format(name, best_value))
+            print('{}: Best Cost:   {}'.format(name, best_cost))
 
         # Exit if we've performed enough evaluations.
         if result_count >= iterations:
@@ -171,18 +191,22 @@ def optimize(db, mod, iterations, seed, directory):
             break
 
         # Evaluate the memory subsystem.
+        if main_context.verbose:
+            print(ml.simplified())
         t = pl.run(ml.simplified())
+        if main_context.verbose:
+            print('{} Time: {}'.format(name, t))
 
         gc.collect()
 
 
-def run_experiment(db, mod, iterations, seed, directory):
+def run_experiment(db, mod, iterations, seed, directory, name):
 
     # Wrap the execution in a try block so we can start a new thread
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
-        optimize(db, mod, iterations, seed, directory)
+        optimize(db, mod, iterations, seed, directory, name)
     except KeyboardInterrupt:
         return -1
     except:
@@ -226,6 +250,7 @@ def start_experiment(context):
         'mod': m,
         'directory': directory,
         'seed': seed,
+        'name': name,
     }
     pool = main_context.pool
     main_context.thread_count += 1
@@ -281,6 +306,7 @@ def main():
     main_context.directory = options.directory
     main_context.seed = int(options.seed) if options.seed else int(time.time())
     main_context.iterations = int(options.iterations)
+    main_context.verbose = options.verbose
     db = database.get_instance(options.url)
 
     # Create the database server.
@@ -289,6 +315,7 @@ def main():
 
     # Create the thread pool.
     max_threads = int(options.threads)
+    main_context.verbose = main_context.verbose or max_threads == 1
     main_context.pool = multiprocessing.Pool(max_threads)
 
     # Start the initial set of experiments.

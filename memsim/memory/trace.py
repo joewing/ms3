@@ -11,7 +11,7 @@ class Trace(container.Container):
         container.Container.__init__(self, mem)
 
     def __str__(self):
-        return '(trace (memory ' + str(self.mem) + '))'
+        return '(trace (memory ' + str(self.mem.get_name()) + '))'
 
     def process(self, start, write, addr, size):
         out = ['W' if write else 'R']

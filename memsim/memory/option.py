@@ -12,6 +12,9 @@ class Option(base.Memory):
     def __str__(self):
         return str(self.options[self.index])
 
+    def get_name(self):
+        return self.options[self.index].get_name()
+
     def add_option(self, m):
         self.options.append(m)
 

@@ -292,17 +292,17 @@ class TestCache(unittest.TestCase):
         self.assertEqual(self.main.generated, 1)
 
     def test_parse1(self):
-        s = "(cache (line_count 2)(line_size 4)(associativity 2)"
-        s += "(access_time 2)(cycle_time 3)"
-        s += "(policy fifo)(write_back false)(memory (ram (latency 100))))"
+        s = '(cache (line_count 2)(line_size 4)(associativity 2)'
+        s += '(access_time 2)(cycle_time 3)'
+        s += '(policy fifo)(write_back false)(memory (main)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)
 
     def test_parse2(self):
-        s = "(cache (line_count 2)(line_size 4)(associativity 2)"
-        s += "(access_time 2)(cycle_time 3)"
-        s += "(policy bad)(write_back false)(memory (ram (latency 100))))"
+        s = '(cache (line_count 2)(line_size 4)(associativity 2)'
+        s += '(access_time 2)(cycle_time 3)'
+        s += '(policy bad)(write_back false)(memory (main)))'
         l = lex.Lexer(mocks.MockFile(s))
         with self.assertRaises(lex.ParseError):
             memory.parse_memory(l)

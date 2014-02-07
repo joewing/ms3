@@ -41,7 +41,7 @@ class SPM(container.Container):
             result += "(access_time " + str(self.access_time) + ")"
         if self.cycle_time > 0:
             result += "(cycle_time " + str(self.cycle_time) + ")"
-        result += "(memory " + str(self.mem) + ")"
+        result += "(memory " + str(self.mem.get_name()) + ")"
         result += ")"
         return result
 

@@ -32,11 +32,9 @@ class BinaryHeap(object):
     def reset(self):
         self.size = 0
 
-    def get_values(self):
-        result = []
+    def values(self):
         for i in xrange(1, self.size + 1):
-            result.append(self.heap[i][1])
-        return result
+            yield self.heap[i][1]
 
     def _swap(self, a, b):
         self.heap[a], self.heap[b] = self.heap[b], self.heap[a]

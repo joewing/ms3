@@ -19,8 +19,8 @@ class XOR(transform.Transform):
     def __str__(self):
         result = '(xor '
         result += '(value ' + str(self.value) + ')'
-        result += '(bank ' + str(self.bank) + ')'
-        result += '(memory ' + str(self.mem) + ')'
+        result += '(bank ' + str(self.bank.get_name()) + ')'
+        result += '(memory ' + str(self.mem.get_name()) + ')'
         result += ')'
         return result
 

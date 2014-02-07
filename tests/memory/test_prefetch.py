@@ -46,7 +46,7 @@ class TestPrefetch(unittest.TestCase):
         self.assertEqual(self.main, simplified)
 
     def test_parse(self):
-        s = "(prefetch (stride -8)(memory (ram (latency 100))))"
+        s = '(prefetch (stride -8)(memory (main)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)

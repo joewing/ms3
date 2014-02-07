@@ -121,8 +121,7 @@ class TestSplit(unittest.TestCase):
         self.assertEqual(simplified, self.main)
 
     def test_parse(self):
-        s = "(split (offset 128)(bank0 (join))(bank1 (join))(memory "
-        s += "(ram (latency 100))))"
+        s = '(split (offset 128)(bank0 (join))(bank1 (join))(memory (main)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)

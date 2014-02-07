@@ -96,7 +96,7 @@ class Cache(container.Container):
             result += "(write_back true)"
         else:
             result += "(write_back false)"
-        result += "(memory " + str(self.mem) + ")"
+        result += "(memory " + str(self.mem.get_name()) + ")"
         result += ")"
         return result
 

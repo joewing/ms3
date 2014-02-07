@@ -43,7 +43,7 @@ class TestSPM(unittest.TestCase):
     def test_random(self):
         dist = distribution.Distribution(1)
         s = random_spm(self.machine, self.main, dist, 8193)
-        self.assertEqual(str(s), "(spm (size 1024)(memory (mock)))")
+        self.assertEqual(str(s), '(spm (size 1024)(memory (mock)))')
 
     def test_permute(self):
         s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
@@ -62,8 +62,8 @@ class TestSPM(unittest.TestCase):
         self.assertEqual(self.main.generated, 1)
 
     def test_parse(self):
-        s = "(spm (size 1024)(access_time 3)(cycle_time 4)"
-        s += "(memory (ram (latency 100))))"
+        s = '(spm (size 1024)(access_time 3)(cycle_time 4)'
+        s += '(memory (main)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
         self.assertEqual(str(result), s)

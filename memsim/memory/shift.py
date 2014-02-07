@@ -18,15 +18,15 @@ class Shift(transform.Transform):
         self.shift = shift
 
     def __str__(self):
-        result = "(shift "
-        result += "(value " + str(self.shift) + ")"
-        result += '(bank ' + str(self.bank) + ')'
-        result += '(memory ' + str(self.mem) + ')'
-        result += ")"
+        result = '(shift '
+        result += '(value ' + str(self.shift) + ')'
+        result += '(bank ' + str(self.bank.get_name()) + ')'
+        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += ')'
         return result
 
     def generate(self, gen, mach):
-        self.generate_transform("shift", self.shift, -self.shift, gen, mach)
+        self.generate_transform('shift', self.shift, -self.shift, gen, mach)
 
     def reset(self, machine):
         transform.Transform.reset(self, machine)

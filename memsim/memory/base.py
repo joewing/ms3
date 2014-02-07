@@ -29,6 +29,10 @@ class Memory(object):
         self.memory_id = next_memory_id
         next_memory_id += 1
 
+    def get_name(self):
+        """Get the name of this memory subsystem."""
+        return str(self)
+
     def generate(self, gen, mach):
         """Generate the HDL model for this memory."""
         pass
@@ -164,10 +168,10 @@ class MemoryList(object):
         return len(self.memories)
 
     def __str__(self):
-        if len(self.memories) > 0:
-            return ':'.join(map(str, self.memories))
-        else:
-            return ''
+        result = '(main ' + str(self.main_memory) + ')'
+        for m in self.memories:
+            result += ' ' + m.get_name()
+        return result
 
     def clone(self):
         return copy.deepcopy(self)
@@ -221,10 +225,15 @@ def parse_memory(lexer):
     return parser.parse(lexer, constructors)
 
 
-def parse_memory_list(lexer, main):
+def parse_memory_list(lexer):
+    lexer.match(lex.TOKEN_OPEN)
+    value = lexer.get_value()
+    lexer.match(lex.TOKEN_LITERAL)
+    if value != 'main':
+        raise lex.ParseError(lexer, "expected 'main' got '" + value + "'")
+    main = parse_memory(lexer)
+    lexer.match(lex.TOKEN_CLOSE)
     ml = MemoryList(main)
-    ml.add_memory(parse_memory(lexer))
-    while lexer.get_type() == lex.TOKEN_COLON:
-        lexer.match(lex.TOKEN_COLON)
+    while lexer.get_type() == lex.TOKEN_OPEN:
         ml.add_memory(parse_memory(lexer))
     return ml

@@ -21,7 +21,7 @@ class Prefetch(container.Container):
     def __str__(self):
         result = "(prefetch "
         result += "(stride " + str(self.stride) + ")"
-        result += "(memory " + str(self.mem) + ")"
+        result += "(memory " + str(self.mem.get_name()) + ")"
         result += ")"
         return result
 

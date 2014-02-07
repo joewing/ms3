@@ -23,12 +23,12 @@ class Split(base.Memory):
         join.set_parent(bank1, self)
 
     def __str__(self):
-        result = "(split "
-        result += "(offset " + str(self.offset) + ")"
-        result += "(bank0 " + str(self.bank0) + ")"
-        result += "(bank1 " + str(self.bank1) + ")"
-        result += "(memory " + str(self.mem) + ")"
-        result += ")"
+        result = '(split '
+        result += '(offset ' + str(self.offset) + ')'
+        result += '(bank0 ' + str(self.bank0.get_name()) + ')'
+        result += '(bank1 ' + str(self.bank1.get_name()) + ')'
+        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += ')'
         return result
 
     def generate(self, gen, mach):
