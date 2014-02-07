@@ -1,8 +1,5 @@
-
-import sys
 from memsim import priorityqueue
 from .proc import Process
-from .fifo import FIFO
 
 
 class ProcessList(object):

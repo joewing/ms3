@@ -1,6 +1,6 @@
-from memsim import lex
 from memsim.parser import parse_arguments, get_argument
 from memsim.memory.base import send_request
+
 
 class FIFO(object):
     """Class to simulate a FIFO between processes."""

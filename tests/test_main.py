@@ -22,7 +22,7 @@ class TestMemsim(unittest.TestCase):
         mock_db.load.return_value = {'use_prefetch': True}
         dists = [Mock()]
 
-        result = get_initial_memory(mock_db, mock_model, dists, '.', 'name')
+        result = get_initial_memory(mock_db, mock_model, dists, '.')
 
         self.assertEqual(len(result), 3)
         self.assertEqual(str(result[0]), '(main (ram (latency 100)))')
@@ -43,7 +43,7 @@ class TestMemsim(unittest.TestCase):
         mock_model.memory = MemoryList(MockMemory())
         dists = [Mock()]
 
-        result = get_initial_memory(mock_db, mock_model, dists, '.', 'name')
+        result = get_initial_memory(mock_db, mock_model, dists, '.')
 
         self.assertEqual(len(result), 3)
         self.assertEqual(str(result[0]), '(main (mock)) (mock)')
@@ -71,7 +71,7 @@ class TestMemsim(unittest.TestCase):
         mock_model.benchmarks = [MockBenchmark()]
         mock_init.return_value = Mock(), 10, 20
 
-        optimize(mock_db, mock_model, 10, 5, '.', 'name')
+        optimize(mock_db, mock_model, 10, 5, '.')
 
         self.assertEqual(mock_init.call_count, 1)
         self.assertEqual(mock_db.get_best.call_count, 9)
@@ -93,7 +93,7 @@ class TestMemsim(unittest.TestCase):
         mock_opt(1, 2, 3, 4, 5).optimize.return_value = None
         mock_opt.reset_mock()
 
-        optimize(mock_db, mock_model, 10, 5, '.', 'name')
+        optimize(mock_db, mock_model, 10, 5, '.')
 
         self.assertEqual(mock_init.call_count, 1)
         self.assertEqual(mock_db.get_best.call_count, 1)
@@ -103,30 +103,30 @@ class TestMemsim(unittest.TestCase):
     @patch('memsim.__main__.optimize', autospec=True)
     def test_run_experiment1(self, mock_opt, mock_set):
         mock_db = Mock()
-        result = run_experiment(mock_db, 2, 3, 4, 5, 6)
+        result = run_experiment(mock_db, 2, 3, 4, 5)
         self.assertEqual(result, mock_db.ident)
         mock_set.assert_called_once_with(mock_db)
-        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5, 6)
+        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5)
 
     @patch('memsim.database.set_instance', autospec=True)
     @patch('memsim.__main__.optimize', autospec=True)
     def test_run_experiment2(self, mock_opt, mock_set):
         mock_db = Mock()
         mock_opt.side_effect = KeyboardInterrupt()
-        result = run_experiment(mock_db, 2, 3, 4, 5, 6)
+        result = run_experiment(mock_db, 2, 3, 4, 5)
         self.assertEqual(result, -1)
         mock_set.assert_called_once_with(mock_db)
-        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5, 6)
+        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5)
 
     @patch('memsim.database.set_instance', autospec=True)
     @patch('memsim.__main__.optimize', autospec=True)
     def test_run_experiment3(self, mock_opt, mock_set):
         mock_db = Mock()
         mock_opt.side_effect = Exception()
-        result = run_experiment(mock_db, 2, 3, 4, 5, 6)
+        result = run_experiment(mock_db, 2, 3, 4, 5)
         self.assertEqual(result, mock_db.ident)
         mock_set.assert_called_once_with(mock_db)
-        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5, 6)
+        mock_opt.assert_called_once_with(mock_db, 2, 3, 4, 5)
 
     def test_start_experiment(self):
         pass

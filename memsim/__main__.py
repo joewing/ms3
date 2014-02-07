@@ -75,7 +75,7 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
     print()
 
 
-def get_initial_memory(db, m, dists, directory, name):
+def get_initial_memory(db, m, dists, directory):
     """Get the initial subsystem and its total access time."""
 
     # First attempt to load the best subsystem from the database.
@@ -117,15 +117,15 @@ def get_initial_memory(db, m, dists, directory, name):
         dist_index += 1
 
     if main_context.verbose:
-        print('{}: Initial Memory: {}'.format(name, ml))
+        print('Initial Memory: {}'.format(ml))
 
     # Collect statistics and get the execution time.
     best_value = pl.run(ml)
     best_cost = ml.get_cost()
 
     if main_context.verbose:
-        print('{}: Time: {}'.format(name, best_value))
-        print('{}: Cost: {}'.format(name, best_cost))
+        print('Time: {}'.format(best_value))
+        print('Cost: {}'.format(best_cost))
 
     # Save statistics to the database.
     state = dict()
@@ -143,7 +143,7 @@ def get_initial_memory(db, m, dists, directory, name):
     return ml, best_value, use_prefetch
 
 
-def optimize(db, mod, iterations, seed, directory, name):
+def optimize(db, mod, iterations, seed, directory):
 
     # Divide up the address space.
     total_size = 1 << mod.machine.addr_bits
@@ -164,7 +164,7 @@ def optimize(db, mod, iterations, seed, directory, name):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory, name)
+    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory)
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, ml, seed, dists, use_prefetch)
@@ -176,15 +176,16 @@ def optimize(db, mod, iterations, seed, directory, name):
         db.update_status(best_value, best_cost, result_count, str(o))
 
         if main_context.verbose:
-            print('{}: Best Memory: {}'.format(name, best_mem))
-            print('{}: Best Value:  {}'.format(name, best_value))
-            print('{}: Best Cost:   {}'.format(name, best_cost))
+            print('Best Memory: {}'.format(best_mem))
+            print('Best Value:  {}'.format(best_value))
+            print('Best Cost:   {}'.format(best_cost))
 
         # Exit if we've performed enough evaluations.
         if result_count >= iterations:
             break
 
         # Get the next subsystem to evaluate.
+        print('Iteration {} / {}'.format(result_count  + 1, iterations))
         ml = o.optimize(db, t)
         if ml is None:
             # Another process is working on this value.
@@ -195,18 +196,18 @@ def optimize(db, mod, iterations, seed, directory, name):
             print(ml.simplified())
         t = pl.run(ml.simplified())
         if main_context.verbose:
-            print('{} Time: {}'.format(name, t))
+            print('Time: {}'.format(t))
 
         gc.collect()
 
 
-def run_experiment(db, mod, iterations, seed, directory, name):
+def run_experiment(db, mod, iterations, seed, directory):
 
     # Wrap the execution in a try block so we can start a new thread
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
-        optimize(db, mod, iterations, seed, directory, name)
+        optimize(db, mod, iterations, seed, directory)
     except KeyboardInterrupt:
         return -1
     except:
@@ -250,7 +251,6 @@ def start_experiment(context):
         'mod': m,
         'directory': directory,
         'seed': seed,
-        'name': name,
     }
     pool = main_context.pool
     main_context.thread_count += 1
