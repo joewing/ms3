@@ -76,14 +76,12 @@ class ProcessList(object):
         # Reset to prepare for the simulation.
         memory_index = 0
         self.machine.reset()
-        for p in self.processes:
-            mem = ml.memories[memory_index]
-            p.reset(self.machine, mem)
-            self.heap.push(0, p)
-            memory_index += 1
         for f in self.fifos.values():
-            mem = ml.memories[memory_index]
-            f.reset(self.machine, mem)
+            f.reset(self.machine, ml.memories[memory_index])
+            memory_index += 1
+        for p in self.processes:
+            p.reset(self.machine, ml.memories[memory_index])
+            self.heap.push(0, p)
             memory_index += 1
 
         # Run the simulation until there are no more events to process.
@@ -94,12 +92,10 @@ class ProcessList(object):
             try:
                 delta = p.step()
                 if delta >= 0:
-                    self.heap.push(self.machine.time + delta, p)
-                elif not self.heap.empty():
-                    self.heap.push(self.machine.time + self.heap.key(), p)
+                    next_time = self.machine.time + delta
                 else:
-                    print('ERROR: wait to consume without active producers')
-                    sys.exit(-1)
+                    next_time = self.heap.key() + max(1, delta)
+                self.heap.push(next_time, p)
             except StopIteration:
                 pass
 

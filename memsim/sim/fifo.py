@@ -21,6 +21,7 @@ class FIFO(object):
         self.mem = None
         self.read_ptr = 0
         self.write_ptr = 0
+        self.used = 0
 
     def __str__(self):
         result = '(fifo '
@@ -41,6 +42,7 @@ class FIFO(object):
         self.mem = mem
         self.read_ptr = 0
         self.write_ptr = 0
+        self.used = 0
 
     def done(self):
         return self.mem.done()
@@ -50,12 +52,12 @@ class FIFO(object):
 
         Returns the access time or -1 if the FIFO is full.
         """
-        next_write_ptr = (self.write_ptr + 1) % self.size
-        if next_write_ptr == self.read_ptr:
+        if self.used == self.size:
             return -1
         else:
             addr = self.offset + self.write_ptr * self.item_size
-            self.write_ptr = next_write_ptr
+            self.write_ptr = (self.write_ptr + 1) % self.size
+            self.used += 1
             return self.mem.process(0, True, addr, self.item_size)
 
     def consume(self):
@@ -63,11 +65,12 @@ class FIFO(object):
 
         Returns the access time or -1 if the FIFO is empty.
         """
-        if self.read_ptr == self.write_ptr:
+        if self.used == 0:
             return -1
         else:
             addr = self.offset + self.read_ptr * self.item_size
-            self.read_ptr += 1
+            self.read_ptr = (self.read_ptr + 1) % self.size
+            self.used -= 1
             return self.mem.process(0, False, addr, self.item_size)
 
 

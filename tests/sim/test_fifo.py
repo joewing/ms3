@@ -58,7 +58,7 @@ class TestFIFO(TestCase):
         mem = self.mem
 
         ptr = 8
-        for i in xrange(64 / 4 - 1):
+        for i in xrange(64 / 4):
             result = fifo.produce()
             self.assertEqual(result, 123)
             mem.process.assert_called_once_with(0, True, ptr, 4)
