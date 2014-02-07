@@ -2,6 +2,7 @@
 from __future__ import print_function
 import random
 from StringIO import StringIO
+import sys
 
 from optimizer import Optimizer
 from memsim import lex, memory
@@ -151,6 +152,15 @@ class MemoryOptimizer(Optimizer):
     def modify(self, last):
         """Modify the memory subsystem."""
 
+        # Get the set of memories to modify.
+        valid_memories = []
+        for i, d in enumerate(self.distributions):
+            if not d.is_empty():
+                valid_memories.append(i)
+        if not valid_memories:
+            print('ERROR: no memory accesses')
+            sys.exit(-1)
+
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
         max_cost = self.model.machine.max_cost - last.get_cost()
@@ -166,12 +176,9 @@ class MemoryOptimizer(Optimizer):
                 # unless it is actually used, which we determine using
                 # Distribution.is_empty.
                 current = last.clone()
-                while True:
-                    mindex = self.rand.randint(0, len(last) - 1)
-                    mem = current.memories[mindex]
-                    dist = self.distributions[mindex]
-                    if not dist.is_empty():
-                        break
+                mindex = self.rand.choice(valid_memories)
+                mem = current.memories[mindex]
+                dist = self.distributions[mindex]
                 count = mem.count()
 
                 # Modify the memory.
