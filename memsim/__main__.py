@@ -10,6 +10,7 @@ import sys
 import time
 import traceback
 import signal
+import threading
 
 from memsim import (
     database,
@@ -51,6 +52,7 @@ class MainContext(object):
     pool = None
     verbose = False
     stop = False
+    lock = threading.Lock()
 
 
 main_context = MainContext()
@@ -58,13 +60,14 @@ main_context = MainContext()
 
 def show_status(key, name, best_value, best_cost, evaluation, status):
     """Show current status (runs from the main process)."""
-    data = main_context.data
-    data[key] = (name, best_value, best_cost, evaluation, status)
     if main_context.verbose:
         return
-    thread_count = main_context.thread_count
-    request_count = main_context.server.request_count
-    send_count = main_context.server.db.send_count
+    with main_context.lock:
+        data = main_context.data
+        data[key] = (name, best_value, best_cost, evaluation, status)
+        thread_count = main_context.thread_count
+        request_count = main_context.server.request_count
+        send_count = main_context.server.db.send_count
     print()
     print('Threads: {}    Database requests: {} / {}'
           .format(thread_count, request_count, send_count))
@@ -276,12 +279,12 @@ def experiment_done(ident):
         main_context.stop = True
         return
 
-    data = main_context.data[ident]
-    print('Finished {}'.format(data[0]))
-
-    main_context.thread_count -= 1
-    main_context.server.remove_client(ident)
-    del main_context.data[ident]
+    with main_context.lock:
+        data = main_context.data[ident]
+        print('Finished {}'.format(data[0]))
+        main_context.thread_count -= 1
+        main_context.server.remove_client(ident)
+        del main_context.data[ident]
 
 
 @atexit.register
