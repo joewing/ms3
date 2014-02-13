@@ -68,17 +68,17 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         thread_count = main_context.thread_count
         request_count = main_context.server.request_count
         send_count = main_context.server.db.send_count
-    print()
-    print('Threads: {}    Database requests: {} / {}'
-          .format(thread_count, request_count, send_count))
-    print('  {:<20}{:<12}{:<12}{:<12}{}'
-          .format('name', 'value', 'cost', 'evaluation', 'status'))
-    for ident in data:
-        marker = '> ' if key == ident else '  '
-        name, value, cost, ev, stat = data[ident]
-        print('{:<2}{:<20}{:<12}{:<12}{:<12}{}'
-              .format(marker, name, value, cost, ev, stat))
-    print()
+        print()
+        print('Threads: {}    Database requests: {} / {}'
+              .format(thread_count, request_count, send_count))
+        print('  {:<20}{:<12}{:<12}{:<12}{}'
+              .format('name', 'value', 'cost', 'evaluation', 'status'))
+        for ident in data:
+            marker = '> ' if key == ident else '  '
+            name, value, cost, ev, stat = data[ident]
+            print('{:<2}{:<20}{:<12}{:<12}{:<12}{}'
+                  .format(marker, name, value, cost, ev, stat))
+        print()
 
 
 def get_initial_memory(db, m, dists, directory):
