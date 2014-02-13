@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import traceback
+import signal
 
 from memsim import (
     database,
@@ -49,12 +50,14 @@ class MainContext(object):
     thread_count = 0
     pool = None
     verbose = False
+    stop = False
 
 
 main_context = MainContext()
 
 
 def show_status(key, name, best_value, best_cost, evaluation, status):
+    """Show current status (runs from the main process)."""
     data = main_context.data
     data[key] = (name, best_value, best_cost, evaluation, status)
     if main_context.verbose:
@@ -76,7 +79,10 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
 
 
 def get_initial_memory(db, m, dists, directory):
-    """Get the initial subsystem and its total access time."""
+    """Get the initial subsystem and its total access time.
+
+    This runs from a process in the process pool.
+    """
 
     # First attempt to load the best subsystem from the database.
     best_name, best_value, _ = db.get_best(m)
@@ -259,31 +265,23 @@ def start_experiment(context):
     return True
 
 
-def experiment_done(ident):
-    """Signal that an experiment has completed; start the next."""
+def experiment_init():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    # Check if we should exit.
+
+def experiment_done(ident):
+    """Signal that an experiment has completed."""
+
     if ident < 0:
-        main_context.thread_count -= 1
+        main_context.stop = True
         return
 
-    # Log a message.
     data = main_context.data[ident]
     print('Finished {}'.format(data[0]))
 
-    # Remove this client.
+    main_context.thread_count -= 1
     main_context.server.remove_client(ident)
     del main_context.data[ident]
-
-    # Start the next experiment.
-    for _ in main_context.experiments:
-        if start_experiment(main_context):
-            break
-
-    # Update the number of active threads.
-    # We do this after starting the next experiment to ensure
-    # that the main thread doesn't exit too soon.
-    main_context.thread_count -= 1
 
 
 @atexit.register
@@ -317,25 +315,22 @@ def main():
     # Create the thread pool.
     max_threads = int(options.threads)
     main_context.verbose = main_context.verbose or max_threads == 1
-    main_context.pool = multiprocessing.Pool(max_threads)
+    main_context.pool = multiprocessing.Pool(max_threads, experiment_init)
 
-    # Start the initial set of experiments.
-    # Additional experiments will be run as running experiments complete.
+    # Run the experiments, starting new ones as necessary.
     try:
-        max_tries = len(main_context.experiments)
-        started = 0
-        tries = 0
-        while started < max_threads and tries < max_tries:
-            tries += 1
-            if start_experiment(main_context):
-                started += 1
-                tries = 0
-            main_context.server.run()
-
-        # Process database traffic and update status.
-        while main_context.thread_count > 0:
+        active = True
+        while not main_context.stop:
             while main_context.server.run():
                 pass
+            if active and main_context.thread_count < max_threads:
+                active = False
+                for _ in main_context.experiments:
+                    if start_experiment(main_context):
+                        active = True
+                        break
+            elif main_context.thread_count == 0:
+                break
             time.sleep(0.125)
         main_context.pool.terminate()
     except KeyboardInterrupt:

@@ -78,11 +78,11 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(16384)
+        self.results = ResultCache(8192)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(32)       # model_hash -> (id, state)
-        self.memories = ResultCache(16384)  # memory_hash -> id
+        self.memories = ResultCache(8192)   # memory_hash -> id
         self.send_count = 0
 
     def connect(self):
