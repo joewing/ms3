@@ -1,3 +1,5 @@
+from abc import ABCMeta, abstractmethod
+
 from memsim.access import AccessType
 from memsim import parser
 
@@ -9,6 +11,7 @@ class Benchmark(object):
     """Base clase for benchmarks.
         A benchmark is a kernel used to generate an address trace.
     """
+    __metaclass__ = ABCMeta
 
     def __init__(self, word_size=4):
         self.word_size = word_size
@@ -51,12 +54,6 @@ class Benchmark(object):
         self.offset = offset
         self.directory = directory
 
-    def skip(self, n):
-        """Skip the next n accesses.  Returns true if successful.
-        This is an optimization for the trace benchmark.
-        """
-        return False
-
     def get_size(self):
         """Get the address range of the benchmark in bytes."""
         if self.max_addr == 0:
@@ -65,6 +62,7 @@ class Benchmark(object):
                     self.max_addr = max(self.max_addr, addr + size - 1)
         return self.max_addr
 
+    @abstractmethod
     def run(self):
         """Run the benchmark.
             Note that the results of a benchmark should be deterministic.
