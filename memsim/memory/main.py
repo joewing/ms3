@@ -11,6 +11,12 @@ class MainMemory(base.Memory):
     def get_name(self):
         return '(main)'
 
+    def can_remove(self):
+        return False
+
+    def can_insert(self):
+        return True
+
     def set_main(self, mem):
         return mem
 

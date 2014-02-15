@@ -50,6 +50,12 @@ class MockMemory(memory.Memory):
         result += ")"
         return result
 
+    def can_remove(self):
+        return True
+
+    def can_insert(self):
+        return True
+
     def get_name(self):
         return str(self)
 

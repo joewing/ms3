@@ -12,6 +12,12 @@ class Join(base.Memory):
     def __str__(self):
         return '(join)'
 
+    def can_remove(self):
+        return False
+
+    def can_insert(self):
+        return True
+
     def generate(self, gen, mach):
         gen.declare_signals(self.get_id(), mach.word_size)
 

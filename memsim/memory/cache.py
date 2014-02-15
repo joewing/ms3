@@ -1,4 +1,3 @@
-
 from memsim import lex, machine, parser, util
 from memsim.memory import base, cacti, container, xilinx
 

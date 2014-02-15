@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import random
 from StringIO import StringIO
@@ -8,7 +7,6 @@ from optimizer import Optimizer
 from memsim import lex, memory
 from memsim.memory import (
     cache,
-    join,
     offset,
     prefetch,
     spm,
@@ -96,7 +94,10 @@ class MemoryOptimizer(Optimizer):
         """
         assert(index >= 0)
         if index == 0:
-            return self.create_memory(dist, mem, max_cost, False)
+            if mem.can_insert():
+                return self.create_memory(dist, mem, max_cost, False)
+            else:
+                return mem
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
@@ -124,12 +125,10 @@ class MemoryOptimizer(Optimizer):
         assert(index >= 0)
         n = mem.get_next()
         if index == 0:
-            if n is None:
+            if n is not None and mem.can_remove():
+                return n
+            else:
                 return mem
-            for b in mem.get_banks():
-                if not isinstance(b, join.Join):
-                    return mem
-            return n
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
@@ -138,11 +137,11 @@ class MemoryOptimizer(Optimizer):
             return mem
         t = nc + 1
         banks = mem.get_banks()
-        for i in xrange(len(banks)):
-            c = banks[i].count()
+        for i, bank, in enumerate(banks):
+            c = bank.count()
             if index < t + c:
                 mem.push_transform(i, dist)
-                updated = self.remove(dist, banks[i], index - t)
+                updated = self.remove(dist, bank, index - t)
                 mem.set_bank(i, updated)
                 mem.pop_transform(dist)
                 return mem

@@ -1,6 +1,8 @@
-
 from memsim.access import AccessType
 from memsim import parser
+
+
+constructors = dict()
 
 
 class Benchmark(object):
@@ -12,6 +14,7 @@ class Benchmark(object):
         self.word_size = word_size
         self.offset = 0
         self.directory = ''
+        self.max_addr = 0
 
     def read(self, addr):
         """Generate a read."""
@@ -54,15 +57,20 @@ class Benchmark(object):
         """
         return False
 
+    def get_size(self):
+        """Get the address range of the benchmark in bytes."""
+        if self.max_addr == 0:
+            for t, addr, size in self.run():
+                if t == AccessType.READ or t == AccessType.WRITE:
+                    self.max_addr = max(self.max_addr, addr + size - 1)
+        return self.max_addr
+
     def run(self):
         """Run the benchmark.
             Note that the results of a benchmark should be deterministic.
             This function should use 'yield' memory accesses.
         """
         assert(False)
-
-
-constructors = dict()
 
 
 def parse_benchmark(lexer):

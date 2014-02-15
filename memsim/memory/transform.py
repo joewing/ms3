@@ -94,6 +94,9 @@ class Transform(container.Container):
         assert(i == 0)
         self.bank = b
 
+    def can_remove(self):
+        return isinstance(self.bank, join.Join)
+
     def get_transform_path_length(self):
         """Get the path length through the transform."""
         assert(False)

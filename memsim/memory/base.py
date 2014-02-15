@@ -1,8 +1,8 @@
-
 import copy
 from functools import reduce
+from abc import ABCMeta, abstractmethod
 
-from memsim import lex, parser
+from memsim import parser
 
 
 # Constructors used by the parser to construct memories.
@@ -22,6 +22,7 @@ class MemoryPort(object):
 
 class Memory(object):
     """The abstract base class for all memory components."""
+    __metaclass__ = ABCMeta
 
     def __init__(self):
         global next_memory_id
@@ -33,6 +34,17 @@ class Memory(object):
         """Get the name of this memory subsystem."""
         return str(self)
 
+    @abstractmethod
+    def can_remove(self):
+        """Determine if this memory component can be removed."""
+        return False
+
+    @abstractmethod
+    def can_insert(self):
+        """Determine if we can insert before this component."""
+        return False
+
+    @abstractmethod
     def generate(self, gen, mach):
         """Generate the HDL model for this memory."""
         pass
@@ -137,6 +149,7 @@ class Memory(object):
         if self.get_next():
             self.get_next().reset(machine)
 
+    @abstractmethod
     def process(self, start, write, addr, size):
         """Process a memory access operation.
             This function will return the number of cycles until the
@@ -156,49 +169,6 @@ class Memory(object):
             result for the memory subsystem.
         """
         return 0
-
-
-class MemoryList(object):
-
-    def __init__(self, main_memory):
-        self.main_memory = main_memory
-        self.memories = []
-
-    def __len__(self):
-        return len(self.memories)
-
-    def __str__(self):
-        result = '(main ' + str(self.main_memory) + ')'
-        for m in self.memories:
-            result += ' ' + m.get_name()
-        return result
-
-    def clone(self):
-        return copy.deepcopy(self)
-
-    def add_memory(self, mem=None):
-        mem = mem.set_main(self.main_memory) if mem else self.main_memory
-        self.memories.append(mem)
-
-    def get_cost(self):
-        costs = map(lambda m: m.get_total_cost(), self.memories)
-        return reduce(lambda x, y: x + y, costs, 0)
-
-    def get_max_path_length(self):
-        return max(map(lambda m: m.get_path_length(), self.memories))
-
-    def reset(self, machine):
-        for m in self.memories:
-            m.reset(machine)
-
-    def simplified(self):
-        """Return a simplified version of this memory list.
-            This does not mutate the original memory list.
-        """
-        new = self.clone()
-        for i in xrange(len(new.memories)):
-            new.memories[i] = new.memories[i].simplify()
-        return new
 
 
 def send_request(mem, start, write, addr, size):
@@ -223,17 +193,3 @@ def send_request(mem, start, write, addr, size):
 
 def parse_memory(lexer):
     return parser.parse(lexer, constructors)
-
-
-def parse_memory_list(lexer):
-    lexer.match(lex.TOKEN_OPEN)
-    value = lexer.get_value()
-    lexer.match(lex.TOKEN_LITERAL)
-    if value != 'main':
-        raise lex.ParseError(lexer, "expected 'main' got '" + value + "'")
-    main = parse_memory(lexer)
-    lexer.match(lex.TOKEN_CLOSE)
-    ml = MemoryList(main)
-    while lexer.get_type() == lex.TOKEN_OPEN:
-        ml.add_memory(parse_memory(lexer))
-    return ml

@@ -1,8 +1,9 @@
-from memsim.memory.base import (Memory, MemoryList,
-                                parse_memory, parse_memory_list)
+from memsim.memory.base import Memory, parse_memory
 assert Memory
-assert MemoryList
 assert parse_memory
+
+from memsim.memory.memlist import MemoryList, parse_memory_list
+assert MemoryList
 assert parse_memory_list
 
 # Import components to register them with the parser.

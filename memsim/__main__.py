@@ -118,7 +118,7 @@ def get_initial_memory(db, m, dists, directory):
     dist_index = 0
     for f in m.fifos:
         pl.add_fifo(f)
-        ml.add_memory(stats.Stats(dists[dist_index], main))
+        ml.add_fifo(stats.Stats(dists[dist_index], main))
         dist_index += 1
     for i, b in enumerate(m.benchmarks):
         pl.add_benchmark(b, size)

@@ -1,5 +1,4 @@
-
-from memsim.memory import base
+from memsim.memory import base, join
 
 
 class Container(base.Memory):
@@ -8,6 +7,12 @@ class Container(base.Memory):
     def __init__(self, mem):
         base.Memory.__init__(self)
         self.mem = mem
+
+    def can_remove(self):
+        return all(map(lambda b: isinstance(b, join.Join), self.get_banks()))
+
+    def can_insert(self):
+        return True
 
     def get_next(self):
         return self.mem

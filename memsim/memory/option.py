@@ -12,6 +12,15 @@ class Option(base.Memory):
     def __str__(self):
         return str(self.options[self.index])
 
+    def can_remove(self):
+        return False
+
+    def can_insert(self):
+        return True
+
+    def generate(self, gen, mach):
+        self.options[self.index].generate(gen, mach)
+
     def get_name(self):
         return self.options[self.index].get_name()
 

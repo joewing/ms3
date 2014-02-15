@@ -1,6 +1,5 @@
-
 from memsim import parser
-from memsim.memory import base, join
+from memsim.memory import base, container, join
 
 
 def random_split(machine, nxt, rand, cost):
@@ -11,13 +10,12 @@ def random_split(machine, nxt, rand, cost):
     return result if result.get_cost() <= cost else None
 
 
-class Split(base.Memory):
+class Split(container.Container):
 
     def __init__(self, bank0, bank1, mem, offset):
-        base.Memory.__init__(self)
+        container.Container.__init__(self, mem)
         self.bank0 = bank0
         self.bank1 = bank1
-        self.mem = mem
         self.offset = offset
         join.set_parent(bank0, self)
         join.set_parent(bank1, self)
