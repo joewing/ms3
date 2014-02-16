@@ -1,13 +1,12 @@
-
 import unittest
 
-from memsim.distribution import Distribution
+from memsim.memdist import MemoryDistribution
 
 
-class MockDistribution(Distribution):
+class MockDistribution(MemoryDistribution):
 
     def __init__(self):
-        Distribution.__init__(self, 0)
+        MemoryDistribution.__init__(self, 0)
         self.index = 0
 
     def randint(self, a, b):
@@ -19,7 +18,7 @@ class MockDistribution(Distribution):
         return result
 
 
-class TestDistribution(unittest.TestCase):
+class TestMemoryDistribution(unittest.TestCase):
 
     def test_range(self):
         dist = MockDistribution()

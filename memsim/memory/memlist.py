@@ -19,7 +19,7 @@ class MemoryList(object):
         for m in self.memories:
             result += ' ' + m.get_name()
         for size, fifo in self.fifos:
-            result += ' (fifo (size ' + size + ')'
+            result += ' (fifo (size ' + str(size) + ')'
             result += fifo.get_name() + ')'
         return result
 

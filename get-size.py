@@ -3,7 +3,7 @@ from __future__ import print_function
 import optparse
 import sys
 
-from memsim import distribution, lex, memory, model
+from memsim import memdist, lex, memory, model
 from memsim.memory import stats
 from memsim.sim import evaluate
 
@@ -32,7 +32,7 @@ def main():
     dists = []
     ml = memory.MemoryList(m.memory)
     for b in m.benchmarks:
-        dist = distribution.Distribution(1)
+        dist = memdist.MemoryDistribution(1)
         dists.append(dist)
         ml.add_memory(stats.Stats(dist, m.memory))
     evaluate(m, ml, options.directory)
