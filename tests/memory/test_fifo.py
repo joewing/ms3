@@ -1,9 +1,8 @@
-
 from unittest import TestCase
 from mock import Mock
 
 from memsim.machine import MachineType
-from memsim.sim.fifo import FIFO
+from memsim.memory.fifo import FIFO
 
 
 class TestFIFO(TestCase):
@@ -13,9 +12,9 @@ class TestFIFO(TestCase):
         self.mem = Mock()
         self.mem.machine = mach
         self.mem.process.return_value = 123
-        self.fifo = FIFO(1, 16, 4)
+        self.fifo = FIFO(1, self.mem, 4, 16)
         self.fifo.set_offset(8)
-        self.fifo.reset(mach, self.mem)
+        self.fifo.reset(mach)
 
     def test_basic(self):
         fifo = self.fifo

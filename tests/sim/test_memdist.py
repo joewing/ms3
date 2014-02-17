@@ -1,6 +1,6 @@
 import unittest
 
-from memsim.memdist import MemoryDistribution
+from memsim.sim.memdist import MemoryDistribution
 
 
 class MockDistribution(MemoryDistribution):

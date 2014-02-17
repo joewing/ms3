@@ -1,6 +1,8 @@
 import unittest
 
 from memsim import access, machine, memory, sim
+from memsim.memory.fifo import FIFO
+from memsim.memory.subsystem import Subsystem
 from tests import mocks
 
 
@@ -19,15 +21,15 @@ class TestProcess(unittest.TestCase):
         mem = mocks.MockMemory()
         mach = machine.MachineType()
         ml = memory.MemoryList(mem)
-        ml.add_memory()
+        ml.add_memory(Subsystem(1, mem))
+        ml.add_memory(FIFO(1, mem, 8, 128))
+        ml.add_memory(FIFO(2, mem, 8, 256))
         pl = sim.ProcessList(mach, '.')
-        pl.add_benchmark(mocks.MockBenchmark(actions), 0)
-        pl.add_fifo(sim.fifo.FIFO(1, 128, 8))
-        pl.add_fifo(sim.fifo.FIFO(2, 256, 8))
+        pl.add_benchmark(mocks.MockBenchmark(actions))
         p = pl.processes[0]
-        p.reset(mach, mem)
-        pl.fifos[1].reset(mach, mem)
-        pl.fifos[2].reset(mach, mem)
+        p.reset(mach, mem, 0)
+        ml.get_fifo(1).reset(mach)
+        ml.get_fifo(2).reset(mach)
 
         t = p.step()    # Read
         self.assertEqual(t, 400)

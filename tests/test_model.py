@@ -31,7 +31,7 @@ class TestModel(TestCase):
 
     def test_parse(self):
         to_parse = '(machine (word_size 2))'
-        to_parse += '(memory (main (ram)))'
+        to_parse += '(memory (main (memory (ram))))'
         to_parse += '(benchmarks (mm) (heap))'
         l = Lexer(StringIO(to_parse))
         m = parse_model(l)

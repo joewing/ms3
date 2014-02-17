@@ -15,17 +15,19 @@ class TestMemsim(unittest.TestCase):
 
     def test_get_initial_memory1(self):
 
+        mem_str = '(main (memory (ram (latency 100))))'
+
         mock_model = Mock()
         mock_model.memory = MockMemory()
         mock_db = Mock()
-        mock_db.get_best.return_value = '(main (ram))', 10, 20
+        mock_db.get_best.return_value = mem_str, 10, 20
         mock_db.load.return_value = {'use_prefetch': True}
         dist = Mock()
 
         result = get_initial_memory(mock_db, mock_model, dist, '.')
 
         self.assertEqual(len(result), 3)
-        self.assertEqual(str(result[0]), '(main (ram (latency 100)))')
+        self.assertEqual(str(result[0]), mem_str)
         self.assertEqual(result[1], 10)
         self.assertEqual(result[2], True)
         dist.load.assert_called_once_with({'use_prefetch': True})
@@ -39,14 +41,15 @@ class TestMemsim(unittest.TestCase):
         mock_model = Mock()
         mock_model.machine = MachineType()
         mock_model.benchmarks = [MockBenchmark()]
-        mock_model.fifos = []
         mock_model.memory = MemoryList(MockMemory())
         dist = Mock()
 
         result = get_initial_memory(mock_db, mock_model, dist, '.')
 
         self.assertEqual(len(result), 3)
-        self.assertEqual(str(result[0]), '(main (mock)) (mock)')
+        expected = '(main (memory (mock)))'
+        expected += ' (subsystem (id 1)(memory (stats (mock))))'
+        self.assertEqual(str(result[0]), expected)
         self.assertEqual(result[1], 0)
         self.assertEqual(result[2], False)
 

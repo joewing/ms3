@@ -1,7 +1,8 @@
-
 import unittest
+import random
 
-from memsim import distribution, lex, machine, memory, vhdl
+from memsim import lex, machine, memory, vhdl
+from memsim.sim.memdist import MemoryDistribution
 from memsim.memory.spm import SPM, random_spm
 from tests import mocks
 
@@ -41,14 +42,14 @@ class TestSPM(unittest.TestCase):
         self.machine.time += t
 
     def test_random(self):
-        dist = distribution.Distribution(1)
+        dist = MemoryDistribution(random.Random(1))
         s = random_spm(self.machine, self.main, dist, 8193)
         self.assertEqual(str(s), '(spm (size 1024)(memory (mock)))')
 
     def test_permute(self):
         s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
         s.reset(self.machine)
-        dist = distribution.Distribution(1)
+        dist = MemoryDistribution(random.Random(1))
         result = s.permute(dist, 5)
         self.assertEqual(result, False)
         result = s.permute(dist, 10000)

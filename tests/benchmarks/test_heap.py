@@ -130,7 +130,7 @@ class TestHeap(unittest.TestCase):
         self.assertEqual(size, 0)
 
     def test_heap2(self):
-        h = Heap(1, 1, -1, -1)
+        h = Heap(1, 1, 1, -1, -1)
         h.reset(1024, '')
         gen = h.run()
 

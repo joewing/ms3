@@ -20,7 +20,7 @@ class MockFile(object):
 class MockBenchmark(benchmarks.Benchmark):
 
     def __init__(self, seq=[], word_size=4):
-        benchmarks.Benchmark.__init__(self, word_size)
+        benchmarks.Benchmark.__init__(self, 1, word_size)
         self.seq = seq
 
     def run(self):
@@ -30,6 +30,7 @@ class MockBenchmark(benchmarks.Benchmark):
 
 class MockMemory(memory.Memory):
 
+    index = 1
     last_addr = 0
     last_size = 0
     reads = 0
