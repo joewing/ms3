@@ -20,8 +20,8 @@ class MockProcessList(object):
 
     benchmarks = []
 
-    def add_benchmark(self, b, s):
-        self.benchmarks.append((b, s))
+    def add_benchmark(self, b):
+        self.benchmarks.append(b)
 
     def run(self, ml):
         return 5

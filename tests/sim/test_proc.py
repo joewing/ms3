@@ -26,10 +26,8 @@ class TestProcess(unittest.TestCase):
         ml.add_memory(FIFO(2, mem, 8, 256))
         pl = sim.ProcessList(mach, '.')
         pl.add_benchmark(mocks.MockBenchmark(actions))
+        pl.reset(ml)
         p = pl.processes[0]
-        p.reset(mach, mem, 0)
-        ml.get_fifo(1).reset(mach)
-        ml.get_fifo(2).reset(mach)
 
         t = p.step()    # Read
         self.assertEqual(t, 400)

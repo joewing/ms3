@@ -60,7 +60,7 @@ class ProcessList(object):
                     return False
         return True
 
-    def _reset(self, ml):
+    def reset(self, ml):
         self.ml = ml
         offset = 0
         self.machine.reset()
@@ -85,7 +85,7 @@ class ProcessList(object):
             ml: The MemoryList describing the memories to use.
         """
         # Reset to prepare for the simulation.
-        self._reset(ml)
+        self.reset(ml)
 
         # Run the simulation until there are no more events to process.
         while not self.heap.empty():
