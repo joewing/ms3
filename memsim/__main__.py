@@ -111,7 +111,7 @@ def get_initial_memory(db, m, dist, directory):
         fifo.set_next(stats.Stats(fd, main))
         ml.add_memory(fifo)
     for b in m.benchmarks:
-        mem = m.memory.get_subsystem(b.index)
+        mem = m.memory.get_subsystem(b.index).clone()
         sd = dist.get_subsystem_distribution(mem)
         mem.set_next(stats.Stats(sd, main))
         ml.add_memory(mem)
@@ -137,7 +137,7 @@ def get_initial_memory(db, m, dist, directory):
 
     # Return the empty memory subsystem and execution time.
     db.add_result(m, m.memory, best_value, best_cost)
-    return ml, best_value, use_prefetch
+    return m.memory, best_value, use_prefetch
 
 
 def optimize(db, mod, iterations, seed, directory):
