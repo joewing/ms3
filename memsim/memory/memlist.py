@@ -11,8 +11,8 @@ class MemoryList(object):
 
     def __init__(self, main_memory):
         self.main_memory = main_memory
-        self.subsystems = dict()    # Mapping of id -> subsystem
-        self.fifos = dict()         # Mapping of id -> fifo
+        self.subsystems = []    # Mapping of id -> subsystem
+        self.fifos = []         # Mapping of id -> fifo
 
     def __str__(self):
         result = '(main (memory ' + str(self.main_memory) + '))'
@@ -20,8 +20,17 @@ class MemoryList(object):
             result += ' ' + m.get_name()
         return result
 
+    def _insert(self, lst, index, value):
+        if index >= len(lst):
+            lst.extend([None for _ in range(index - len(lst) + 1)])
+        assert(lst[index] is None)
+        lst[index] = value
+
     def get_subsystem(self, index):
-        if index not in self.subsystems:
+        if index >= len(self.subsystems):
+            extra = index - len(self.subsystems) + 1
+            self.subsystems.extend([None for _ in range(extra)])
+        if self.subsystems[index] is None:
             self.subsystems[index] = Subsystem(index, self.main_memory)
         return self.subsystems[index]
 
@@ -29,16 +38,16 @@ class MemoryList(object):
         return self.fifos[index]
 
     def all_memories(self):
-        for m in self.subsystems.values():
+        for m in self.all_subsystems():
             yield m
-        for m in self.fifos.values():
+        for m in self.all_fifos():
             yield m
 
     def all_fifos(self):
-        return self.fifos.values()
+        return [f for f in self.fifos if f is not None]
 
     def all_subsystems(self):
-        return self.subsystems.values()
+        return [s for s in self.subsystems if s is not None]
 
     def clone(self):
         return copy.deepcopy(self)
@@ -47,9 +56,9 @@ class MemoryList(object):
         mem = mem.set_main(self.main_memory)
         index = mem.index
         if isinstance(mem, FIFO):
-            self.fifos[index] = mem
+            self._insert(self.fifos, index, mem)
         elif isinstance(mem, Subsystem):
-            self.subsystems[index] = mem
+            self._insert(self.subsystems, index, mem)
         else:
             assert(False)
 
