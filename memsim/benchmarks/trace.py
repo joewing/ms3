@@ -11,14 +11,18 @@ TRACE_SUFFIX = '.trace'
 class Trace(base.Benchmark):
     """Benchmark to replay an address trace."""
 
-    def __init__(self, name):
-        base.Benchmark.__init__(self)
+    def __init__(self, index, name):
+        base.Benchmark.__init__(self, index)
         self.name = name
         self.expr = re.compile(r'([RWMIPCX])([0-9a-fA-F]+):([0-9a-fA-F]+)')
         self.fd = None
 
     def __str__(self):
-        return ''.join(['(trace (name ', self.name, '))'])
+        result = '(trace '
+        result += '(id ' + str(self.index) + ')'
+        result += '(name ' + self.name + ')'
+        result += ')'
+        return result
 
     def run(self):
         if self.fd:
@@ -50,6 +54,7 @@ class Trace(base.Benchmark):
 
 
 def _create_trace(lexer, args):
+    index = parser.get_argument(lexer, args, 'id', 0)
     name = parser.get_argument(lexer, args, 'name', 'input')
-    return Trace(name)
+    return Trace(index, name)
 base.constructors['trace'] = _create_trace

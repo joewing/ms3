@@ -10,7 +10,7 @@ from tests import mocks
 class TestHash(unittest.TestCase):
 
     def test_hash(self):
-        h = Hash(1, 2, 1, 2)
+        h = Hash(7, 1, 2, 1, 2)
         h.reset(1024, '')
         gen = h.run()
 
@@ -41,7 +41,7 @@ class TestHash(unittest.TestCase):
         self.assertEqual(addr, 2)
 
     def test_parse(self):
-        s = "(hash (seed 3)(count 10)(input_port 5)(output_port 6))"
+        s = "(hash (id 2)(seed 3)(count 10)(input_port 5)(output_port 6))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

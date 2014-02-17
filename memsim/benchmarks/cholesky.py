@@ -6,8 +6,8 @@ from memsim.benchmarks import base
 class Cholesky(base.Benchmark):
     """Benchmark to simulate Cholesky factorization."""
 
-    def __init__(self, size, input_port, output_port):
-        base.Benchmark.__init__(self)
+    def __init__(self, index, size, input_port, output_port):
+        base.Benchmark.__init__(self, index)
         self.size = size
         self.input_port = input_port
         self.output_port = output_port
@@ -29,8 +29,9 @@ class Cholesky(base.Benchmark):
 
 
 def _create_cholesky(lexer, args):
+    index = parser.get_argument(lexer, args, 'id', 0)
     size = parser.get_argument(lexer, args, 'size', 128)
     input_port = parser.get_argument(lexer, args, 'input_port', -1)
     output_port = parser.get_argument(lexer, args, 'output_port', -1)
-    return Cholesky(size, input_port, output_port)
+    return Cholesky(index, size, input_port, output_port)
 base.constructors['cholesky'] = _create_cholesky

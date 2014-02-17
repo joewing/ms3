@@ -20,15 +20,15 @@ class TestMemsim(unittest.TestCase):
         mock_db = Mock()
         mock_db.get_best.return_value = '(main (ram))', 10, 20
         mock_db.load.return_value = {'use_prefetch': True}
-        dists = [Mock()]
+        dist = Mock()
 
-        result = get_initial_memory(mock_db, mock_model, dists, '.')
+        result = get_initial_memory(mock_db, mock_model, dist, '.')
 
         self.assertEqual(len(result), 3)
         self.assertEqual(str(result[0]), '(main (ram (latency 100)))')
         self.assertEqual(result[1], 10)
         self.assertEqual(result[2], True)
-        dists[0].load.assert_called_once_with({'use_prefetch': True}, 0)
+        dist.load.assert_called_once_with({'use_prefetch': True})
         mock_db.get_best.assert_called_once_with(mock_model)
         mock_db.load.assert_called_once_with(mock_model)
 
@@ -41,9 +41,9 @@ class TestMemsim(unittest.TestCase):
         mock_model.benchmarks = [MockBenchmark()]
         mock_model.fifos = []
         mock_model.memory = MemoryList(MockMemory())
-        dists = [Mock()]
+        dist = Mock()
 
-        result = get_initial_memory(mock_db, mock_model, dists, '.')
+        result = get_initial_memory(mock_db, mock_model, dist, '.')
 
         self.assertEqual(len(result), 3)
         self.assertEqual(str(result[0]), '(main (mock)) (mock)')

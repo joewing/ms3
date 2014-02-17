@@ -1,7 +1,6 @@
-
 import unittest
 
-from memsim.distribution import Distribution
+from memsim.sim.memdist import MemoryDistribution
 from memsim.memopt import MemoryOptimizer
 from memsim.machine import MachineType
 from memsim.memory import MemoryList
@@ -14,7 +13,7 @@ class TestMemoryOptimizer(unittest.TestCase):
     def setUp(self):
         self.model = Model()
         self.model.machine = MachineType(word_size=8, addr_bits=32)
-        self.rand = Distribution(1)
+        self.rand = MemoryDistribution(1)
         self.ml = MemoryList([])
         self.optimizer = MemoryOptimizer(self.model, self.ml, None, None)
         self.optimizer.constructors = [self.mocks_constructor]

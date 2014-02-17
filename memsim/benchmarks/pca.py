@@ -1,12 +1,12 @@
-
 from memsim import parser
 from memsim.benchmarks import base
 
 
 class PCA(base.Benchmark):
 
-    def __init__(self, size, count, iterations, input_port, output_port):
-        base.Benchmark.__init__(self)
+    def __init__(self, index, size, count, iterations,
+                 input_port, output_port):
+        base.Benchmark.__init__(self, index)
         self.size = size
         self.count = count
         self.iterations = iterations
@@ -15,6 +15,7 @@ class PCA(base.Benchmark):
 
     def __str__(self):
         result = '(pca '
+        result += '(id ' + str(self.index) + ')'
         result += '(size ' + str(self.size) + ')'
         result += '(count ' + str(self.count) + ')'
         result += '(iterations ' + str(self.iterations) + ')'
@@ -65,10 +66,11 @@ class PCA(base.Benchmark):
 
 
 def _create_pca(lexer, args):
+    index = parser.get_argument(lexer, args, 'id', 0)
     size = parser.get_argument(lexer, args, 'size', 64)
     count = parser.get_argument(lexer, args, 'count', 16)
     iterations = parser.get_argument(lexer, args, 'iterations', 1)
     input_port = parser.get_argument(lexer, args, 'input_port', -1)
     output_port = parser.get_argument(lexer, args, 'output_port', -1)
-    return PCA(size, count, iterations, input_port, output_port)
+    return PCA(index, size, count, iterations, input_port, output_port)
 base.constructors['pca'] = _create_pca

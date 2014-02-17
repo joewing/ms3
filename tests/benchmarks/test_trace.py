@@ -24,7 +24,7 @@ class TestTrace(unittest.TestCase):
                 f.write("C2:0\n")
                 f.write("X3:0\n")
             name = re.sub(r'.trace', '', file_name)
-            trace = Trace(name)
+            trace = Trace(1, name)
             trace.reset(0, '')
             output = trace.run()
 
@@ -69,7 +69,7 @@ class TestTrace(unittest.TestCase):
             os.remove(file_name)
 
     def test_parse(self):
-        s = "(trace (name test))"
+        s = "(trace (id 3)(name test))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

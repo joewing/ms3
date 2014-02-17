@@ -13,7 +13,8 @@ class Benchmark(object):
     """
     __metaclass__ = ABCMeta
 
-    def __init__(self, word_size=4):
+    def __init__(self, index, word_size=4):
+        self.index = index
         self.word_size = word_size
         self.offset = 0
         self.directory = ''

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import random
 
@@ -8,14 +7,15 @@ from memsim.benchmarks import base
 
 class Maze(base.Benchmark):
 
-    def __init__(self, width, height, seed):
-        base.Benchmark.__init__(self, word_size=1)
+    def __init__(self, index, width, height, seed):
+        base.Benchmark.__init__(self, index, word_size=1)
         self.width = width * 2 + 1
         self.height = height * 2 + 1
         self.seed = seed
 
     def __str__(self):
         result = '(maze '
+        result += '(id ' + str(self.index) + ')'
         result += '(seed ' + str(self.seed) + ')'
         result += '(width ' + str(self.width // 2) + ')'
         result += '(height ' + str(self.height // 2) + ')'
@@ -84,8 +84,9 @@ class Maze(base.Benchmark):
 
 
 def _create_maze(lexer, args):
+    index = parser.get_argument(lexer, args, 'id', 0)
     width = parser.get_argument(lexer, args, 'width', 32)
     height = parser.get_argument(lexer, args, 'height', 32)
     seed = parser.get_argument(lexer, args, 'seed', 5)
-    return Maze(width, height, seed)
+    return Maze(index, width, height, seed)
 base.constructors['maze'] = _create_maze

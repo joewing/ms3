@@ -1,4 +1,3 @@
-
 import unittest
 
 from memsim import benchmarks, lex
@@ -10,7 +9,7 @@ from tests import mocks
 class TestQSort(unittest.TestCase):
 
     def test_qsort1(self):
-        q = QSort(7, 2, 3, 4)
+        q = QSort(8, 7, 2, 3, 4)
         q.reset(1024, '')
         gen = q.run()
 
@@ -36,14 +35,14 @@ class TestQSort(unittest.TestCase):
             self.assertEqual(actual, e)
 
     def test_qsort2(self):
-        q = QSort(3, 64, -1, -1)
+        q = QSort(7, 3, 64, -1, -1)
         q.reset(1024, '')
         for _ in q.run():
             pass
         self.assertEqual(sorted(q.array), q.array)
 
     def test_parse(self):
-        s = "(qsort (seed 3)(size 16)(input_port 1)(output_port 2))"
+        s = "(qsort (id 9)(seed 3)(size 16)(input_port 1)(output_port 2))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

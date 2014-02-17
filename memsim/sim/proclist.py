@@ -9,39 +9,19 @@ class ProcessList(object):
         """Initialize the process list.
 
         Arguments:
-            machine: The MachineType instance to use.
-            directory: The directory containing trace data.
+            machine:    The MachineType instance to use.
+            directory:  The directory containing trace data.
         """
         self.heap = priorityqueue.PriorityQueue()
         self.machine = machine
-        self.processes = []
         self.directory = directory
-        self.address_offset = 0
-        self.fifos = dict()     # Mapping of FIFO index to FIFO.
+        self.processes = []
+        self.ml = None
 
-    def add_benchmark(self, benchmark, size):
-        """Add a process for the specified benchmark.
-
-        Arguments:
-            benchmark: The benchmark to add.
-            size: The amount of memory to allocate for the benchmark.
-        """
-        offset = self.address_offset
-        self.address_offset += size
-        proc = Process(self, benchmark, offset, self.directory)
+    def add_benchmark(self, benchmark):
+        """Create a process for the specified benchmark."""
+        proc = Process(self, benchmark, self.directory)
         self.processes.append(proc)
-
-    def add_fifo(self, f):
-        """Add a simulated FIFO.
-
-        Arguments:
-            index: The FIFO index (used in traces).
-            f: The FIFO.
-        """
-        offset = self.address_offset
-        self.address_offset += f.total_size()
-        f.set_offset(offset)
-        self.fifos[f.index] = f
 
     def has_delay(self):
         """Determine if there are blocking operations.
@@ -55,26 +35,46 @@ class ProcessList(object):
 
         Returns the access cycle count or -1 if full.
         """
-        return self.fifos[index].produce()
+        fifo = self.ml.get_fifo(index)
+        return fifo.produce()
 
     def consume(self, index):
         """Consume a value from the specified FIFO (0 based).
 
         Returns the access cycle count or -1 if empty.
         """
-        return self.fifos[index].consume()
+        fifo = self.ml.get_fifo(index)
+        return fifo.consume()
 
-    def is_deadlocked(self):
+    def _is_deadlocked(self):
         for p in self.heap.values():
             if p.consume_waiting < 0 and p.produce_waiting < 0:
                 return False
             if p.consume_waiting >= 0:
-                if not self.fifos[p.consume_waiting].is_empty():
+                fifo = self.ml.get_fifo(p.consume_waiting)
+                if not fifo.is_empty():
                     return False
             elif p.produce_waiting >= 0:
-                if not self.fifos[p.produce_waiting].is_full():
+                fifo = self.ml.get_fifo(p.produce_waiting)
+                if not fifo.is_full():
                     return False
         return True
+
+    def _reset(self, ml):
+        self.ml = ml
+        offset = 0
+        self.machine.reset()
+        for f in self.ml.all_fifos():
+            f.set_offset(offset)
+            f.reset(self.machine)
+            offset += f.total_size()
+        for p in self.processes:
+            index = p.benchmark.index
+            mem = ml.get_subsystem(index)
+            p.reset(self.machine, mem, offset)
+            self.heap.push(0, p)
+            offset += p.benchmark.get_size()
+        assert(offset < (1 << self.machine.addr_bits))
 
     def run(self, ml):
         """Run a simulation.
@@ -83,15 +83,7 @@ class ProcessList(object):
             ml: The MemoryList describing the memories to use.
         """
         # Reset to prepare for the simulation.
-        memory_index = 0
-        self.machine.reset()
-        for f in self.fifos.values():
-            f.reset(self.machine, ml.memories[memory_index])
-            memory_index += 1
-        for p in self.processes:
-            p.reset(self.machine, ml.memories[memory_index])
-            self.heap.push(0, p)
-            memory_index += 1
+        self._reset(ml)
 
         # Run the simulation until there are no more events to process.
         while not self.heap.empty():
@@ -102,8 +94,8 @@ class ProcessList(object):
                 delta = p.step()
                 if delta >= 0:
                     next_time = self.machine.time + delta
-                elif not self.heap.empty() and not self.is_deadlocked():
-                    next_time = self.heap.key() + 100
+                elif not self.heap.empty() and not self._is_deadlocked():
+                    next_time = self.heap.key() + 1
                 else:
                     break
                 self.heap.push(next_time, p)

@@ -10,7 +10,7 @@ from tests import mocks
 class TestMM(unittest.TestCase):
 
     def test_mm1(self):
-        m = MM(2, 1, 3, 4)
+        m = MM(5, 2, 1, 3, 4)
         m.reset(1024, '')
         gen = m.run()
 
@@ -53,7 +53,7 @@ class TestMM(unittest.TestCase):
             self.assertEqual(actual, e)
 
     def test_mm2(self):
-        m = MM(1, 1, -1, -1)
+        m = MM(4, 1, 1, -1, -1)
         m.reset(1024, '')
         gen = m.run()
 
@@ -67,7 +67,7 @@ class TestMM(unittest.TestCase):
             self.assertEqual(actual, e)
 
     def test_parse(self):
-        s = "(mm (size 2)(iterations 1)(input_port 3)(output_port 4))"
+        s = "(mm (id 8)(size 2)(iterations 1)(input_port 3)(output_port 4))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

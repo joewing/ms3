@@ -1,5 +1,4 @@
 from memsim import benchmarks, lex, machine, memory
-from memsim.sim import fifo
 
 
 class Model(object):
@@ -8,7 +7,6 @@ class Model(object):
         self.machine = machine.MachineType()
         self.memory = None
         self.benchmarks = []
-        self.fifos = []         # FIFO sizes.
 
     def __str__(self):
         result = []
@@ -18,12 +16,6 @@ class Model(object):
         for b in self.benchmarks:
             result += str(b)
         result += ')'
-        if self.fifos:
-
-            result += '(fifos '
-            for f in self.fifos:
-                result += str(f)
-            result += ')'
         return ''.join(result)
 
 
@@ -49,8 +41,6 @@ def parse_model(lexer, model=None):
             model.memory = memory.parse_memory_list(lexer)
         elif name == 'benchmarks':
             model.benchmarks = _parse_benchmarks(lexer)
-        elif name == 'fifos':
-            model.fifos = _parse_fifos(lexer)
         elif name == 'include':
             value = lexer.get_value()
             lexer.match(lex.TOKEN_LITERAL)
@@ -72,16 +62,3 @@ def _parse_benchmarks(lexer):
     while lexer.get_type() == lex.TOKEN_OPEN:
         bms.append(benchmarks.parse_benchmark(lexer))
     return bms
-
-
-def _parse_fifos(lexer):
-    fifos = []
-    while lexer.get_type() == lex.TOKEN_OPEN:
-        lexer.match(lex.TOKEN_OPEN)
-        name = lexer.get_value()
-        if name != 'fifo':
-            lex.ParseError(lexer, 'invalid FIFO type: ' + name)
-        lexer.match(lex.TOKEN_LITERAL)
-        fifos.append(fifo.parse_fifo(lexer))
-        lexer.match(lex.TOKEN_CLOSE)
-    return fifos

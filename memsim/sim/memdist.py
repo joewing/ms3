@@ -1,21 +1,24 @@
-from distribution import Distribution
+from memsim.sim.dist import BaseDistribution
 
 
-class MemoryDistribution(Distribution):
+class MemoryDistribution(BaseDistribution):
 
-    def __init__(self, seed):
-        Distribution.__init__(self, seed)
+    # Minimum range size in bytes.
+    min_size = 1024
+
+    def __init__(self, rand):
+        BaseDistribution.__init__(self, rand)
 
         # List of ranges, which are pairs of the form (start, length).
         self.ranges = []
 
     def load(self, state, index):
-        temp = state.get('distribution' + str(index))
+        temp = state.get('memdist' + str(index))
         if temp is not None:
-            self.ranges = state.get('distribution' + str(index))
+            self.ranges = state.get('memdist' + str(index))
 
     def save(self, state, index):
-        state['distribution' + str(index)] = self.ranges
+        state['memdist' + str(index)] = self.ranges
 
     def is_empty(self):
         return len(self.ranges) == 0

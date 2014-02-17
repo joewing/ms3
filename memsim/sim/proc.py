@@ -7,18 +7,16 @@ from memsim.access import AccessType
 class Process(object):
     """Class to represent processes that perform memory accesses."""
 
-    def __init__(self, pl, benchmark, offset, directory):
+    def __init__(self, pl, benchmark, directory):
         """Initialize a process.
 
         Arguments:
-            pl: the ProcessList that owns this process.
-            benchmark: the Benchmark to generate the memory accesses.
-            offset: Address offset for memory accesses.
-            directory: Data directory.
+            pl:         The ProcessList that owns this process.
+            benchmark:  The Benchmark to generate the memory accesses.
+            directory:  Data directory.
         """
         self.pl = pl
         self.benchmark = benchmark
-        self.offset = offset
         self.directory = directory
         self.mem = None
         self.machine = None
@@ -30,18 +28,19 @@ class Process(object):
         """Determine if prefetching would be beneficial."""
         return self.delay
 
-    def reset(self, machine, mem):
+    def reset(self, machine, mem, offset):
         """Reset this process for the next simulation.
 
         Arguments:
             machine is the MachineType to use.
             mem is the memory subsystem.
+            offset is the offset for memory accesses
         """
-        self.mem = mem
         self.machine = machine
+        self.mem = mem
         self.consume_waiting = -1
         self.produce_waiting = -1
-        self.benchmark.reset(self.offset, self.directory)
+        self.benchmark.reset(offset, self.directory)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)
 

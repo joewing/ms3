@@ -10,7 +10,7 @@ from tests import mocks
 class TestMaze(unittest.TestCase):
 
     def test_maze1(self):
-        m = Maze(2, 2, 3)
+        m = Maze(1, 2, 2, 3)
         m.reset(1024, '')
         gen = m.run()
 
@@ -56,7 +56,7 @@ class TestMaze(unittest.TestCase):
             self.assertEqual(actual, e)
 
     def test_parse(self):
-        s = "(maze (seed 1)(width 2)(height 3))"
+        s = "(maze (id 1)(seed 1)(width 2)(height 3))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

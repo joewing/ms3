@@ -1,4 +1,4 @@
-
+from memsim import parser
 from memsim.memory import base
 
 
@@ -29,3 +29,8 @@ class MainMemory(base.Memory):
     def generate(self, gen, mach):
         name = self.get_id()
         gen.declare_signals(name, mach.word_size)
+
+
+def _create_main(lexer, args):
+    return parser.get_argument(lexer, args, 'memory')
+base.constructors['main'] = _create_main

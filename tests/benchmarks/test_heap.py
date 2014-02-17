@@ -10,7 +10,7 @@ from tests import mocks
 class TestHeap(unittest.TestCase):
 
     def test_heap1(self):
-        h = Heap(1, 2, 3, 4)
+        h = Heap(0, 1, 2, 3, 4)
         h.reset(1024, '')
         gen = h.run()
 
@@ -152,7 +152,7 @@ class TestHeap(unittest.TestCase):
             self.assertEqual(actual, e)
 
     def test_parse(self):
-        s = "(heap (seed 1)(size 2)(input_port 3)(output_port 4))"
+        s = "(heap (id 1)(seed 1)(size 2)(input_port 3)(output_port 4))"
         l = lex.Lexer(mocks.MockFile(s))
         result = benchmarks.parse_benchmark(l)
         self.assertEqual(str(result), s)

@@ -6,3 +6,6 @@ assert(Process)
 
 from .proclist import ProcessList
 assert(ProcessList)
+
+from .distlist import DistributionList
+assert(DistributionList)

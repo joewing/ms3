@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 from StringIO import StringIO
 import atexit
@@ -14,7 +13,6 @@ import threading
 
 from memsim import (
     database,
-    distribution,
     lex,
     memory,
     model,
@@ -81,7 +79,7 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
-def get_initial_memory(db, m, dists, directory):
+def get_initial_memory(db, m, dist, directory):
     """Get the initial subsystem and its total access time.
 
     This runs from a process in the process pool.
@@ -94,8 +92,7 @@ def get_initial_memory(db, m, dists, directory):
         # Load statistics from the database.
         state = db.load(m)
         use_prefetch = state['use_prefetch']
-        for i, d in enumerate(dists):
-            d.load(state, i)
+        dist.load(state)
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
@@ -105,25 +102,20 @@ def get_initial_memory(db, m, dists, directory):
     # No previous memory subsystem is stored, so we need run the
     # empty memory subsystem to collect statistics.
 
-    # Divide up the address space.
-    total_size = 1 << m.machine.addr_bits
-    fifo_size = sum([f.total_size() for f in m.fifos])
-    proc_size = total_size - fifo_size
-    size = proc_size // len(m.benchmarks)
-
     # Create a memory subsystem to collect statistics.
     main = m.memory.main_memory
     ml = memory.MemoryList(main)
     pl = sim.ProcessList(m.machine, directory)
-    dist_index = 0
-    for f in m.fifos:
-        pl.add_fifo(f)
-        ml.add_fifo(stats.Stats(dists[dist_index], main))
-        dist_index += 1
-    for i, b in enumerate(m.benchmarks):
-        pl.add_benchmark(b, size)
-        ml.add_memory(stats.Stats(dists[dist_index], main))
-        dist_index += 1
+    for fifo in [f.clone() for f in m.memory.all_fifos()]:
+        fd = dist.get_fifo_distribution(fifo)
+        fifo.set_next(stats.Stats(fd, main))
+        ml.add_memory(fifo)
+    for b in m.benchmarks:
+        mem = m.memory.get_subsystem(b.index)
+        sd = dist.get_subsystem_distribution(mem)
+        mem.set_next(stats.Stats(sd, main))
+        ml.add_memory(mem)
+        pl.add_benchmark(b)
 
     if main_context.verbose:
         print('Initial Memory: {}'.format(ml))
@@ -140,43 +132,29 @@ def get_initial_memory(db, m, dists, directory):
     state = dict()
     use_prefetch = pl.has_delay()
     state['use_prefetch'] = use_prefetch
-    for i, d in enumerate(dists):
-        d.save(state, i)
+    dist.save(state)
     db.save(m, state)
 
     # Return the empty memory subsystem and execution time.
-    ml = memory.MemoryList(main)
-    for _ in dists:
-        ml.add_memory(main)
-    db.add_result(m, ml, best_value, best_cost)
+    db.add_result(m, m.memory, best_value, best_cost)
     return ml, best_value, use_prefetch
 
 
 def optimize(db, mod, iterations, seed, directory):
 
-    # Divide up the address space.
-    total_size = 1 << mod.machine.addr_bits
-    fifo_size = sum(map(lambda f: f.total_size(), mod.fifos))
-    proc_size = total_size - fifo_size
-    size = proc_size // len(mod.benchmarks)
-
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
-    dists = []
+    dist = sim.DistributionList(seed)
     pl = sim.ProcessList(mod.machine, directory)
-    for f in mod.fifos:
-        dists.append(distribution.Distribution(seed))
-        pl.add_fifo(f)
-    for i, b in enumerate(mod.benchmarks):
-        dists.append(distribution.Distribution(seed))
-        pl.add_benchmark(b, size)
+    for b in mod.benchmarks:
+        pl.add_benchmark(b)
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t, use_prefetch = get_initial_memory(db, mod, dists, directory)
+    ml, t, use_prefetch = get_initial_memory(db, mod, dist, directory)
 
     # Perform the optimization.
-    o = MemoryOptimizer(mod, ml, seed, dists, use_prefetch)
+    o = MemoryOptimizer(mod, ml, seed, dist, use_prefetch)
     while True:
 
         # Show the best and get its value.

@@ -2,47 +2,65 @@ import copy
 
 from memsim import lex
 from memsim.memory.base import parse_memory
+from memsim.memory.main import MainMemory
+from memsim.memory.fifo import FIFO
+from memsim.memory.subsystem import Subsystem
 
 
 class MemoryList(object):
 
     def __init__(self, main_memory):
         self.main_memory = main_memory
-        self.memories = []
-        self.fifos = []
-
-    def __len__(self):
-        return len(self.memories)
+        self.subsystems = dict()    # Mapping of id -> subsystem
+        self.fifos = dict()         # Mapping of id -> fifo
 
     def __str__(self):
-        result = '(main ' + str(self.main_memory) + ')'
-        for m in self.memories:
+        result = '(main (memory ' + str(self.main_memory) + '))'
+        for m in self.all_memories():
             result += ' ' + m.get_name()
-        for size, fifo in self.fifos:
-            result += ' (fifo (size ' + str(size) + ')'
-            result += fifo.get_name() + ')'
         return result
+
+    def get_subsystem(self, index):
+        if index not in self.subsystems:
+            self.subsystems[index] = Subsystem(index, self.main_memory)
+        return self.subsystems[index]
+
+    def get_fifo(self, index):
+        return self.fifos[index]
+
+    def all_memories(self):
+        for m in self.subsystems.values():
+            yield m
+        for m in self.fifos.values():
+            yield m
+
+    def all_fifos(self):
+        return self.fifos.values()
+
+    def all_subsystems(self):
+        return self.subsystems.values()
 
     def clone(self):
         return copy.deepcopy(self)
 
-    def add_memory(self, mem=None):
-        mem = mem.set_main(self.main_memory) if mem else self.main_memory
-        self.memories.append(mem)
-
-    def add_fifo(self, mem=None):
-        mem = mem.set_main(self.main_memory) if mem else self.main_memory
-        self.fifos.append((1, mem))
+    def add_memory(self, mem):
+        mem = mem.set_main(self.main_memory)
+        index = mem.index
+        if isinstance(mem, FIFO):
+            self.fifos[index] = mem
+        elif isinstance(mem, Subsystem):
+            self.subsystems[index] = mem
+        else:
+            assert(False)
 
     def get_cost(self):
-        costs = map(lambda m: m.get_total_cost(), self.memories)
-        return reduce(lambda x, y: x + y, costs, 0)
+        return sum([m.get_total_cost() for m in self.all_memories()])
 
     def get_max_path_length(self):
-        return max(map(lambda m: m.get_path_length(), self.memories))
+        return max([m.get_path_length() for m in self.all_memories()])
 
     def reset(self, machine):
-        for m in self.memories:
+        for m in self.all_memories():
             m.reset(machine)
 
     def simplified(self):
@@ -50,20 +68,25 @@ class MemoryList(object):
             This does not mutate the original memory list.
         """
         new = self.clone()
-        for i in xrange(len(new.memories)):
-            new.memories[i] = new.memories[i].simplify()
+        for i, s in self.subsystems:
+            new.subsystems[i] = s.simplify()
+        for i, f in self.fifos:
+            new.fifos[i] = f.simplify()
         return new
 
 
 def parse_memory_list(lexer):
-    lexer.match(lex.TOKEN_OPEN)
-    value = lexer.get_value()
-    lexer.match(lex.TOKEN_LITERAL)
-    if value != 'main':
-        raise lex.ParseError(lexer, "expected 'main' got '" + value + "'")
-    main = parse_memory(lexer)
-    lexer.match(lex.TOKEN_CLOSE)
-    ml = MemoryList(main)
+    main = None
+    memories = []
     while lexer.get_type() == lex.TOKEN_OPEN:
-        ml.add_memory(parse_memory(lexer))
+        mem = parse_memory(lexer)
+        if isinstance(mem, MainMemory):
+            main = mem
+        elif isinstance(mem, FIFO) or isinstance(mem, Subsystem):
+            memories.append(mem)
+        else:
+            raise lex.ParseError(lexer, 'invalid top-level memory')
+    ml = MemoryList(main)
+    for m in memories:
+        ml.add_memory(m)
     return ml

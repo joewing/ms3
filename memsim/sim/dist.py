@@ -1,16 +1,11 @@
 from abc import ABCMeta, abstractmethod
-import random
 
 
-class Distribution(random.Random):
+class BaseDistribution(object):
     __metaclass__ = ABCMeta
 
-    # Minimum range size in bytes.
-    min_size = 1024
-
-    def __init__(self, seed):
-        random.Random.__init__(self, seed)
-        self.start_seed = seed
+    def __init__(self, rand):
+        self.rand = rand
 
         # Stack of address range limits of the form:
         # (False, lower limit, upper limit) and address transforms, which
@@ -27,10 +22,6 @@ class Distribution(random.Random):
     def save(self, state, index):
         """Save the state of this distribution object."""
         pass
-
-    def reset(self):
-        """Reset the random number generator using the original seed."""
-        self.seed(self.start_seed)
 
     @abstractmethod
     def is_empty(self):
@@ -66,6 +57,9 @@ class Distribution(random.Random):
         """Get a random address with the specified alignment."""
         pass
 
+    def randint(self, a, b):
+        return self.rand.randint(a, b)
+
     def randbool(self):
         """Generate a random boolean value."""
-        return self.randint(0, 1) == 1
+        return self.rand.randint(0, 1) == 1

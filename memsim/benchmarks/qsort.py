@@ -1,4 +1,3 @@
-
 import random
 
 from memsim import parser
@@ -8,8 +7,8 @@ from memsim.benchmarks import base
 class QSort(base.Benchmark):
     """Benchmark to simulate quick sort."""
 
-    def __init__(self, seed, size, input_port, output_port):
-        base.Benchmark.__init__(self)
+    def __init__(self, index, seed, size, input_port, output_port):
+        base.Benchmark.__init__(self, index)
         self.seed = seed
         self.size = size
         self.input_port = input_port
@@ -18,6 +17,7 @@ class QSort(base.Benchmark):
 
     def __str__(self):
         result = '(qsort '
+        result += '(id ' + str(self.index) + ')'
         result += '(seed ' + str(self.seed) + ')'
         result += '(size ' + str(self.size) + ')'
         if self.input_port >= 0:
@@ -77,9 +77,10 @@ class QSort(base.Benchmark):
 
 
 def _create_qsort(lexer, args):
+    index = parser.get_argument(lexer, args, 'id', 0)
     seed = parser.get_argument(lexer, args, 'seed', 7)
     size = parser.get_argument(lexer, args, 'size', 1024)
     input_port = parser.get_argument(lexer, args, 'input_port', -1)
     output_port = parser.get_argument(lexer, args, 'output_port', -1)
-    return QSort(seed, size, input_port, output_port)
+    return QSort(index, seed, size, input_port, output_port)
 base.constructors['qsort'] = _create_qsort
