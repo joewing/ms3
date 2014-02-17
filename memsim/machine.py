@@ -90,6 +90,11 @@ class MachineType(object):
             self.ports[port] -= 1
             return True
 
+    def align(self, addr):
+        """Align addr to the next word boundary."""
+        temp = addr & self.word_mask
+        return addr + (self.word_size - temp) if temp != 0 else addr
+
     def end(self, port):
         while len(self.ports) <= port:
             self.ports.append(0)

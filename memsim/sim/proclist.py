@@ -65,10 +65,12 @@ class ProcessList(object):
         offset = 0
         self.machine.reset()
         for f in self.ml.all_fifos():
+            offset = self.machine.align(offset)
             f.set_offset(offset)
             f.reset(self.machine)
             offset += f.total_size()
         for p in self.processes:
+            offset = self.machine.align(offset)
             index = p.benchmark.index
             mem = ml.get_subsystem(index)
             p.reset(self.machine, mem, offset)
