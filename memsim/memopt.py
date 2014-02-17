@@ -28,13 +28,11 @@ class MemoryOptimizer(Optimizer):
         xor.random_xor
     ]
 
-    def __init__(self, mod, ml, seed,
-                 distributions,
-                 use_prefetch=False):
+    def __init__(self, mod, ml, seed, dist, use_prefetch=False):
         Optimizer.__init__(self, ml)
         self.rand = random.Random(seed)
         self.model = mod
-        self.distributions = distributions
+        self.dist = dist
         ml.reset(mod.machine)
         if use_prefetch:
             self.constructors.append(prefetch.random_prefetch)
@@ -151,15 +149,6 @@ class MemoryOptimizer(Optimizer):
     def modify(self, last):
         """Modify the memory subsystem."""
 
-        # Get the set of memories to modify.
-        valid_memories = []
-        for i, d in enumerate(self.distributions):
-            if not d.is_empty():
-                valid_memories.append(i)
-        if not valid_memories:
-            print('ERROR: no memory accesses')
-            sys.exit(-1)
-
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
         max_cost = self.model.machine.max_cost - last.get_cost()
@@ -175,9 +164,12 @@ class MemoryOptimizer(Optimizer):
                 # unless it is actually used, which we determine using
                 # Distribution.is_empty.
                 current = last.clone()
-                mindex = self.rand.choice(valid_memories)
-                mem = current.memories[mindex]
-                dist = self.distributions[mindex]
+                while True:
+                    mindex = current.choice(self.rand)
+                    mem = current.get(mindex)
+                    dist = self.dist.get_distribution(mem)
+                    if not dist.is_empty():
+                        break
                 count = mem.count()
 
                 # Modify the memory.
@@ -186,7 +178,7 @@ class MemoryOptimizer(Optimizer):
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
                     if temp is not None and str(temp) != before:
-                        current.memories[mindex] = temp
+                        current.set(mindex, temp)
                         if current.get_max_path_length() <= max_path:
                             return current
                 elif action <= 2 and count > 1:  # Remove
@@ -194,7 +186,7 @@ class MemoryOptimizer(Optimizer):
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
                     if temp is not None and str(temp) != before:
-                        current.memories[mindex] = temp
+                        current.set(mindex, temp)
                         if current.get_max_path_length() <= max_path:
                             return current
                 else:   # Permute

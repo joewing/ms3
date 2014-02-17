@@ -1,5 +1,7 @@
 import random
 
+from memsim.memory.fifo import FIFO
+from memsim.memory.subsystem import Subsystem
 from memsim.sim.fifodist import FIFODistribution
 from memsim.sim.memdist import MemoryDistribution
 
@@ -11,6 +13,14 @@ class DistributionList(object):
         self.start_seed = seed
         self.fifo_dists = dict()
         self.subsystem_dists = dict()
+
+    def get_distribution(self, mem):
+        if isinstance(mem, FIFO):
+            return self.get_fifo_distribution(mem)
+        elif isinstance(mem, Subsystem):
+            return self.get_subsystem_distribution(mem)
+        else:
+            assert(False)
 
     def get_fifo_distribution(self, fifo):
         index = fifo.index
@@ -32,6 +42,6 @@ class DistributionList(object):
             dist.load(state, index)
 
     def save(self, state):
-        for index, dist in self.subsystem_dists:
+        for index, dist in self.subsystem_dists.items():
             dist.save(state, index)
         state['subsystems'] = self.subsystem_dists.keys()

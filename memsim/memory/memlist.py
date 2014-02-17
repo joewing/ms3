@@ -26,6 +26,25 @@ class MemoryList(object):
         assert(lst[index] is None)
         lst[index] = value
 
+    def choice(self, rand):
+        temp = rand.choice(list(self.all_memories()))
+        if isinstance(temp, FIFO):
+            return -temp.index
+        else:
+            return temp.index
+
+    def get(self, index):
+        if index < 0:
+            return self.get_fifo(-index)
+        else:
+            return self.get_subsystem(index)
+
+    def set(self, index, mem):
+        if index < 0:
+            self.fifos[-index] = mem
+        else:
+            self.subsystems[index] = mem
+
     def get_subsystem(self, index):
         if index >= len(self.subsystems):
             extra = index - len(self.subsystems) + 1
@@ -77,10 +96,10 @@ class MemoryList(object):
             This does not mutate the original memory list.
         """
         new = self.clone()
-        for i, s in self.subsystems:
-            new.subsystems[i] = s.simplify()
-        for i, f in self.fifos:
-            new.fifos[i] = f.simplify()
+        for s in self.all_subsystems():
+            new.subsystems[s.index] = s.simplify()
+        for f in self.all_fifos():
+            new.fifos[f.index] = f.simplify()
         return new
 
 
