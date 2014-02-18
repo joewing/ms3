@@ -1,7 +1,6 @@
 from __future__ import print_function
 import random
 from StringIO import StringIO
-import sys
 
 from optimizer import Optimizer
 from memsim import lex, memory

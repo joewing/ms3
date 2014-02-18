@@ -16,6 +16,8 @@ class ProcessList(object):
         self.machine = machine
         self.directory = directory
         self.processes = []
+        self.consumers = dict()
+        self.producers = dict()
         self.ml = None
 
     def add_benchmark(self, benchmark):
@@ -30,21 +32,31 @@ class ProcessList(object):
         """
         return any(map(lambda p: p.has_delay(), self.processes))
 
-    def produce(self, index):
+    def produce(self, p, index):
         """Produce a value on the specified FIFO (0 based).
 
         Returns the access cycle count or -1 if full.
         """
-        fifo = self.ml.get_fifo(index)
-        return fifo.produce()
+        rc = self.ml.get_fifo(index).produce()
+        if rc < 0:
+            self.producers.append((index, p))
+        elif index in self.consumers:
+            self.heap.push(self.machine.time, self.consumers[index])
+            del self.consumers[index]
+        return rc
 
-    def consume(self, index):
+    def consume(self, p, index):
         """Consume a value from the specified FIFO (0 based).
 
         Returns the access cycle count or -1 if empty.
         """
-        fifo = self.ml.get_fifo(index)
-        return fifo.consume()
+        rc = self.ml.get_fifo(index).consume()
+        if rc < 0:
+            self.consumers.append((index, p))
+        elif index in self.producers:
+            self.heap.push(self.machine.time, self.producers[index])
+            del self.producers[index]
+        return rc
 
     def _is_deadlocked(self):
         for p in self.heap.values():
@@ -96,11 +108,9 @@ class ProcessList(object):
                 delta = p.step()
                 if delta >= 0:
                     next_time = self.machine.time + delta
-                elif not self.heap.empty() and not self._is_deadlocked():
-                    next_time = self.heap.key() + 1
-                else:
+                    self.heap.push(next_time, p)
+                elif self.heap.empty() and self._is_deadlocked():
                     break
-                self.heap.push(next_time, p)
             except StopIteration:
                 pass
 

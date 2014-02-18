@@ -60,12 +60,12 @@ class Process(object):
 
         # Check if we're waiting on a FIFO.
         if self.consume_waiting >= 0:
-            temp = self.pl.consume(self.consume_waiting)
+            temp = self.pl.consume(self, self.consume_waiting)
             if temp >= 0:
                 self.consume_waiting = -1
             return temp
         if self.produce_waiting >= 0:
-            temp = self.pl.produce(self.produce_waiting)
+            temp = self.pl.produce(self, self.produce_waiting)
             if temp >= 0:
                 self.produce_waiting = -1
             return temp
@@ -81,13 +81,13 @@ class Process(object):
             return addr
         elif at == AccessType.PRODUCE:
             self.delay = True
-            temp = self.pl.produce(addr)
+            temp = self.pl.produce(self, addr)
             if temp < 0:
                 self.produce_waiting = addr
             return temp
         elif at == AccessType.CONSUME:
             self.delay = True
-            temp = self.pl.consume(addr)
+            temp = self.pl.consume(self, addr)
             if temp < 0:
                 self.consume_waiting = addr
             return temp
