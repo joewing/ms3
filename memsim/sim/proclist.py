@@ -39,7 +39,7 @@ class ProcessList(object):
         """
         rc = self.ml.get_fifo(index).produce()
         if rc < 0:
-            self.producers.append((index, p))
+            self.producers[index] = p
         elif index in self.consumers:
             self.heap.push(self.machine.time, self.consumers[index])
             del self.consumers[index]
@@ -52,7 +52,7 @@ class ProcessList(object):
         """
         rc = self.ml.get_fifo(index).consume()
         if rc < 0:
-            self.consumers.append((index, p))
+            self.consumers[index] = p
         elif index in self.producers:
             self.heap.push(self.machine.time, self.producers[index])
             del self.producers[index]
