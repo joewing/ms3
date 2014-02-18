@@ -58,24 +58,12 @@ class ProcessList(object):
             del self.producers[index]
         return rc
 
-    def _is_deadlocked(self):
-        for p in self.heap.values():
-            if p.consume_waiting < 0 and p.produce_waiting < 0:
-                return False
-            if p.consume_waiting >= 0:
-                fifo = self.ml.get_fifo(p.consume_waiting)
-                if not fifo.is_empty():
-                    return False
-            elif p.produce_waiting >= 0:
-                fifo = self.ml.get_fifo(p.produce_waiting)
-                if not fifo.is_full():
-                    return False
-        return True
-
     def reset(self, ml):
         self.ml = ml
-        offset = 0
         self.machine.reset()
+        self.producers = dict()
+        self.consumers = dict()
+        offset = 0
         for f in self.ml.all_fifos():
             offset = self.machine.align(offset)
             f.set_offset(offset)
@@ -109,8 +97,6 @@ class ProcessList(object):
                 if delta >= 0:
                     next_time = self.machine.time + delta
                     self.heap.push(next_time, p)
-                elif self.heap.empty() and self._is_deadlocked():
-                    break
             except StopIteration:
                 pass
 
