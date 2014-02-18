@@ -48,7 +48,7 @@ class TestMemsim(unittest.TestCase):
 
         self.assertEqual(len(result), 3)
         expected = '(main (memory (mock)))'
-        expected += ' (subsystem (id 1)(memory (stats (mock))))'
+        expected += ' (subsystem (id 1)(memory (mock)))'
         self.assertEqual(str(result[0]), expected)
         self.assertEqual(result[1], 0)
         self.assertEqual(result[2], False)

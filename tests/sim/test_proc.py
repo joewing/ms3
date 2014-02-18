@@ -65,7 +65,7 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(mem.last_size, 7)
         self.assertEqual(p.consume_waiting, 1)
 
-        pl.produce(1)
+        pl.produce(p, 1)
         t = p.step()    # Consume produced value.
         self.assertEqual(t, 800)
         self.assertEqual(mem.reads, 5)
