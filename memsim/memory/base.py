@@ -131,7 +131,7 @@ class Memory(object):
         """Pop any address transforms or limits."""
         pass
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         """Permute a memory component.
             This function will permute the memory component without
             exceeded max_cost for that component.  This returns

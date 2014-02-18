@@ -50,9 +50,9 @@ class TestSPM(unittest.TestCase):
         s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
         s.reset(self.machine)
         dist = MemoryDistribution(random.Random(1))
-        result = s.permute(dist, 5)
+        result = s.permute(dist, 5, 0)
         self.assertEqual(result, False)
-        result = s.permute(dist, 10000)
+        result = s.permute(dist, 10000, 0)
         self.assertEqual(result, True)
 
     def test_generate(self):

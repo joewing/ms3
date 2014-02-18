@@ -41,7 +41,7 @@ class Shift(transform.Transform):
     def combine(self, other):
         self.shift += other.shift
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         bits = self.machine.addr_bits - self.machine.word_bits - 1
         self.shift = rand.randint(-bits, bits)
         return True

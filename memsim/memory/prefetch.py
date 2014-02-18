@@ -62,7 +62,7 @@ class Prefetch(container.Container):
         gen.add_code(");")
         gen.leave()
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         self.stride = self.machine.word_size * rand.randint(-8, 8)
         return True
 

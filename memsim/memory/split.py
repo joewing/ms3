@@ -144,7 +144,7 @@ class Split(container.Container):
         else:
             self.bank1 = b
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         action = rand.randint(0, 3)
         if action == 0:
             # Decrement the offset.

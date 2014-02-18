@@ -69,12 +69,18 @@ class FIFO(base.Memory):
     def get_path_length(self):
         return self.get_next().get_path_length()
 
-    def permute(self, rand, max_cost):
-        temp = rand.randint(0, 1)
-        if temp == 0 and self.size // 2 >= self.item_size:
+    def permute(self, rand, max_cost, max_size):
+        max_size += self.size
+        if self.size * 2 > max_size:
+            self.size //= 2
+        elif self.size // 2 < self.item_size:
+            self.size *= 2
+        elif rand.randint(0, 1) == 0:
             self.size //= 2
         else:
             self.size *= 2
+        assert(self.size >= self.item_size)
+        assert(self.size <= max_size)
         return True
 
     def process(self, start, write, addr, size):

@@ -195,7 +195,7 @@ class Cache(container.Container):
         elif self.machine.target == machine.TargetType.FPGA:
             return xilinx.get_bram_count(self.machine, self)
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         param_count = 8
         param = rand.randint(0, param_count - 1)
         line_size = self.line_size

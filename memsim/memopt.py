@@ -58,19 +58,19 @@ class MemoryOptimizer(Optimizer):
         else:
             return nxt
 
-    def permute(self, dist, mem, index, max_cost):
+    def permute(self, dist, mem, index, max_cost, max_size):
         """Permute a specific memory component.
             Returns True if successful.
         """
         assert(index >= 0)
         if index == 0:
             mc = max_cost + mem.get_cost()
-            return mem.permute(dist, mc)
+            return mem.permute(dist, mc, max_size)
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
-            result = self.permute(dist, n, index - 1, max_cost)
+            result = self.permute(dist, n, index - 1, max_cost, max_size)
             mem.pop_transform(dist)
             return result
         t = nc + 1
@@ -79,7 +79,8 @@ class MemoryOptimizer(Optimizer):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
-                result = self.permute(dist, banks[i], index - t, max_cost)
+                result = self.permute(dist, banks[i], index - t,
+                                      max_cost, max_size)
                 mem.pop_transform(dist)
                 return result
             t += c
@@ -151,6 +152,11 @@ class MemoryOptimizer(Optimizer):
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
         max_cost = self.model.machine.max_cost - last.get_cost()
+        max_size = 1 << self.model.machine.addr_bits
+        for f in last.all_fifos():
+            max_size -= self.model.machine.align(f.total_size())
+        for b in self.model.benchmarks:
+            max_size -= self.model.machine.align(b.get_size())
         while True:
 
             # Select an action to perform.  We make multiple
@@ -190,7 +196,7 @@ class MemoryOptimizer(Optimizer):
                             return current
                 else:   # Permute
                     index = self.rand.randint(0, count - 1)
-                    if self.permute(dist, mem, index, max_cost):
+                    if self.permute(dist, mem, index, max_cost, max_size):
                         if current.get_max_path_length() <= max_path:
                             return current
 

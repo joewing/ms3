@@ -37,7 +37,7 @@ class Offset(transform.Transform):
         assert(isinstance(other, Offset))
         self.offset += other.offset
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         word_size = self.machine.word_size
         if rand.randbool():
             self.offset = rand.randint(-word_size, word_size)

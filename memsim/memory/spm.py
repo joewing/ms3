@@ -101,7 +101,7 @@ class SPM(container.Container):
         else:
             assert(False)
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         if self.size > self.machine.word_size and rand.randint(0, 1) == 1:
             self.size //= 2
         else:

@@ -34,7 +34,7 @@ class XOR(transform.Transform):
         assert(isinstance(other, XOR))
         self.value ^= other.value
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand, max_cost, max_size):
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
         return True
 
