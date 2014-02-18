@@ -87,7 +87,7 @@ class ProcessList(object):
             mem = ml.get_subsystem(index)
             p.reset(self.machine, mem, offset)
             self.heap.push(0, p)
-            offset += p.benchmark.get_size()
+            offset += p.benchmark.get_size(self.directory)
         assert(offset < (1 << self.machine.addr_bits))
 
     def run(self, ml):

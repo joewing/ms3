@@ -55,9 +55,10 @@ class Benchmark(object):
         self.offset = offset
         self.directory = directory
 
-    def get_size(self):
+    def get_size(self, directory):
         """Get the address range of the benchmark in bytes."""
         if self.max_addr == 0:
+            self.reset(0, directory)
             for t, addr, size in self.run():
                 if t == AccessType.READ or t == AccessType.WRITE:
                     self.max_addr = max(self.max_addr, addr + size - 1)

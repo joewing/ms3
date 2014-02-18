@@ -27,11 +27,12 @@ class MemoryOptimizer(Optimizer):
         xor.random_xor
     ]
 
-    def __init__(self, mod, ml, seed, dist, use_prefetch=False):
+    def __init__(self, mod, ml, seed, dist, directory, use_prefetch=False):
         Optimizer.__init__(self, ml)
         self.rand = random.Random(seed)
         self.model = mod
         self.dist = dist
+        self.directory = directory
         ml.reset(mod.machine)
         if use_prefetch:
             self.constructors.append(prefetch.random_prefetch)
@@ -156,7 +157,7 @@ class MemoryOptimizer(Optimizer):
         for f in last.all_fifos():
             max_size -= self.model.machine.align(f.total_size())
         for b in self.model.benchmarks:
-            max_size -= self.model.machine.align(b.get_size())
+            max_size -= self.model.machine.align(b.get_size(self.directory))
         while True:
 
             # Select an action to perform.  We make multiple

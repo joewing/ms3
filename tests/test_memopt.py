@@ -15,7 +15,8 @@ class TestMemoryOptimizer(unittest.TestCase):
         self.model.machine = MachineType(word_size=8, addr_bits=32)
         self.rand = MemoryDistribution(1)
         self.ml = MemoryList([])
-        self.optimizer = MemoryOptimizer(self.model, self.ml, None, None)
+        self.optimizer = MemoryOptimizer(self.model, self.ml,
+                                         None, None, '.')
         self.optimizer.constructors = [self.mocks_constructor]
 
     def mocks_constructor(self, mod, nxt, rand, cost):

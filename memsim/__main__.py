@@ -154,7 +154,7 @@ def optimize(db, mod, iterations, seed, directory):
     ml, t, use_prefetch = get_initial_memory(db, mod, dist, directory)
 
     # Perform the optimization.
-    o = MemoryOptimizer(mod, ml, seed, dist, use_prefetch)
+    o = MemoryOptimizer(mod, ml, seed, dist, directory, use_prefetch)
     while True:
 
         # Show the best and get its value.
