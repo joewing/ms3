@@ -30,7 +30,13 @@ class MainMemory(base.Memory):
         name = self.get_id()
         gen.declare_signals(name, mach.word_size)
 
+    def process(self, start, write, addr, size):
+        assert(False)
+
 
 def _create_main(lexer, args):
-    return parser.get_argument(lexer, args, 'memory')
+    if parser.has_argument(lexer, args, 'memory'):
+        return parser.get_argument(lexer, args, 'memory')
+    else:
+        return MainMemory()
 base.constructors['main'] = _create_main

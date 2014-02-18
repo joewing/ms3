@@ -44,6 +44,10 @@ def parse_arguments(lexer, constructors=None):
     return result
 
 
+def has_argument(lexer, args, name):
+    return name in args
+
+
 def get_argument(lexer, args, name, default=None):
     """Get an argument from a dictionary of arguments.
         args should be a dictionary of arguments returned from parse_arguments.
