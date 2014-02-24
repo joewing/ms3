@@ -155,9 +155,9 @@ class MemoryOptimizer(Optimizer):
         max_cost = self.model.machine.max_cost - last.get_cost()
         max_size = 1 << self.model.machine.addr_bits
         for f in last.all_fifos():
-            max_size -= self.model.machine.align(f.total_size())
+            max_size -= f.total_size()
         for b in self.model.benchmarks:
-            max_size -= self.model.machine.align(b.get_size(self.directory))
+            max_size -= b.get_size(self.directory)
         while True:
 
             # Select an action to perform.  We make multiple

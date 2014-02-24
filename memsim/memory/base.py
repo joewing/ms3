@@ -63,7 +63,10 @@ class Memory(object):
         Returns the updated memory subsystem.
         """
         n = self.get_next()
-        self.set_next(n.set_main(mem))
+        if n is not None:
+            self.set_next(n.set_main(mem))
+        else:
+            self.set_next(mem)
         return self
 
     def get_id(self, prefix='m'):
