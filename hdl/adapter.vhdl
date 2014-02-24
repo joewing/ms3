@@ -6,8 +6,8 @@ entity adapter is
     generic (
         IN_ADDR_WIDTH   : in natural    := 32;
         IN_DATA_WIDTH   : in natural    := 32;
-        OUT_ADDR_WIDTH  : in natural    := 32;  -- >= IN_ADDR_WIDTH
-        OUT_DATA_WIDTH  : in natural    := 32   -- <= IN_DATA_WIDTH
+        OUT_ADDR_WIDTH  : in natural    := 32;
+        OUT_DATA_WIDTH  : in natural    := 32
     );
     port (
         clk     : in  std_logic;
@@ -35,14 +35,14 @@ architecture rtl of adapter is
 
     constant IN_MASK_BITS   : natural := IN_DATA_WIDTH / 8;
     constant OUT_MASK_BITS  : natural := OUT_DATA_WIDTH / 8;
-    constant MULTIPLIER     : natural := IN_DATA_WIDTH / OUT_DATA_WIDTH;
+    constant NARROW_COUNT   : natural := IN_DATA_WIDTH / OUT_DATA_WIDTH;
+    constant WIDE_COUNT     : natural := OUT_DATA_WIDTH / IN_DATA_WIDTH;
 
     signal state    : natural;
-    signal in_addr  : std_logic_vector(IN_ADDR_WIDTH - 1 downto 0);
     signal do_read  : std_logic;
     signal do_write : std_logic;
-    signal buf      : std_logic_vector(IN_DATA_WIDTH - 1 downto 0);
-    signal mask_buf : std_logic_vector((IN_DATA_WIDTH / 8) - 1 downto 0);
+    signal in_buf   : std_logic_vector(IN_DATA_WIDTH - 1 downto 0);
+    signal in_mask  : std_logic_vector((IN_DATA_WIDTH / 8) - 1 downto 0);
 
 begin
 
@@ -58,7 +58,6 @@ begin
     end generate;
 
     -- The downstream memory is narrower (m < d).
-    -- Note that the case where the downstream is wider is not supported.
     narrow : if IN_DATA_WIDTH > OUT_DATA_WIDTH generate
 
         -- We need to turn each access into multiple accesses.
@@ -66,15 +65,15 @@ begin
         begin
             if rising_edge(clk) then
                 if rst = '1' then
-                    state       <= MULTIPLIER;
+                    state       <= NARROW_COUNT;
                     do_read     <= '0';
                     do_write    <= '0';
                 elsif re = '1' or we = '1' then
-                    mask_buf    <= mask;
+                    in_mask     <= mask;
                     do_read     <= re;
                     do_write    <= we;
                     state       <= 0;
-                elsif state < MULTIPLIER then
+                elsif state < NARROW_COUNT then
                     if mready = '1' then
                         state       <= state + 1;
                     end if;
@@ -89,7 +88,7 @@ begin
         mre <= re or (do_read and mready);
         mwe <= we or (do_write and mready);
 
-        -- Assign buf.
+        -- Assign in_buf.
         -- On reads, this is assigned piece-wise from min.
         -- On writes, this is assigned all-at-once from din.
         process(clk)
@@ -98,15 +97,15 @@ begin
         begin
             if rising_edge(clk) then
                 if re = '1' then
-                    buf(OUT_DATA_WIDTH - 1 downto 0) <= min;
+                    in_buf(OUT_DATA_WIDTH - 1 downto 0) <= min;
                 elsif we = '1' then
-                    buf <= din;
+                    in_buf <= din;
                 elsif do_read = '1' then
-                    for i in 1 to MULTIPLIER - 1 loop
+                    for i in 1 to NARROW_COUNT - 1 loop
                         bottom  := i * OUT_DATA_WIDTH;
                         top     := bottom + OUT_DATA_WIDTH - 1;
                         if state = i then
-                            buf(top downto bottom) <= min;
+                            in_buf(top downto bottom) <= min;
                         end if;
                     end loop;
                 end if;
@@ -115,45 +114,45 @@ begin
 
         -- Assign dout.
         -- High bits are assigned directly from min.
-        -- The rest are assigned from out_buffer.
+        -- The rest are assigned from in_buf.
         dout(IN_DATA_WIDTH - 1 downto IN_DATA_WIDTH - OUT_DATA_WIDTH) <= min;
         dout(IN_DATA_WIDTH - OUT_DATA_WIDTH - 1 downto 0)
-            <= buf(IN_DATA_WIDTH - OUT_DATA_WIDTH - 1 downto 0);
+            <= in_buf(IN_DATA_WIDTH - OUT_DATA_WIDTH - 1 downto 0);
 
         -- Assign mout.
         -- This is assigned based on state.  In the first state, it
         -- is assigned directly from the low bits of din, otherwise, it is
-        -- assigned from buf.
-        process(state, din, buf)
+        -- assigned from in_buf.
+        process(state, din, in_buf)
             variable top    : natural;
             variable bottom : natural;
         begin
             if state = 0 then
                 mout <= din(OUT_DATA_WIDTH - 1 downto 0);
             end if;
-            for i in 1 to MULTIPLIER - 1 loop
+            for i in 1 to NARROW_COUNT - 1 loop
                 bottom  := i * OUT_DATA_WIDTH;
                 top     := bottom + OUT_DATA_WIDTH - 1;
                 if state = i then
-                    mout <= buf(top downto bottom);
+                    mout <= in_buf(top downto bottom);
                 end if;
             end loop;
         end process;
 
         -- Assign mmask.
         -- This is assigned based on state like mout.
-        process(state, mask, mask_buf)
+        process(state, mask, in_mask)
             variable top    : natural;
             variable bottom : natural;
         begin
             if state = 0 then
-                mmask <= mask_buf(OUT_MASK_BITS - 1 downto 0);
+                mmask <= in_mask(OUT_MASK_BITS - 1 downto 0);
             end if;
-            for i in 1 to MULTIPLIER - 1 loop
+            for i in 1 to NARROW_COUNT - 1 loop
                 bottom  := i * OUT_MASK_BITS;
                 top     := bottom + OUT_MASK_BITS - 1;
                 if state = i then
-                    mmask <= mask_buf(top downto bottom);
+                    mmask <= in_mask(top downto bottom);
                 end if;
             end loop;
         end process;
@@ -162,7 +161,7 @@ begin
         process(addr, state)
             variable sum : unsigned(OUT_ADDR_WIDTH - 1 downto 0);
         begin
-            if state = MULTIPLIER then
+            if state = NARROW_COUNT then
                 maddr <= addr;
             else
                 sum := unsigned(addr) + to_unsigned(state, OUT_ADDR_WIDTH);
@@ -171,7 +170,59 @@ begin
         end process;
 
         -- Assign ready.
-        ready <= mready when state = MULTIPLIER else '0';
+        ready <= mready when state = NARROW_COUNT else '0';
+
+    end generate;
+
+    -- The downstream memory is wider (m > d).
+    wide : if IN_DATA_WIDTH < OUT_DATA_WIDTH generate
+
+        -- We need to convert each access into a partial access.
+        -- Note that no state is needed.
+
+        -- Assign mre, mwe, and ready.
+        mre <= re;
+        mwe <= we;
+        ready <= mready;
+
+        -- Assign maddr.
+        -- maddr is not as wide, so we take the most significant bits.
+        maddr <= addr(IN_ADDR_WIDTH - 1 downto IN_ADDR_WIDTH - OUT_ADDR_WIDTH);
+
+        -- Assign mmask.
+        -- mmask is wider than mask, so we insert zeros based on addr.
+        process(addr, mask)
+            constant bits   : natural := IN_ADDR_WIDTH - OUT_ADDR_WIDTH;
+            variable top    : natural;
+            variable bottom : natural;
+        begin
+            for i in 0 to (2 ** bits) - 1 loop
+                bottom  := i * (IN_DATA_WIDTH / 8);
+                top     := bottom + (IN_DATA_WIDTH / 8) - 1;
+                if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
+                    mmask(top downto bottom) <= mask;
+                else
+                    mmask(top downto bottom) <= (others => '0');
+                end if;
+            end loop;
+        end process;
+
+        -- Assign dout and mout.
+        -- dout is not as wide as min, so we select the bits based on addr.
+        process(addr, min, din)
+            constant bits   : natural := IN_ADDR_WIDTH - OUT_ADDR_WIDTH;
+            variable bottom : natural;
+            variable top    : natural;
+        begin
+            for i in 0 to (2 ** bits) - 1 loop
+                bottom  := i * IN_DATA_WIDTH;
+                top     := bottom + IN_DATA_WIDTH - 1;
+                if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
+                    dout <= min(top downto bottom);
+                    mout(top downto bottom) <= din;
+                end if;
+            end loop;
+        end process;
 
     end generate;
 
