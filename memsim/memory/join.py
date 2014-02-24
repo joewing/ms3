@@ -21,8 +21,10 @@ class Join(base.Memory):
     def can_insert(self):
         return True
 
-    def generate(self, gen, mach):
-        gen.declare_signals(self.get_id(), self.get_word_size())
+    def generate(self, gen):
+        name = self.get_id()
+        gen.declare_signals(name, self.get_word_size())
+        return name
 
     def get_path_length(self):
         return self.parent.get_forward_path_length()

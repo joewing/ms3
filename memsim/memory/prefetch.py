@@ -28,11 +28,11 @@ class Prefetch(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
-    def generate(self, gen, mach):
+    def generate(self, gen):
         name = self.get_id()
-        oname = self.get_next().get_id()
-        word_width = self.get_word_size() * 8
-        self.get_next().generate(gen, mach)
+        word_size = self.get_word_size()
+        word_width = word_size * 8
+        oname = gen.generate_next(word_width, self.get_next())
         gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.prefetch")
         gen.enter()
@@ -64,6 +64,7 @@ class Prefetch(container.Container):
         gen.leave()
         gen.add_code(");")
         gen.leave()
+        return name
 
     def permute(self, rand, max_cost, max_size):
         self.stride = self.get_word_size() * rand.randint(-8, 8)

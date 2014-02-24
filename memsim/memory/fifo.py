@@ -1,4 +1,4 @@
-from memsim import parser
+from memsim import parser, util
 from memsim.memory import base
 
 
@@ -16,7 +16,7 @@ class FIFO(base.Memory):
         """
         base.Memory.__init__(self)
         self.index = index
-        self.item_size = item_size
+        self.item_size = util.round_power2(item_size)
         self.size = size
         self.mem = mem
         self.offset = 0
@@ -60,8 +60,8 @@ class FIFO(base.Memory):
     def is_empty(self):
         return self.used == 0
 
-    def generate(self, gen, mach):
-        return self.mem.generate(gen, mach)
+    def generate(self, gen):
+        return self.mem.generate(gen)
 
     def get_next(self):
         return self.mem

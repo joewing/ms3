@@ -16,8 +16,8 @@ def log2(n):
     return r
 
 
-def get_bus_shift(bus_width):
-    return log2(bus_width) - 1
+def get_bus_shift(bus_size):
+    return log2(bus_size) - 1
 
 
 def align(word_size, addr):

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import optparse
 import sys
@@ -16,8 +15,8 @@ def main():
         print('ERROR: too many options')
         sys.exit(-1)
     m = model.parse_model_file(args[0])
-    gen = vhdl.VHDLGenerator()
-    result = gen.generate(m.machine, m.memory)
+    gen = vhdl.VHDLGenerator(m.machine)
+    result = gen.generate(m.memory)
     print(result)
 
 

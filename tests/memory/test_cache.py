@@ -1,8 +1,9 @@
-
 import unittest
 
 from memsim import lex, machine, memory, vhdl
+from memsim.memory import MemoryList
 from memsim.memory.cache import Cache, CachePolicy
+from memsim.memory.subsystem import Subsystem
 from tests import mocks
 
 
@@ -287,8 +288,10 @@ class TestCache(unittest.TestCase):
                       access_time=1,
                       cycle_time=1,
                       write_back=True)
-        gen = vhdl.VHDLGenerator()
-        result = gen.generate(self.machine, cache)
+        gen = vhdl.VHDLGenerator(self.machine)
+        ml = MemoryList(self.main)
+        ml.add_memory(Subsystem(0, cache))
+        result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
 

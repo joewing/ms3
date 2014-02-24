@@ -2,8 +2,9 @@
 import unittest
 
 from memsim import lex, machine, memory, vhdl
-from memsim.memory import join
+from memsim.memory import join, MemoryList
 from memsim.memory.split import Split
+from memsim.memory.subsystem import Subsystem
 from tests import mocks
 
 
@@ -130,8 +131,10 @@ class TestSplit(unittest.TestCase):
 
     def test_generate(self):
         split = Split(self.bank0, self.bank1, self.main, offset=128)
-        gen = vhdl.VHDLGenerator()
-        result = gen.generate(self.machine, split)
+        gen = vhdl.VHDLGenerator(self.machine)
+        ml = MemoryList(self.main)
+        ml.add_memory(Subsystem(0, split))
+        result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
         self.assertEqual(self.bank0.generated, 1)

@@ -80,8 +80,9 @@ class MockMemory(memory.Memory):
         assert(i < len(self.banks))
         self.banks[i] = b
 
-    def generate(self, gen, mach):
+    def generate(self, gen):
         self.generated += 1
+        return 'mock'
 
     def process(self, start, write, addr, size):
         self.last_addr = addr

@@ -11,26 +11,26 @@ class Transform(container.Container):
         self.bank = bank
         join.set_parent(bank, self)
 
-    def generate_transform(self, op, value, inverse, gen, mach):
+    def generate_transform(self, op, value, inverse, gen):
 
         name = self.get_id()
-        bname = self.bank.get_id()
-        oname = self.get_next().get_id()
         jname = join.find_join(self.bank, self).get_id()
-        word_width = self.get_word_size() * 8
+        word_size = self.get_word_size()
+        addr_width = gen.get_addr_width(word_size)
+        word_width = word_size * 8
 
-        self.get_next().generate(gen, mach)
-        self.bank.generate(gen, mach)
+        oname = gen.generate_next(word_size, self.get_next())
+        bname = gen.generate_next(word_size, self.bank)
         gen.declare_signals(name, self.get_word_size())
 
         # Transform into the bank.
-        gen.add_code(name + "_inst : entity work." + op)
+        gen.add_code(name + '_inst : entity work.' + op)
         gen.enter()
-        gen.add_code("generic map (")
+        gen.add_code('generic map (')
         gen.enter()
-        gen.add_code("ADDR_WIDTH => ADDR_WIDTH,")
-        gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
-        gen.add_code("VALUE => " + str(value))
+        gen.add_code('ADDR_WIDTH => ' + str(addr_width) + ',')
+        gen.add_code('WORD_WIDTH => ' + str(word_width) + ',')
+        gen.add_code('VALUE => ' + str(value))
         gen.leave()
         gen.add_code(")")
         gen.add_code("port map (")
@@ -86,6 +86,7 @@ class Transform(container.Container):
         gen.leave()
         gen.add_code(");")
         gen.leave()
+        return name
 
     def get_banks(self):
         return [self.bank]

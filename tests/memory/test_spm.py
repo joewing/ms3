@@ -3,7 +3,9 @@ import random
 
 from memsim import lex, machine, memory, vhdl
 from memsim.sim.memdist import MemoryDistribution
+from memsim.memory import MemoryList
 from memsim.memory.spm import SPM, random_spm
+from memsim.memory.subsystem import Subsystem
 from tests import mocks
 
 
@@ -57,8 +59,10 @@ class TestSPM(unittest.TestCase):
 
     def test_generate(self):
         s = SPM(self.main, size=1024, access_time=1, cycle_time=1)
-        gen = vhdl.VHDLGenerator()
-        result = gen.generate(self.machine, s)
+        gen = vhdl.VHDLGenerator(self.machine)
+        ml = MemoryList(self.main)
+        ml.add_memory(Subsystem(0, s))
+        result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
 

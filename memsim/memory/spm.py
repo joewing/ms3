@@ -47,12 +47,12 @@ class SPM(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
-    def generate(self, gen, mach):
+    def generate(self, gen):
         name = self.get_id()
-        oname = self.get_next().get_id()
-        word_width = self.get_word_size() * 8
+        word_size = self.get_word_size()
+        word_width = word_size * 8
+        oname = gen.generate_next(word_size, self.get_next())
         size_bits = util.log2(self.size // self.get_word_size()) - 1
-        self.get_next().generate(gen, mach)
         gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.spm")
         gen.enter()
@@ -84,6 +84,7 @@ class SPM(container.Container):
         gen.leave()
         gen.add_code(");")
         gen.leave()
+        return name
 
     def update_latency(self):
         if self.machine.target == machine.TargetType.ASIC:

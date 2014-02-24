@@ -22,8 +22,8 @@ class Option(base.Memory):
     def get_word_size(self):
         return self.options[self.index].get_word_size()
 
-    def generate(self, gen, mach):
-        self.options[self.index].generate(gen, mach)
+    def generate(self, gen):
+        return self.options[self.index].generate(gen)
 
     def get_name(self):
         return self.options[self.index].get_name()

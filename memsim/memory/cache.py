@@ -99,25 +99,26 @@ class Cache(container.Container):
         result += ')'
         return result
 
-    def generate(self, gen, mach):
+    def generate(self, gen):
         name = self.get_id()
-        oname = self.get_next().get_id()
-        word_width = self.get_word_size() * 8
+        word_size = self.get_word_size()
+        oname = gen.generate_next(word_size, self.get_next())
+        addr_width = gen.get_addr_width(word_size)
+        word_width = word_size * 8
         line_size_bits = util.log2(8 * self.line_size // word_width - 1)
         line_count_bits = \
             util.log2(self.line_count // self.associativity - 1)
         assoc_bits = util.log2(self.associativity - 1)
-        self.get_next().generate(gen, mach)
         gen.declare_signals(name, self.get_word_size())
-        gen.add_code(name + "_inst : entity work.cache")
+        gen.add_code(name + '_inst : entity work.cache')
         gen.enter()
-        gen.add_code("generic map (")
+        gen.add_code('generic map (')
         gen.enter()
-        gen.add_code("ADDR_WIDTH => ADDR_WIDTH,")
-        gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
-        gen.add_code("LINE_SIZE_BITS => " + str(line_size_bits) + ",")
-        gen.add_code("LINE_COUNT_BITS => " + str(line_count_bits) + ",")
-        gen.add_code("ASSOC_BITS => " + str(assoc_bits) + ",")
+        gen.add_code('ADDR_WIDTH => ' + str(addr_width) + ',')
+        gen.add_code('WORD_WIDTH => ' + str(word_width) + ',')
+        gen.add_code('LINE_SIZE_BITS => ' + str(line_size_bits) + ',')
+        gen.add_code('LINE_COUNT_BITS => ' + str(line_count_bits) + ',')
+        gen.add_code('ASSOC_BITS => ' + str(assoc_bits) + ',')
         replacement = -1
         if self.policy == CachePolicy.LRU:
             replacement = 0
@@ -128,34 +129,35 @@ class Cache(container.Container):
         elif self.policy == CachePolicy.PLRU:
             replacement = 3
         assert(replacement >= 0)
-        gen.add_code("REPLACEMENT => " + str(replacement) + ",")
+        gen.add_code('REPLACEMENT => ' + str(replacement) + ',')
         if self.write_back:
-            gen.add_code("WRITE_POLICY => 0")
+            gen.add_code('WRITE_POLICY => 0')
         else:
-            gen.add_code("WRITE_POLICY => 1")
+            gen.add_code('WRITE_POLICY => 1')
         gen.leave()
-        gen.add_code(")")
-        gen.add_code("port map (")
+        gen.add_code(')')
+        gen.add_code('port map (')
         gen.enter()
-        gen.add_code("clk => clk,")
-        gen.add_code("rst => rst,")
-        gen.add_code("addr => " + name + "_addr,")
-        gen.add_code("din => " + name + "_din,")
-        gen.add_code("dout => " + name + "_dout,")
-        gen.add_code("re => " + name + "_re,")
-        gen.add_code("we => " + name + "_we,")
-        gen.add_code("mask => " + name + "_mask,")
-        gen.add_code("ready => " + name + "_ready,")
-        gen.add_code("maddr => " + oname + "_addr,")
-        gen.add_code("min => " + oname + "_dout,")
-        gen.add_code("mout => " + oname + "_din,")
-        gen.add_code("mre => " + oname + "_re,")
-        gen.add_code("mwe => " + oname + "_we,")
-        gen.add_code("mmask => " + oname + "_mask,")
-        gen.add_code("mready => " + oname + "_ready")
+        gen.add_code('clk => clk,')
+        gen.add_code('rst => rst,')
+        gen.add_code('addr => ' + name + '_addr,')
+        gen.add_code('din => ' + name + '_din,')
+        gen.add_code('dout => ' + name + '_dout,')
+        gen.add_code('re => ' + name + '_re,')
+        gen.add_code('we => ' + name + '_we,')
+        gen.add_code('mask => ' + name + '_mask,')
+        gen.add_code('ready => ' + name + '_ready,')
+        gen.add_code('maddr => ' + oname + '_addr,')
+        gen.add_code('min => ' + oname + '_dout,')
+        gen.add_code('mout => ' + oname + '_din,')
+        gen.add_code('mre => ' + oname + '_re,')
+        gen.add_code('mwe => ' + oname + '_we,')
+        gen.add_code('mmask => ' + oname + '_mask,')
+        gen.add_code('mready => ' + oname + '_ready')
         gen.leave()
-        gen.add_code(");")
+        gen.add_code(');')
         gen.leave()
+        return name
 
     def get_word_size(self):
         return self.line_size

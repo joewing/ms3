@@ -1,4 +1,4 @@
-from memsim import lex, parser
+from memsim import lex, parser, util
 
 
 class TargetType(object):
@@ -102,6 +102,10 @@ class MachineType(object):
             src_mask >>= 1
             dest_mask <<= 1
         return result
+
+    def get_addr_width(self, word_size):
+        """Get the number of bits needed for an address bus."""
+        return self.addr_bits - util.get_bus_shift(word_size)
 
 
 def parse_machine(lexer):

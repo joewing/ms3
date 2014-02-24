@@ -27,9 +27,10 @@ class MainMemory(base.Memory):
         addr_width = mach.addr_bits - word_bits
         return [base.MemoryPort(name, word_size, addr_width)]
 
-    def generate(self, gen, mach):
+    def generate(self, gen):
         name = self.get_id()
         gen.declare_signals(name, self.get_word_size())
+        return name
 
     def process(self, start, write, addr, size):
         assert(False)

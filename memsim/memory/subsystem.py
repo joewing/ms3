@@ -33,8 +33,8 @@ class Subsystem(base.Memory):
     def can_insert(self):
         return False
 
-    def generate(self, gen, mach):
-        self.mem.generate(gen, mach)
+    def generate(self, gen):
+        return self.mem.generate(gen)
 
     def set_offset(self, offset):
         self.offset = offset

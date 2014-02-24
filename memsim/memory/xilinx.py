@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import os
 import tempfile
@@ -7,7 +6,7 @@ import re
 
 from memsim import database
 from memsim import vhdl
-from memsim.memory import ram
+from memsim.memory import ram, memlist
 
 
 freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")
@@ -53,32 +52,38 @@ def run_xilinx(machine, mem, keep=False, full=False):
     # Create a directory for this run.
     old_dir = os.getcwd()
     dname = tempfile.mkdtemp(suffix='', prefix='ms')
-    vhdl_file = dname + "/top.vhdl"
-    project_file = dname + "/mem.prj"
-    script_file = dname + "/mem.scr"
-    ngc_file = dname + "/mem.ngc"
-    result_file = dname + "/mem.srp"
+    vhdl_file = dname + '/top.vhdl'
+    project_file = dname + '/mem.prj'
+    script_file = dname + '/mem.scr'
+    ngc_file = dname + '/mem.ngc'
+    result_file = dname + '/mem.srp'
 
     try:
 
         # Generate the HDL for the component.
-        gen = vhdl.VHDLGenerator()
-        hdl = gen.generate(machine, component)
+        gen = vhdl.VHDLGenerator(machine)
+        if isinstance(component, memlist.MemoryList):
+            ml = component
+        else:
+            ml = memlist.MemoryList(ram.RAM(latency=0))
+            ml.add_memory(component)
+        hdl = gen.generate(ml)
         with open(vhdl_file, 'w') as f:
             f.write(hdl)
 
         # Generate the XST project file.
         with open(project_file, 'w') as f:
-            f.write("vhdl work " + old_dir + "/hdl/cache.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/combine.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/eor.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/offset.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/prefetch.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/shift.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/spm.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/split.vhdl\n")
-            f.write("vhdl work " + old_dir + "/hdl/ram.vhdl\n")
-            f.write("vhdl work " + vhdl_file + "\n")
+            f.write('vhdl work ' + old_dir + '/hdl/adapter.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/cache.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/combine.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/eor.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/offset.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/prefetch.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/shift.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/spm.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/split.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/ram.vhdl\n')
+            f.write('vhdl work ' + vhdl_file + '\n')
 
         # Generate the XST script file.
         with open(script_file, 'w') as f:

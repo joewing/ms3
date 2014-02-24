@@ -1,8 +1,9 @@
 import unittest
 
 from memsim import lex, machine, memory, vhdl
-from memsim.memory import join
+from memsim.memory import join, MemoryList
 from memsim.memory.xor import XOR
+from memsim.memory.subsystem import Subsystem
 from tests import mocks
 
 
@@ -66,8 +67,10 @@ class TestXOR(unittest.TestCase):
 
     def test_generate(self):
         xor = XOR(self.bank, self.main, 16)
-        gen = vhdl.VHDLGenerator()
-        result = gen.generate(self.machine, xor)
+        gen = vhdl.VHDLGenerator(self.machine)
+        ml = MemoryList(self.main)
+        ml.add_memory(Subsystem(0, xor))
+        result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
         self.assertEqual(self.bank.generated, 1)

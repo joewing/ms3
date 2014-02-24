@@ -45,9 +45,11 @@ class Memory(object):
         return False
 
     @abstractmethod
-    def generate(self, gen, mach):
-        """Generate the HDL model for this memory."""
-        pass
+    def generate(self, gen):
+        """Generate the HDL model for this memory.
+
+        Returns the base name for the memory port."""
+        return ''
 
     @abstractmethod
     def get_word_size(self):
