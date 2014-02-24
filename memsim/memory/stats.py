@@ -9,10 +9,13 @@ class Stats(container.Container):
         self.dist = dist
 
     def __str__(self):
-        return '(stats ' + self.get_next().get_name() + ')'
+        return '(stats ' + self.mem.get_name() + ')'
 
     def generate(self, gen, mach):
         self.get_next().generate(gen, mach)
+
+    def get_word_size(self):
+        return self.mem.get_word_size()
 
     def can_insert(self):
         return False

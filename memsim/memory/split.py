@@ -1,9 +1,9 @@
-from memsim import parser
+from memsim import parser, util
 from memsim.memory import base, container, join
 
 
 def random_split(machine, nxt, rand, cost):
-    offset = rand.random_address(machine.word_size)
+    offset = rand.random_address(nxt.get_word_size())
     bank0 = join.Join(0)
     bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
@@ -29,23 +29,27 @@ class Split(container.Container):
         result += ')'
         return result
 
+    def get_word_size(self):
+        return self.mem.get_word_size()
+
     def generate(self, gen, mach):
 
         self.get_next().generate(gen, mach)
         self.bank0.generate(gen, mach)
         self.bank1.generate(gen, mach)
 
+        word_size = self.get_word_size()
         name = self.get_id()
         oname = self.get_next().get_id()
-        word_width = mach.word_size * 8
+        word_width = word_size * 8
         b0name = self.bank0.get_id()
         b1name = self.bank1.get_id()
         j0name = join.find_join(self.bank0, self).get_id()
         j1name = join.find_join(self.bank1, self).get_id()
 
         offset_bits = []
-        addr_width = mach.addr_bits - mach.word_bits
-        word_offset = self.offset // mach.word_size
+        addr_width = mach.addr_bits - util.get_bus_shift(word_size)
+        word_offset = self.offset // word_size
         for i in reversed(xrange(0, addr_width)):
             if word_offset & (1 << i):
                 offset_bits.append('1')
@@ -91,7 +95,7 @@ class Split(container.Container):
         gen.add_code(");")
         gen.leave()
 
-        gen.declare_signals(name, mach.word_size)
+        gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_sp : entity work.split")
         gen.enter()
         gen.add_code("generic map (")
@@ -148,17 +152,17 @@ class Split(container.Container):
         action = rand.randint(0, 3)
         if action == 0:
             # Decrement the offset.
-            self.offset -= self.machine.word_size
+            self.offset -= 1
             if self.offset < rand.get_min_address():
                 self.offset = rand.get_max_address()
         elif action == 1:
             # Increment the offset.
-            self.offset += self.machine.word_size
+            self.offset += 1
             if self.offset > rand.get_max_address():
                 self.offset = rand.get_min_address()
         elif action == 2:
             # Generate a new offset from the prior.
-            self.offset = rand.random_address(self.machine.word_size)
+            self.offset = rand.random_address(self.get_word_size())
         else:
             # Swap banks.
             self.bank0, self.bank1 = self.bank1, self.bank0

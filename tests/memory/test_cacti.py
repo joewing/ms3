@@ -14,16 +14,15 @@ class TestCACTI(unittest.TestCase):
         self.db = sql.SQLDatabase('sqlite:///')
         self.assertTrue(self.db.connect())
         database.set_instance(self.db)
-        self.machine = MachineType(target=TargetType.ASIC,
-                                   word_size=4)
+        self.machine = MachineType(target=TargetType.ASIC)
 
     def test_cache1(self):
 
         # Add the parameters to the database.
         params = cacti.CACTIParams()
-        params.size = self.machine.word_size * 16 * 8
-        params.block_size = self.machine.word_size * 8
-        params.bus_bits = self.machine.addr_bits + self.machine.word_size * 8
+        params.size = 16 * 8
+        params.block_size = 8
+        params.bus_bits = self.machine.addr_bits + 8 * 8
         params.associativity = 2
         params.is_cache = True
         self.db.add_cacti_result(params, 5, 6, 1.2)
@@ -48,8 +47,8 @@ class TestCACTI(unittest.TestCase):
         # Add the parameters to the database.
         params = cacti.CACTIParams()
         params.size = 256
-        params.block_size = self.machine.word_size
-        params.bus_bits = self.machine.word_size * 8
+        params.block_size = 8
+        params.bus_bits = 8 * 8
         params.associativity = 1
         params.is_cache = False
         self.db.add_cacti_result(params, 2, 3, 4)

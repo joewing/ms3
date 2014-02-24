@@ -1,4 +1,3 @@
-
 import re
 
 
@@ -15,6 +14,16 @@ def log2(n):
         r += 1
         n >>= 1
     return r
+
+
+def get_bus_shift(bus_width):
+    return log2(bus_width) - 1
+
+
+def align(word_size, addr):
+    """Align addr to the next word boundary."""
+    temp = addr & (word_size - 1)
+    return addr + (word_size - temp) if temp != 0 else addr
 
 
 def round_power2(n):

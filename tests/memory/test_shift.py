@@ -164,10 +164,11 @@ class TestShift(unittest.TestCase):
         self.assertEqual(str(simplified), s)
 
     def test_parse(self):
-        s = '(shift (value 2)(bank (join))(memory (main)))'
+        s = '(shift (value 2)(bank (join))(memory (ram)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(shift (value 2)(bank (join))(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_cost(self):
         shift = Shift(self.bank, self.main, 5)

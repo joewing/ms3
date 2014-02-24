@@ -1,12 +1,13 @@
-
-from memsim import parser
+from memsim import parser, util
 from memsim.memory import base
 from memsim.memory import join
 from memsim.memory import transform
 
 
 def random_shift(machine, nxt, rand, cost):
-    bits = machine.addr_bits - machine.word_bits - 1
+    word_size = nxt.get_word_size()
+    word_bits = util.get_bus_shift(word_size)
+    bits = machine.addr_bits - word_bits - 1
     shift = rand.randint(-bits, bits)
     return Shift(join.Join(), nxt, shift)
 
@@ -30,7 +31,8 @@ class Shift(transform.Transform):
 
     def reset(self, machine):
         transform.Transform.reset(self, machine)
-        bits = machine.addr_bits - machine.word_bits
+        word_size = self.get_word_size()
+        bits = machine.addr_bits - util.get_bus_shift(word_size)
         while self.shift < 0:
             self.shift += bits
         self.shift %= bits
@@ -42,7 +44,8 @@ class Shift(transform.Transform):
         self.shift += other.shift
 
     def permute(self, rand, max_cost, max_size):
-        bits = self.machine.addr_bits - self.machine.word_bits - 1
+        word_bits = util.get_bus_shift(self.get_word_size())
+        bits = self.machine.addr_bits - word_bits - 1
         self.shift = rand.randint(-bits, bits)
         return True
 
@@ -59,17 +62,20 @@ class Shift(transform.Transform):
         return 0
 
     def _rotate(self, value, count):
-        bits = self.machine.addr_bits - self.machine.word_bits
+        word_size = self.get_word_size()
+        word_bits = util.get_bus_shift(word_size)
+        word_mask = word_size - 1
+        bits = self.machine.addr_bits - word_bits
         mask = (1 << bits) - 1
-        shift_part = value >> self.machine.word_bits
-        word_part = value & self.machine.word_mask
+        shift_part = value >> word_bits
+        word_part = value & word_mask
         if count >= 0:
             count2 = bits - count
             shifted = ((shift_part << count) & mask) | (shift_part >> count2)
         else:
             count2 = bits + count
             shifted = ((shift_part << count2) & mask) | (shift_part >> -count)
-        return (shifted << self.machine.word_bits) | word_part
+        return (shifted << word_bits) | word_part
 
     def process(self, start, write, addr, size):
         addr = self._rotate(addr, self.shift)

@@ -1,4 +1,4 @@
-from memsim import lex, parser, util
+from memsim import lex, parser
 
 
 class TargetType(object):
@@ -34,7 +34,6 @@ class MachineType(object):
     def __init__(self,
                  target=TargetType.SIMPLE,
                  frequency=1e9,
-                 word_size=8,
                  addr_bits=32,
                  max_path_length=64,
                  max_cost=10000,
@@ -44,9 +43,6 @@ class MachineType(object):
         self.part = part
         self.frequency = frequency
         self.technology = technology
-        self.word_size = word_size
-        self.word_bits = util.log2(word_size) - 1
-        self.word_mask = word_size - 1
         self.addr_bits = addr_bits
         self.addr_mask = (1 << addr_bits) - 1
         self.max_path_length = max_path_length
@@ -61,7 +57,6 @@ class MachineType(object):
         elif self.target == TargetType.ASIC:
             result += "(technology " + str(self.technology) + ")"
         result += "(frequency " + str(self.frequency) + ")"
-        result += "(word_size " + str(self.word_size) + ")"
         result += "(addr_bits " + str(self.addr_bits) + ")"
         result += "(max_path " + str(self.max_path_length) + ")"
         result += "(max_cost " + str(self.max_cost) + ")"
@@ -90,11 +85,6 @@ class MachineType(object):
             self.ports[port] -= 1
             return True
 
-    def align(self, addr):
-        """Align addr to the next word boundary."""
-        temp = addr & self.word_mask
-        return addr + (self.word_size - temp) if temp != 0 else addr
-
     def end(self, port):
         while len(self.ports) <= port:
             self.ports.append(0)
@@ -116,7 +106,6 @@ class MachineType(object):
 
 def parse_machine(lexer):
     args = parser.parse_arguments(lexer)
-    word_size = parser.get_argument(lexer, args, 'word_size', 8)
     addr_bits = parser.get_argument(lexer, args, 'addr_bits', 32)
     frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
     technology = parser.get_argument(lexer, args, 'technology', 0.045)
@@ -129,7 +118,6 @@ def parse_machine(lexer):
         lex.ParseError(lexer, "invalid target: " + tstr)
     return MachineType(target=target,
                        frequency=frequency,
-                       word_size=word_size,
                        addr_bits=addr_bits,
                        max_path_length=max_path,
                        max_cost=max_cost,

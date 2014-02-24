@@ -33,6 +33,9 @@ class FIFO(base.Memory):
         result += ')'
         return result
 
+    def get_word_size(self):
+        return self.item_size
+
     def can_remove(self):
         return False
 

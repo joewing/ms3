@@ -1,4 +1,3 @@
-
 from memsim import parser
 from memsim.memory import base
 from memsim.memory import join
@@ -6,10 +5,11 @@ from memsim.memory import transform
 
 
 def random_offset(machine, nxt, rand, cost):
+    word_size = nxt.get_word_size()
     if rand.randbool():
-        offset = rand.randint(-machine.word_size, machine.word_size)
+        offset = rand.randint(-word_size, word_size)
     else:
-        offset = -rand.random_address(machine.word_size)
+        offset = -rand.random_address(word_size)
     return Offset(join.Join(), nxt, offset)
 
 
@@ -38,7 +38,7 @@ class Offset(transform.Transform):
         self.offset += other.offset
 
     def permute(self, rand, max_cost, max_size):
-        word_size = self.machine.word_size
+        word_size = self.get_word_size()
         if rand.randbool():
             self.offset = rand.randint(-word_size, word_size)
         else:

@@ -29,7 +29,7 @@ class TestOption(unittest.TestCase):
         s += "(memory1 (ram (latency 200))))"
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), "(ram (latency 100))")
+        self.assertEqual(str(result), "(ram (word_size 4)(latency 100))")
 
     def test_cost(self):
         op = Option()

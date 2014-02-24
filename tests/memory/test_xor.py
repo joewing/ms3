@@ -1,4 +1,3 @@
-
 import unittest
 
 from memsim import lex, machine, memory, vhdl

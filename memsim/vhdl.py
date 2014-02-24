@@ -1,3 +1,5 @@
+from memsim import util
+
 
 class VHDLGenerator(object):
     """Class used to generate VHDL code."""
@@ -55,7 +57,8 @@ class VHDLGenerator(object):
         mem.generate(self, mach)
         self.leave()
         assert(self.indent == 0)
-        addr_width = mach.addr_bits - mach.word_bits
+        word_size = mem.get_word_size()
+        addr_width = mach.addr_bits - util.get_bus_shift(word_size)
         self.append("library ieee;")
         self.append("use ieee.std_logic_1164.all;")
         self.append("use ieee.numeric_std.all;")
@@ -64,7 +67,7 @@ class VHDLGenerator(object):
         self.append("generic (")
         self.enter()
         self.append("ADDR_WIDTH : in natural := " + str(addr_width) + ";")
-        self.append("WORD_WIDTH : in natural := " + str(mach.word_size * 8))
+        self.append("WORD_WIDTH : in natural := " + str(word_size * 8))
         self.leave()
         self.append(");")
         self.append("port (")

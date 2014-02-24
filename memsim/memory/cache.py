@@ -30,7 +30,7 @@ def parse_policy(lexer, name):
 
 
 def random_cache(machine, nxt, rand, cost):
-    line_size = machine.word_size
+    line_size = nxt.get_word_size()
     line_count = 16
     associativity = 1
     policy = rand.randint(0, CachePolicy.MAX_POLICY)
@@ -81,34 +81,34 @@ class Cache(container.Container):
         self.pending = 0
 
     def __str__(self):
-        result = "(cache "
-        result += "(line_count " + str(self.line_count) + ")"
-        result += "(line_size " + str(self.line_size) + ")"
-        result += "(associativity " + str(self.associativity) + ")"
+        result = '(cache '
+        result += '(line_count ' + str(self.line_count) + ')'
+        result += '(line_size ' + str(self.line_size) + ')'
+        result += '(associativity ' + str(self.associativity) + ')'
         if self.access_time > 0:
-            result += "(access_time " + str(self.access_time) + ")"
+            result += '(access_time ' + str(self.access_time) + ')'
         if self.cycle_time > 0:
-            result += "(cycle_time " + str(self.cycle_time) + ")"
+            result += '(cycle_time ' + str(self.cycle_time) + ')'
         if self.associativity > 1:
-            result += "(policy " + show_policy(self.policy) + ")"
+            result += '(policy ' + show_policy(self.policy) + ')'
         if self.write_back:
-            result += "(write_back true)"
+            result += '(write_back true)'
         else:
-            result += "(write_back false)"
-        result += "(memory " + str(self.mem.get_name()) + ")"
-        result += ")"
+            result += '(write_back false)'
+        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += ')'
         return result
 
     def generate(self, gen, mach):
         name = self.get_id()
         oname = self.get_next().get_id()
-        word_width = mach.word_size * 8
+        word_width = self.get_word_size() * 8
         line_size_bits = util.log2(8 * self.line_size // word_width - 1)
         line_count_bits = \
             util.log2(self.line_count // self.associativity - 1)
         assoc_bits = util.log2(self.associativity - 1)
         self.get_next().generate(gen, mach)
-        gen.declare_signals(name, mach.word_size)
+        gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.cache")
         gen.enter()
         gen.add_code("generic map (")
@@ -157,6 +157,9 @@ class Cache(container.Container):
         gen.add_code(");")
         gen.leave()
 
+    def get_word_size(self):
+        return self.line_size
+
     def update_latency(self):
         if self.machine.target == machine.TargetType.ASIC:
             self.access_time = cacti.get_access_time(self.machine, self)
@@ -175,7 +178,7 @@ class Cache(container.Container):
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
             index_bits = util.log2(self.line_count - 1)
-            word_size = self.machine.word_size
+            word_size = self.get_word_size()
             line_words = (self.line_size + word_size - 1) // word_size
             ls_bits = util.log2(line_words - 1)
             tag_bits = max(self.machine.addr_bits - index_bits - ls_bits, 0)
@@ -210,7 +213,7 @@ class Cache(container.Container):
                     self.update_latency()
                     return True
                 self.line_size = line_size
-            elif param == 1 and line_size > self.machine.word_size:
+            elif param == 1 and line_size > 1:
                 self.line_size //= 2
                 if self.get_cost() <= max_cost:
                     self.update_latency()

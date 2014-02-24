@@ -46,10 +46,11 @@ class TestPrefetch(unittest.TestCase):
         self.assertEqual(self.main, simplified)
 
     def test_parse(self):
-        s = '(prefetch (stride -8)(memory (main)))'
+        s = '(prefetch (stride -8)(memory (ram)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(prefetch (stride -8)(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_cost(self):
         pf = Prefetch(self.main, 0)

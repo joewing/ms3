@@ -6,6 +6,7 @@ from memsim.memory import base
 class Option(base.Memory):
 
     def __init__(self):
+        base.Memory.__init__(self)
         self.options = []
         self.index = 0
 
@@ -17,6 +18,9 @@ class Option(base.Memory):
 
     def can_insert(self):
         return True
+
+    def get_word_size(self):
+        return self.options[self.index].get_word_size()
 
     def generate(self, gen, mach):
         self.options[self.index].generate(gen, mach)

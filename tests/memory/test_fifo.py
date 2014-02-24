@@ -8,8 +8,9 @@ from memsim.memory.fifo import FIFO
 class TestFIFO(TestCase):
 
     def setUp(self):
-        mach = MachineType(word_size=4)
+        mach = MachineType()
         self.mem = Mock()
+        self.mem.get_word_size.return_value = 4
         self.mem.machine = mach
         self.mem.process.return_value = 123
         self.fifo = FIFO(1, self.mem, 4, 16)

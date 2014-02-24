@@ -12,7 +12,7 @@ class TestMemoryOptimizer(unittest.TestCase):
 
     def setUp(self):
         self.model = Model()
-        self.model.machine = MachineType(word_size=8, addr_bits=32)
+        self.model.machine = MachineType(addr_bits=32)
         self.rand = MemoryDistribution(1)
         self.ml = MemoryList([])
         self.optimizer = MemoryOptimizer(self.model, self.ml,

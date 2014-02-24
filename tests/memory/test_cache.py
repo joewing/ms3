@@ -9,8 +9,9 @@ from tests import mocks
 class TestCache(unittest.TestCase):
 
     def setUp(self):
-        self.machine = machine.MachineType(word_size=4)
+        self.machine = machine.MachineType()
         self.main = mocks.MockMemory()
+        self.main.word_size = 4
 
     def test_direct(self):
         cache = Cache(self.main,
@@ -294,10 +295,13 @@ class TestCache(unittest.TestCase):
     def test_parse1(self):
         s = '(cache (line_count 2)(line_size 4)(associativity 2)'
         s += '(access_time 2)(cycle_time 3)'
-        s += '(policy fifo)(write_back false)(memory (main)))'
+        s += '(policy fifo)(write_back false)(memory (ram)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(cache (line_count 2)(line_size 4)(associativity 2)'
+        expected += '(access_time 2)(cycle_time 3)'
+        expected += '(policy fifo)(write_back false)(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_parse2(self):
         s = '(cache (line_count 2)(line_size 4)(associativity 2)'

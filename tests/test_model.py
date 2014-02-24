@@ -30,12 +30,11 @@ class TestModel(TestCase):
         self.assertEqual(str(m), expected)
 
     def test_parse(self):
-        to_parse = '(machine (word_size 2))'
+        to_parse = '(machine)'
         to_parse += '(memory (main (memory (ram))))'
         to_parse += '(benchmarks (mm) (heap))'
         l = Lexer(StringIO(to_parse))
         m = parse_model(l)
-        self.assertEqual(m.machine.word_size, 2)
         self.assertIsInstance(m.memory.main_memory, RAM)
         self.assertEqual(len(m.benchmarks), 2)
         self.assertIsInstance(m.benchmarks[0], mm.MM)

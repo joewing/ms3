@@ -112,10 +112,11 @@ class TestOffset(unittest.TestCase):
         self.assertEqual(str(simplified), s)
 
     def test_parse(self):
-        s = '(offset (value 8)(bank (join))(memory (main)))'
+        s = '(offset (value 8)(bank (join))(memory (ram)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(offset (value 8)(bank (join))(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_path(self):
         offset = Offset(self.bank, self.main, 1)

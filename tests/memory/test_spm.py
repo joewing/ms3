@@ -64,10 +64,12 @@ class TestSPM(unittest.TestCase):
 
     def test_parse(self):
         s = '(spm (size 1024)(access_time 3)(cycle_time 4)'
-        s += '(memory (main)))'
+        s += '(memory (ram (word_size 4)(latency 100))))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(spm (size 1024)(access_time 3)(cycle_time 4)'
+        expected += '(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_simplify(self):
         spm = SPM(self.main, size=1024, access_time=1, cycle_time=1)

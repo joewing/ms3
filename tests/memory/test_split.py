@@ -11,7 +11,6 @@ class TestSplit(unittest.TestCase):
 
     def setUp(self):
         self.machine = machine.MachineType(frequency=1e9,
-                                           word_size=8,
                                            addr_bits=32)
         self.main = mocks.MockMemory()
         self.join0 = join.Join(0)
@@ -121,10 +120,13 @@ class TestSplit(unittest.TestCase):
         self.assertEqual(simplified, self.main)
 
     def test_parse(self):
-        s = '(split (offset 128)(bank0 (join))(bank1 (join))(memory (main)))'
+        s = '(split (offset 128)(bank0 (join))(bank1 (join))'
+        s += '(memory (ram)))'
         l = lex.Lexer(mocks.MockFile(s))
         result = memory.parse_memory(l)
-        self.assertEqual(str(result), s)
+        expected = '(split (offset 128)(bank0 (join))(bank1 (join))'
+        expected += '(memory (main)))'
+        self.assertEqual(str(result), expected)
 
     def test_generate(self):
         split = Split(self.bank0, self.bank1, self.main, offset=128)

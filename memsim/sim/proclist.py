@@ -1,4 +1,4 @@
-from memsim import priorityqueue
+from memsim import priorityqueue, util
 from .proc import Process
 
 
@@ -65,14 +65,14 @@ class ProcessList(object):
         self.consumers = dict()
         offset = 0
         for f in self.ml.all_fifos():
-            offset = self.machine.align(offset)
+            offset = util.align(f.get_word_size(), offset)
             f.set_offset(offset)
             f.reset(self.machine)
             offset += f.total_size()
         for p in self.processes:
-            offset = self.machine.align(offset)
             index = p.benchmark.index
             mem = ml.get_subsystem(index)
+            offset = util.align(mem.get_word_size(), offset)
             p.reset(self.machine, mem, offset)
             self.heap.push(0, p)
             offset += p.benchmark.get_size(self.directory)

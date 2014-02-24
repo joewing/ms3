@@ -24,6 +24,9 @@ class Subsystem(base.Memory):
         result += ')'
         return result
 
+    def get_word_size(self):
+        return self.mem.get_word_size()
+
     def can_remove(self):
         return False
 

@@ -41,6 +41,7 @@ class MockMemory(memory.Memory):
         memory.Memory.__init__(self)
         self.mem = mem
         self.banks = list(banks)
+        self.word_size = 8
 
     def __str__(self):
         if self.mem is None:
@@ -50,6 +51,9 @@ class MockMemory(memory.Memory):
             result += str(c)
         result += ")"
         return result
+
+    def get_word_size(self):
+        return self.word_size
 
     def can_remove(self):
         return True

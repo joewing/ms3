@@ -10,7 +10,7 @@ from tests import mocks
 class TestDRAM(unittest.TestCase):
 
     def setUp(self):
-        self.machine = MachineType(word_size=4)
+        self.machine = MachineType()
         self.machine.reset()
 
     def test_open(self):
@@ -121,7 +121,7 @@ class TestDRAM(unittest.TestCase):
                     ddr=False)
         ports = dram.get_ports(self.machine)
         self.assertEqual(len(ports), 1)
-        self.assertEqual(ports[0].word_size, self.machine.word_size)
+        self.assertEqual(ports[0].word_size, 2 * 2)
         self.assertEqual(ports[0].addr_width, 30)
 
     def test_parse(self):

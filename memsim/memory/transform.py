@@ -17,11 +17,11 @@ class Transform(container.Container):
         bname = self.bank.get_id()
         oname = self.get_next().get_id()
         jname = join.find_join(self.bank, self).get_id()
-        word_width = mach.word_size * 8
+        word_width = self.get_word_size() * 8
 
         self.get_next().generate(gen, mach)
         self.bank.generate(gen, mach)
-        gen.declare_signals(name, mach.word_size)
+        gen.declare_signals(name, self.get_word_size())
 
         # Transform into the bank.
         gen.add_code(name + "_inst : entity work." + op)
@@ -93,6 +93,9 @@ class Transform(container.Container):
     def set_bank(self, i, b):
         assert(i == 0)
         self.bank = b
+
+    def get_word_size(self):
+        return self.bank.get_word_size()
 
     def can_remove(self):
         return isinstance(self.bank, join.Join)

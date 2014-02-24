@@ -62,6 +62,9 @@ class DRAM(main.MainMemory):
         result += ')'
         return result
 
+    def get_word_size(self):
+        return self.width * self.burst_size
+
     def reset(self, machine):
         base.Memory.reset(self, machine)
         bank_size = self.page_size * self.page_count

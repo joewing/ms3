@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import math
 import os
@@ -165,9 +164,9 @@ def _get_cache_params(machine, mem):
     """Get the CACTI parameters for a cache."""
     params = CACTIParams()
     params.technology = machine.technology
-    params.size = machine.word_size * mem.line_count * mem.line_size
-    params.block_size = machine.word_size * mem.line_size
-    params.bus_bits = machine.addr_bits + machine.word_size * 8
+    params.size = mem.line_count * mem.line_size
+    params.block_size = mem.line_size
+    params.bus_bits = machine.addr_bits + mem.get_word_size() * 8
     params.associativity = mem.associativity
     params.is_cache = True
     return params
@@ -178,8 +177,8 @@ def _get_spm_params(machine, mem):
     params = CACTIParams()
     params.technology = machine.technology
     params.size = mem.size
-    params.block_size = machine.word_size
-    params.bus_bits = 8 * machine.word_size
+    params.block_size = mem.get_word_size()
+    params.bus_bits = 8 * mem.get_word_size()
     params.is_cache = False
     return params
 

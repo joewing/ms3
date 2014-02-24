@@ -15,7 +15,7 @@ class TestMemsim(unittest.TestCase):
 
     def test_get_initial_memory1(self):
 
-        mem_str = '(main (memory (ram (latency 100))))'
+        mem_str = '(main (memory (ram (word_size 4)(latency 100))))'
 
         mock_model = Mock()
         mock_model.memory = MockMemory()

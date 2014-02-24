@@ -5,7 +5,7 @@ from memsim.memory import container
 
 
 def random_prefetch(machine, nxt, rand, cost):
-    stride = machine.word_size * rand.randint(-8, 8)
+    stride = nxt.get_word_size() * rand.randint(-8, 8)
     result = Prefetch(nxt, stride)
     result.reset(machine)
     return result if result.get_cost() <= cost else None
@@ -25,12 +25,15 @@ class Prefetch(container.Container):
         result += ")"
         return result
 
+    def get_word_size(self):
+        return self.mem.get_word_size()
+
     def generate(self, gen, mach):
         name = self.get_id()
         oname = self.get_next().get_id()
-        word_width = mach.word_size * 8
+        word_width = self.get_word_size() * 8
         self.get_next().generate(gen, mach)
-        gen.declare_signals(name, mach.word_size)
+        gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.prefetch")
         gen.enter()
         gen.add_code("generic map (")
@@ -63,8 +66,11 @@ class Prefetch(container.Container):
         gen.leave()
 
     def permute(self, rand, max_cost, max_size):
-        self.stride = self.machine.word_size * rand.randint(-8, 8)
+        self.stride = self.get_word_size() * rand.randint(-8, 8)
         return True
+
+    def set_next(self, n):
+        container.Container.set_next(self, n)
 
     def simplify(self):
         self.mem = self.mem.simplify()

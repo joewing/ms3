@@ -12,6 +12,9 @@ class Join(base.Memory):
     def __str__(self):
         return '(join)'
 
+    def get_word_size(self):
+        return self.parent.get_next().get_word_size()
+
     def can_remove(self):
         return False
 
@@ -19,7 +22,7 @@ class Join(base.Memory):
         return True
 
     def generate(self, gen, mach):
-        gen.declare_signals(self.get_id(), mach.word_size)
+        gen.declare_signals(self.get_id(), self.get_word_size())
 
     def get_path_length(self):
         return self.parent.get_forward_path_length()

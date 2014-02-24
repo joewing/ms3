@@ -1,4 +1,3 @@
-
 from memsim import machine, parser, util
 from memsim.memory import base, cacti, container, xilinx
 
@@ -45,13 +44,16 @@ class SPM(container.Container):
         result += ")"
         return result
 
+    def get_word_size(self):
+        return self.mem.get_word_size()
+
     def generate(self, gen, mach):
         name = self.get_id()
         oname = self.get_next().get_id()
-        word_width = mach.word_size * 8
-        size_bits = util.log2(self.size // mach.word_size) - 1
+        word_width = self.get_word_size() * 8
+        size_bits = util.log2(self.size // self.get_word_size()) - 1
         self.get_next().generate(gen, mach)
-        gen.declare_signals(name, mach.word_size)
+        gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.spm")
         gen.enter()
         gen.add_code("generic map (")
@@ -102,7 +104,7 @@ class SPM(container.Container):
             assert(False)
 
     def permute(self, rand, max_cost, max_size):
-        if self.size > self.machine.word_size and rand.randint(0, 1) == 1:
+        if self.size > self.get_word_size() and rand.randint(0, 1) == 1:
             self.size //= 2
         else:
             self.size *= 2
@@ -139,13 +141,13 @@ class SPM(container.Container):
         return max(self.pending - self.machine.time, 0)
 
     def process(self, start, write, addr, size):
+        word_size = self.get_word_size()
         result = max(start, self.pending - self.machine.time)
         last_addr = (addr + size) & self.machine.addr_mask
         if addr < self.size and last_addr <= self.size:
             # Complete hits the scrachpad
-            offset = addr % self.machine.word_size
-            count = (size + self.machine.word_size + offset - 1)
-            count //= self.machine.word_size
+            offset = addr % word_size
+            count = (size + word_size + offset - 1) // word_size
             self.pending = self.machine.time + result
             self.pending += max(self.cycle_time - self.access_time, 0)
             result += (count - 1) * self.cycle_time + self.access_time
@@ -156,8 +158,7 @@ class SPM(container.Container):
         elif addr > self.size and last_addr < self.size:
             # First part hits, second part misses
             msize = size - last_addr + 1
-            count = (last_addr + self.machine.word_size)
-            count //= self.machine.word_size
+            count = (last_addr + word_size) // word_size
             result += (count - 1) * self.cycle_time + self.access_time
             self.pending = self.machine.time + result
             self.pending += max(self.cycle_time - self.access_time, 0)
@@ -165,9 +166,8 @@ class SPM(container.Container):
         else:
             # First part misses, second part hits
             hsize = self.size - addr
-            offset = addr % self.machine.word_size
-            count = (hsize + self.machine.word_size + offset - 1)
-            count //= self.machine.word_size
+            offset = addr % word_size
+            count = (hsize + word_size + offset - 1) // word_size
             result += (count - 1) * self.cycle_time + self.access_time
             self.pending = self.machine.time + result
             self.pending += max(self.cycle_time - self.access_time, 0)

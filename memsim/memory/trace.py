@@ -13,6 +13,9 @@ class Trace(container.Container):
     def __str__(self):
         return '(trace (memory ' + str(self.mem.get_name()) + '))'
 
+    def get_word_size(self):
+        return self.mem.get_word_size()
+
     def process(self, start, write, addr, size):
         out = ['W' if write else 'R']
         out.append('%x' % addr)

@@ -49,6 +49,11 @@ class Memory(object):
         """Generate the HDL model for this memory."""
         pass
 
+    @abstractmethod
+    def get_word_size(self):
+        """Get the word size for this memory component."""
+        return 0
+
     def clone(self):
         """Create a deep copy of this memory."""
         return copy.deepcopy(self)
@@ -174,8 +179,8 @@ class Memory(object):
 def send_request(mem, start, write, addr, size):
     """Send a memory request to the specified memory subsystem."""
     assert(size > 0)
-    word_mask = mem.machine.word_mask
-    word_size = mem.machine.word_size
+    word_size = mem.get_word_size()
+    word_mask = word_size - 1
     addr_mask = mem.machine.addr_mask
     offset = addr & word_mask
     if offset:
