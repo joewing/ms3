@@ -165,7 +165,7 @@ class VHDLGenerator(object):
         self.append('re : in std_logic;')
         self.append('we : in std_logic;')
         self.append('mask : in std_logic_vector(' +
-                    str((word_width // 8) - 1)  + ' downto 0);')
+                    str((word_width // 8) - 1) + ' downto 0);')
         self.append('ready : out std_logic')
         self.leave()
         self.append(");")

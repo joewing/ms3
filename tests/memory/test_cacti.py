@@ -55,7 +55,7 @@ class TestCACTI(unittest.TestCase):
 
         # Create an SPM to match the parameters.
         m = MockMemory()
-        s = spm.SPM(m, size=256)
+        s = spm.SPM(m, word_size=8, size=256)
 
         # Check the parameters.
         s.reset(self.machine)

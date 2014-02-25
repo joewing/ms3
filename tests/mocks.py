@@ -1,5 +1,18 @@
-
 from memsim import benchmarks, memory
+
+
+class MockRandom(object):
+
+    def __init__(self, sequence):
+        self.sequence = sequence
+        self.index = 0
+
+    def randint(self, lower, upper):
+        result = self.sequence[self.index]
+        assert(result >= lower)
+        assert(result < upper)
+        self.index += 1
+        return result
 
 
 class MockFile(object):

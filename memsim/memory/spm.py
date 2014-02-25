@@ -7,8 +7,9 @@ MIN_SPM_SIZE = 512
 
 
 def random_spm(machine, nxt, rand, cost):
-    size = MIN_SPM_SIZE
-    spm = SPM(nxt, size)
+    word_size = nxt.get_word_size()
+    size = max(MIN_SPM_SIZE, word_size)
+    spm = SPM(nxt, word_size, size)
     spm.reset(machine)
     while spm.get_cost() < cost:
         spm.size *= 2
@@ -24,43 +25,46 @@ def random_spm(machine, nxt, rand, cost):
 
 class SPM(container.Container):
 
-    def __init__(self, mem, size=0,
+    def __init__(self, mem, word_size, size,
                  access_time=0,
                  cycle_time=0):
         container.Container.__init__(self, mem)
+        self.word_size = word_size
         self.size = size
         self.access_time = access_time
         self.cycle_time = cycle_time
         self.pending = 0
 
     def __str__(self):
-        result = "(spm "
-        result += "(size " + str(self.size) + ")"
+        result = '(spm '
+        result += '(word_size ' + str(self.word_size) + ')'
+        result += '(size ' + str(self.size) + ')'
         if self.access_time > 0:
-            result += "(access_time " + str(self.access_time) + ")"
+            result += '(access_time ' + str(self.access_time) + ')'
         if self.cycle_time > 0:
-            result += "(cycle_time " + str(self.cycle_time) + ")"
-        result += "(memory " + str(self.mem.get_name()) + ")"
-        result += ")"
+            result += '(cycle_time ' + str(self.cycle_time) + ')'
+        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += ')'
         return result
 
     def get_word_size(self):
-        return self.mem.get_word_size()
+        return self.word_size
 
     def generate(self, gen):
         name = self.get_id()
         word_size = self.get_word_size()
         word_width = word_size * 8
+        addr_width = gen.get_addr_width(word_size)
         oname = gen.generate_next(word_size, self.get_next())
-        size_bits = util.log2(self.size // self.get_word_size()) - 1
-        gen.declare_signals(name, self.get_word_size())
-        gen.add_code(name + "_inst : entity work.spm")
+        size_bits = util.log2(self.size // word_size) - 1
+        gen.declare_signals(name, word_size)
+        gen.add_code(name + '_inst : entity work.spm')
         gen.enter()
-        gen.add_code("generic map (")
+        gen.add_code('generic map (')
         gen.enter()
-        gen.add_code("ADDR_WIDTH => ADDR_WIDTH,")
-        gen.add_code("WORD_WIDTH => " + str(word_width) + ",")
-        gen.add_code("SIZE_BITS  => " + str(size_bits))
+        gen.add_code('ADDR_WIDTH => ' + str(addr_width) + ',')
+        gen.add_code('WORD_WIDTH => ' + str(word_width) + ',')
+        gen.add_code('SIZE_BITS  => ' + str(size_bits))
         gen.leave()
         gen.add_code(")")
         gen.add_code("port map (")
@@ -96,7 +100,7 @@ class SPM(container.Container):
 
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
-            return self.size * 8
+            return self.size * self.word_size
         elif self.machine.target == machine.TargetType.ASIC:
             return cacti.get_area(self.machine, self)
         elif self.machine.target == machine.TargetType.FPGA:
@@ -105,16 +109,26 @@ class SPM(container.Container):
             assert(False)
 
     def permute(self, rand, max_cost, max_size):
-        if self.size > self.get_word_size() and rand.randint(0, 1) == 1:
+        result = True
+        temp = rand.randint(0, 3)
+        if temp == 0 and self.size > self.word_size:
             self.size //= 2
-        else:
+        elif temp == 1:
             self.size *= 2
             if self.get_cost() > max_cost:
                 self.size //= 2
-                self.update_latency()
-                return False
+                result = False
+        elif temp == 2 and self.word_size > 1:
+            self.word_size //= 2
+        elif temp == 3 and self.size > self.word_size:
+            self.word_size *= 2
+            if self.get_cost() > max_cost:
+                self.word_size //= 2
+                result = False
+        else:
+            result = False
         self.update_latency()
-        return True
+        return result
 
     def simplify(self):
         self.mem = self.mem.simplify()
@@ -178,8 +192,9 @@ class SPM(container.Container):
 
 def _create_spm(lexer, args):
     mem = parser.get_argument(lexer, args, 'memory')
+    word_size = parser.get_argument(lexer, args, 'word_size', 4)
     size = parser.get_argument(lexer, args, 'size', 0)
     access_time = parser.get_argument(lexer, args, 'access_time', 2)
     cycle_time = parser.get_argument(lexer, args, 'cycle_time', access_time)
-    return SPM(mem, size, access_time, cycle_time)
+    return SPM(mem, word_size, size, access_time, cycle_time)
 base.constructors['spm'] = _create_spm
