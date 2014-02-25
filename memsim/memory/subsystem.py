@@ -17,6 +17,9 @@ class Subsystem(base.Memory):
         self.mem = mem
         self.offset = 0
 
+    def get_id(self):
+        return self.mem.get_id()
+
     def __str__(self):
         result = '(subsystem '
         result += '(id ' + str(self.index) + ')'

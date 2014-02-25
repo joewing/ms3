@@ -24,6 +24,9 @@ class FIFO(base.Memory):
         self.write_ptr = 0
         self.used = 0
 
+    def get_id(self):
+        return self.mem.get_id()
+
     def __str__(self):
         result = '(fifo '
         result += '(id ' + str(self.index) + ')'

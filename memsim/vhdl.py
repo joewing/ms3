@@ -57,19 +57,22 @@ class VHDLGenerator(object):
     def generate_next(self, word_size, mem):
         """Generate VHDL for the next memory in the subsystem.
 
-        Returns the base name for the signals to connect.
+        word_size is the size of the upstream word in bytes.
+        mem is the downstream memory to create.
+        Returns the base name for the interface to the (adapted)
+        downstream memory.
         """
-        name = mem.get_id()
-        mem.generate(self)
+        name = mem.generate(self)
         next_word_size = mem.get_word_size()
         if next_word_size == word_size:
             return name
+
         in_word_width = word_size * 8
         in_addr_width = self.get_addr_width(word_size)
         out_word_width = next_word_size * 8
         out_addr_width = self.get_addr_width(next_word_size)
         adapted = name + 'b'
-        self.declare_signals(adapted, next_word_size)
+        self.declare_signals(adapted, word_size)
         self.add_code(name + '_adapter : entity work.adapter')
         self.enter()
         self.add_code('generic map(')
@@ -84,47 +87,35 @@ class VHDLGenerator(object):
         self.enter()
         self.add_code('clk => clk,')
         self.add_code('rst => rst,')
-        self.add_code('addr => ' + name + '_addr,')
-        self.add_code('din => ' + name + '_din,')
-        self.add_code('dout => ' + name + '_dout,')
-        self.add_code('re => ' + name + '_re,')
-        self.add_code('we => ' + name + '_we,')
-        self.add_code('mask => ' + name + '_mask,')
-        self.add_code('ready => ' + name + '_ready,')
-        self.add_code('maddr => ' + adapted + '_addr,')
-        self.add_code('min => ' + adapted + '_dout,')
-        self.add_code('mout => ' + adapted + '_din,')
-        self.add_code('mre => ' + adapted + '_re,')
-        self.add_code('mwe => ' + adapted + '_we,')
-        self.add_code('mmask => ' + adapted + '_mask,')
-        self.add_code('mready => ' + adapted + '_ready')
+        self.add_code('addr => ' + adapted + '_addr,')
+        self.add_code('din => ' + adapted + '_din,')
+        self.add_code('dout => ' + adapted + '_dout,')
+        self.add_code('re => ' + adapted + '_re,')
+        self.add_code('we => ' + adapted + '_we,')
+        self.add_code('mask => ' + adapted + '_mask,')
+        self.add_code('ready => ' + adapted + '_ready,')
+        self.add_code('maddr => ' + name + '_addr,')
+        self.add_code('min => ' + name + '_dout,')
+        self.add_code('mout => ' + name + '_din,')
+        self.add_code('mre => ' + name + '_re,')
+        self.add_code('mwe => ' + name + '_we,')
+        self.add_code('mmask => ' + name + '_mask,')
+        self.add_code('mready => ' + name + '_ready')
         self.leave()
         self.add_code(');')
         self.leave()
         return adapted
-
-    def create_arbiter(self, word_size, memories):
-        assert(False)
 
     def generate(self, ml):
         """Generate VHDL for the specified memory list."""
         self.result = ''
 
         # Generate subsystems.
-        names = []
-        memories = list(ml.all_memories())
-        for m in memories:
+        for m in ml.all_memories():
             self.enter()
-            names.append(m.generate(self))
+            m.generate(self)
             self.leave()
             assert(self.indent == 0)
-
-        # Create the arbiter if necessary.
-        if len(memories) == 1:
-            sname = names[0]
-        else:
-            word_size = ml.main_memory.get_word_size()
-            sname = self.create_arbiter(word_size, memories)
 
         # Generate the top level.
         self.append("library ieee;")
@@ -134,8 +125,27 @@ class VHDLGenerator(object):
         self.enter()
         self.append("port (")
         self.enter()
+        self._emit_downstream_ports(ml)
+        self._emit_upstream_ports(ml)
         self.append("clk : in std_logic;")
-        self.append("rst : in std_logic;")
+        self.append("rst : in std_logic")
+        self.leave()
+        self.append(");")
+        self.leave()
+        self.append("end mem;")
+        self.append("architecture rtl of mem is")
+        self.result += self.sigs
+        self.append("begin")
+        self.result += self.code
+        self.enter()
+        self._connect_downstream_ports(ml)
+        self._connect_upstream_ports(ml)
+        self.leave()
+        self.append("end rtl;")
+        assert(self.indent == 0)
+        return self.result
+
+    def _emit_downstream_ports(self, ml):
         ports = ml.main_memory.get_ports(self.machine)
         for i, p in enumerate(ports):
             pname = "port" + str(i)
@@ -153,36 +163,9 @@ class VHDLGenerator(object):
             self.append(pname + "_mask : out " +
                         "std_logic_vector(" + mask_top + " downto 0);")
             self.append(pname + "_ready : in std_logic;")
-        word_size = ml.main_memory.get_word_size()
-        word_width = word_size * 8
-        addr_width = self.get_addr_width(word_size)
-        self.append('addr : in std_logic_vector(' + str(addr_width - 1) +
-                    ' downto 0);')
-        self.append('din : in std_logic_vector(' + str(word_width - 1) +
-                    ' downto 0);')
-        self.append('dout : out std_logic_vector(' + str(word_width - 1) +
-                    ' downto 0);')
-        self.append('re : in std_logic;')
-        self.append('we : in std_logic;')
-        self.append('mask : in std_logic_vector(' +
-                    str((word_width // 8) - 1) + ' downto 0);')
-        self.append('ready : out std_logic')
-        self.leave()
-        self.append(");")
-        self.leave()
-        self.append("end mem;")
-        self.append("architecture rtl of mem is")
-        self.result += self.sigs
-        self.append("begin")
-        self.result += self.code
-        self.enter()
-        self.append(sname + "_addr <= addr;")
-        self.append(sname + "_din <= din;")
-        self.append("dout <= " + sname + "_dout;")
-        self.append(sname + "_re <= re;")
-        self.append(sname + "_we <= we;")
-        self.append(sname + "_mask <= mask;")
-        self.append("ready <= " + sname + "_ready;")
+
+    def _connect_downstream_ports(self, ml):
+        ports = ml.main_memory.get_ports(self.machine)
         for i, p in enumerate(ports):
             pname = "port" + str(i)
             oname = p.name
@@ -193,7 +176,32 @@ class VHDLGenerator(object):
             self.append(pname + "_we <= " + oname + "_we;")
             self.append(pname + "_mask <= " + oname + "_mask;")
             self.append(oname + "_ready <= " + pname + "_ready;")
-        self.leave()
-        self.append("end rtl;")
-        assert(self.indent == 0)
-        return self.result
+
+    def _emit_upstream_ports(self, ml):
+        for i, m in enumerate(ml.all_memories()):
+            word_size = m.get_word_size()
+            word_width = word_size * 8
+            addr_width = self.get_addr_width(word_size)
+            prefix = 'std_logic_vector('
+            suffix = ' downto 0);'
+            word_str = prefix + str(word_width - 1) + suffix
+            addr_str = prefix + str(addr_width - 1) + suffix
+            mask_str = prefix + str((word_width // 8) - 1) + suffix
+            self.append('addr' + str(i) + ' : in ' + addr_str)
+            self.append('din' + str(i) + ' : in ' + word_str)
+            self.append('dout' + str(i) + ' : out ' + word_str)
+            self.append('re' + str(i) + ' : in std_logic;')
+            self.append('we' + str(i) + ' : in std_logic;')
+            self.append('mask' + str(i) + ' : in ' + mask_str)
+            self.append('ready' + str(i) + ' : out std_logic;')
+
+    def _connect_upstream_ports(self, ml):
+        for i, m in enumerate(ml.all_memories()):
+            name = m.get_id()
+            self.append(name + '_addr <= addr' + str(i) + ';')
+            self.append(name + '_din <= din' + str(i) + ';')
+            self.append('dout' + str(i) + ' <= ' + name + '_dout;')
+            self.append(name + '_re <= re' + str(i) + ';')
+            self.append(name + '_we <= we' + str(i) + ';')
+            self.append(name + '_mask <= mask' + str(i) + ';')
+            self.append('ready' + str(i) + ' <= ' + name + '_ready;')
