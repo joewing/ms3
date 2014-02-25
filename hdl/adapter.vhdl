@@ -193,10 +193,11 @@ begin
         -- mmask is wider than mask, so we insert zeros based on addr.
         process(addr, mask)
             constant bits   : natural := IN_ADDR_WIDTH - OUT_ADDR_WIDTH;
+            constant bound  : natural := (2 ** bits) - 1;
             variable top    : natural;
             variable bottom : natural;
         begin
-            for i in 0 to (2 ** bits) - 1 loop
+            for i in 0 to bound loop
                 bottom  := i * (IN_DATA_WIDTH / 8);
                 top     := bottom + (IN_DATA_WIDTH / 8) - 1;
                 if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
@@ -211,10 +212,11 @@ begin
         -- dout is not as wide as min, so we select the bits based on addr.
         process(addr, min, din)
             constant bits   : natural := IN_ADDR_WIDTH - OUT_ADDR_WIDTH;
+            constant bound  : natural := (2 ** bits) - 1;
             variable bottom : natural;
             variable top    : natural;
         begin
-            for i in 0 to (2 ** bits) - 1 loop
+            for i in 0 to bound loop
                 bottom  := i * IN_DATA_WIDTH;
                 top     := bottom + IN_DATA_WIDTH - 1;
                 if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
