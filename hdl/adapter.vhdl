@@ -36,8 +36,8 @@ architecture rtl of adapter is
     constant IN_MASK_BITS   : natural := IN_WORD_WIDTH / 8;
     constant OUT_MASK_BITS  : natural := OUT_WORD_WIDTH / 8;
     constant STATE_COUNT    : natural := IN_WORD_WIDTH / OUT_WORD_WIDTH;
-    constant LAST_STATE     : natural := STATE_COUNT - 1;
-    constant STATE_BITS     : natural := IN_WORD_WIDTH - OUT_WORD_WIDTH;
+    constant LAST_STATE     : integer := STATE_COUNT - 1;
+    constant STATE_BITS     : integer := IN_WORD_WIDTH - OUT_WORD_WIDTH;
 
     signal state        : natural;
     signal next_state   : natural;
