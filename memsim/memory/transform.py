@@ -56,13 +56,13 @@ class Transform(container.Container):
         gen.leave()
 
         # Transform out of the bank.
-        gen.add_code(jname + "_inst : entity work." + op)
+        gen.add_code(jname + '_inst : entity work.' + op)
         gen.enter()
-        gen.add_code("generic map (")
+        gen.add_code('generic map (')
         gen.enter()
-        gen.add_code("ADDR_WIDTH      => ADDR_WIDTH,")
+        gen.add_code('ADDR_WIDTH      => ' + str(addr_width) + ',')
         gen.add_code("WORD_WIDTH      => " + str(word_width) + ",")
-        gen.add_code("VALUE             => " + str(inverse))
+        gen.add_code("VALUE           => " + str(inverse))
         gen.leave()
         gen.add_code(")")
         gen.add_code("port map (")
