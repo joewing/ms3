@@ -96,7 +96,7 @@ class Transform(container.Container):
         self.bank = b
 
     def get_word_size(self):
-        return self.bank.get_word_size()
+        return self.mem.get_word_size()
 
     def can_remove(self):
         return isinstance(self.bank, join.Join)
