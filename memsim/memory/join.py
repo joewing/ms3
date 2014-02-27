@@ -13,7 +13,7 @@ class Join(base.Memory):
         return '(join)'
 
     def get_word_size(self):
-        return self.parent.get_next().get_word_size()
+        return self.parent.get_word_size()
 
     def can_remove(self):
         return False
