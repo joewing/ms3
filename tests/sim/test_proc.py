@@ -21,7 +21,7 @@ class TestProcess(unittest.TestCase):
         mem = mocks.MockMemory()
         mach = machine.MachineType()
         ml = memory.MemoryList(mem)
-        ml.add_memory(Subsystem(1, mem))
+        ml.add_memory(Subsystem(1, 8, mem))
         ml.add_memory(FIFO(1, mem, 8, 128))
         ml.add_memory(FIFO(2, mem, 8, 256))
         pl = sim.ProcessList(mach, '.')

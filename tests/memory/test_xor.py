@@ -69,7 +69,7 @@ class TestXOR(unittest.TestCase):
         xor = XOR(self.bank, self.main, 16)
         gen = vhdl.VHDLGenerator(self.machine)
         ml = MemoryList(self.main)
-        ml.add_memory(Subsystem(0, xor))
+        ml.add_memory(Subsystem(0, 8, xor))
         result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)

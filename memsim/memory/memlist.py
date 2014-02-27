@@ -27,30 +27,18 @@ class MemoryList(object):
         lst[index] = value
 
     def choice(self, rand):
-        temp = rand.choice(list(self.all_memories()))
-        if isinstance(temp, FIFO):
-            return -temp.index
-        else:
-            return temp.index
+        return rand.choice(list(self.all_memories()))
 
-    def get(self, index):
-        if index < 0:
-            return self.get_fifo(-index)
-        else:
-            return self.get_subsystem(index)
-
-    def set(self, index, mem):
-        if index < 0:
-            self.fifos[-index] = mem
-        else:
+    def update(self, mem):
+        index = mem.index
+        if isinstance(mem, FIFO):
+            self.fifos[index] = mem
+        elif isinstance(mem, Subsystem):
             self.subsystems[index] = mem
+        else:
+            assert(False)
 
     def get_subsystem(self, index):
-        if index >= len(self.subsystems):
-            extra = index - len(self.subsystems) + 1
-            self.subsystems.extend([None for _ in range(extra)])
-        if self.subsystems[index] is None:
-            self.subsystems[index] = Subsystem(index, self.main_memory)
         return self.subsystems[index]
 
     def get_fifo(self, index):

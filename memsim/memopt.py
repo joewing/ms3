@@ -171,8 +171,7 @@ class MemoryOptimizer(Optimizer):
                 # Distribution.is_empty.
                 current = last.clone()
                 while True:
-                    mindex = current.choice(self.rand)
-                    mem = current.get(mindex)
+                    mem = current.choice(self.rand)
                     dist = self.dist.get_distribution(mem)
                     if not dist.is_empty():
                         break
@@ -184,7 +183,7 @@ class MemoryOptimizer(Optimizer):
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
                     if temp is not None and str(temp) != before:
-                        current.set(mindex, temp)
+                        current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
                 elif action <= 2 and count > 1:  # Remove
@@ -192,7 +191,7 @@ class MemoryOptimizer(Optimizer):
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
                     if temp is not None and str(temp) != before:
-                        current.set(mindex, temp)
+                        current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
                 else:   # Permute

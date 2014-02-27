@@ -65,7 +65,7 @@ class TestSPM(unittest.TestCase):
                 access_time=1, cycle_time=1)
         gen = vhdl.VHDLGenerator(self.machine)
         ml = MemoryList(self.main)
-        ml.add_memory(Subsystem(0, s))
+        ml.add_memory(Subsystem(0, 8, s))
         result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)
