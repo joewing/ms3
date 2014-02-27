@@ -62,8 +62,9 @@ class FIFO(base.Memory):
 
     def generate(self, gen):
         name = self.get_id()
-        oname = gen.generate_next(self.word_size, self.mem)
-        gen.declare_signals(name, self.get_word_size())
+        word_size = self.get_word_size()
+        oname = gen.generate_next(word_size, self.mem)
+        gen.declare_signals(name, word_size)
         gen.add_code(oname + '_addr <= ' + name + '_addr;')
         gen.add_code(oname + '_din <= ' + name + '_din;')
         gen.add_code(name + '_dout <= ' + oname + '_dout;')
