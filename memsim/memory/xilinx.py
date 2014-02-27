@@ -32,10 +32,6 @@ class XilinxResult(object):
 def run_xilinx(machine, mem, keep=False):
     """Get the results of running XST on the specified memory."""
 
-    # Create a dummy main memory with the correct word size.
-    word_size = mem.get_main().get_word_size()
-    main = ram.RAM(word_size=word_size, latency=0)
-
     # Clone the memory so we can safely modify it.
     mem = mem.clone()
 
@@ -43,16 +39,20 @@ def run_xilinx(machine, mem, keep=False):
     # memory subsystem.  Otherwise, only report timing for the
     # specified component.
     if isinstance(mem, memlist.MemoryList):
+        word_size = mem.get_main().get_word_size()
+        main = ram.RAM(word_size=word_size, latency=0)
         ml = mem
     else:
-        mem.set_next(None)
+        next_word_size = mem.get_next().get_word_size()
+        main = ram.RAM(word_size=next_word_size, latency=0)
+        mem.set_next(main)
         ml = memlist.MemoryList(main)
-        ml.add_memory(subsystem.Subsystem(0, word_size, mem))
+        ml.add_memory(subsystem.Subsystem(0, mem.get_word_size(), mem))
     ml.set_main(main)
+    name = machine.part + str(ml)
 
     # Determine if we've already processed this memory.
     db = database.get_instance()
-    name = machine.part + str(mem)
     temp = db.get_fpga_result(name)
     if temp:
         return XilinxResult(temp[0], temp[1])
