@@ -1,4 +1,4 @@
-from memsim import parser
+from memsim import parser, util
 from memsim.memory import base
 
 
@@ -15,7 +15,7 @@ class Subsystem(base.Memory):
         """
         base.Memory.__init__(self)
         self.index = index
-        self.word_size = word_size
+        self.word_size = util.round_power2(word_size)
         self.mem = mem
         self.offset = 0
 
