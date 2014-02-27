@@ -30,7 +30,7 @@ function run()
     rm input.mem input.model mem.vhdl
 }
 
-ghdl -a ram.vhdl adapter.vhdl
+ghdl -a ram.vhdl arbiter.vhdl adapter.vhdl
 
 echo "Testing cache..."
 ghdl -a cache.vhdl
