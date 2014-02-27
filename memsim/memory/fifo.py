@@ -24,9 +24,6 @@ class FIFO(base.Memory):
         self.write_ptr = 0
         self.used = 0
 
-    def get_id(self):
-        return self.mem.get_id()
-
     def __str__(self):
         result = '(fifo '
         result += '(id ' + str(self.index) + ')'
@@ -64,7 +61,17 @@ class FIFO(base.Memory):
         return self.used == 0
 
     def generate(self, gen):
-        return self.mem.generate(gen)
+        name = self.get_id()
+        oname = gen.generate_next(self.word_size, self.mem)
+        gen.declare_signals(name, self.get_word_size())
+        gen.add_code(oname + '_addr <= ' + name + '_addr;')
+        gen.add_code(oname + '_din <= ' + name + '_din;')
+        gen.add_code(name + '_dout <= ' + oname + '_dout;')
+        gen.add_code(oname + '_re <= ' + name + '_re;')
+        gen.add_code(oname + '_we <= ' + name + '_we;')
+        gen.add_code(oname + '_mask <= ' + name + '_mask;')
+        gen.add_code(name + '_ready <= ' + oname + '_ready;')
+        return name
 
     def get_next(self):
         return self.mem

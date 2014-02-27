@@ -19,9 +19,6 @@ class Subsystem(base.Memory):
         self.mem = mem
         self.offset = 0
 
-    def get_id(self):
-        return self.mem.get_id()
-
     def __str__(self):
         result = '(subsystem '
         result += '(id ' + str(self.index) + ')'
@@ -40,7 +37,17 @@ class Subsystem(base.Memory):
         return False
 
     def generate(self, gen):
-        return gen.generate_next(self.word_size, self.mem)
+        name = self.get_id()
+        oname = gen.generate_next(self.word_size, self.mem)
+        gen.declare_signals(name, self.get_word_size())
+        gen.add_code(oname + '_addr <= ' + name + '_addr;')
+        gen.add_code(oname + '_din <= ' + name + '_din;')
+        gen.add_code(name + '_dout <= ' + oname + '_dout;')
+        gen.add_code(oname + '_re <= ' + name + '_re;')
+        gen.add_code(oname + '_we <= ' + name + '_we;')
+        gen.add_code(oname + '_mask <= ' + name + '_mask;')
+        gen.add_code(name + '_ready <= ' + oname + '_ready;')
+        return name
 
     def set_offset(self, offset):
         self.offset = offset
