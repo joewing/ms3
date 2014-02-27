@@ -256,7 +256,7 @@ begin
    end process;
 
    -- Determine the next state.
-   process(state, re, we, is_hit, oldest_dirty, transfer_done, mready)
+   process(state, re, we, is_hit, oldest_dirty, transfer_done, mask, mready)
    begin
       next_state <= state;
       case state is
