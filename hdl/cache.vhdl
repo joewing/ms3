@@ -495,8 +495,6 @@ begin
             end if;
             if load_mem or write_line then
                updated_row(tag_top downto tag_bottom) <= current_tag;
-            end if;
-            if load_mem or write_line then
                updated_row(valid_start) <= '1';
             end if;
          end if;
@@ -617,7 +615,7 @@ begin
                   row <= updated_row;
                end if;
             when STATE_WRITEBACK_WRITE2 =>
-               if transfer_done = '1' then
+               if mready = '1' then
                   row <= updated_row;
                end if;
             when STATE_WRITE_FILL2 =>

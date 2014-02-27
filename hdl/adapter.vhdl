@@ -41,6 +41,7 @@ architecture rtl of adapter is
 
     signal state        : natural;
     signal next_state   : natural;
+    signal current      : natural;
     signal do_read      : std_logic;
     signal do_write     : std_logic;
     signal in_buf       : std_logic_vector(IN_WORD_WIDTH - 1 downto 0);
@@ -119,21 +120,30 @@ begin
         dout(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0)
             <= in_buf(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0);
 
+        -- Determine which part of the word we are accessing.
+        process(state, next_state, mready)
+        begin
+            if state = LAST_STATE and mready = '1' then
+                current <= 0;
+            elsif mready = '1' then
+                current <= next_state;
+            else
+                current <= state;
+            end if;
+        end process;
+
         -- Assign mout.
         -- This is assigned based on state.  In the first state, it
         -- is assigned directly from the low bits of din, otherwise, it is
         -- assigned from in_buf.
-        process(state, din, in_buf)
+        process(in_buf, current)
             variable top    : natural;
             variable bottom : natural;
         begin
-            if state = 0 then
-                mout <= din(OUT_WORD_WIDTH - 1 downto 0);
-            end if;
-            for i in 1 to LAST_STATE loop
+            for i in 0 to LAST_STATE loop
                 bottom  := i * OUT_WORD_WIDTH;
                 top     := bottom + OUT_WORD_WIDTH - 1;
-                if state = i then
+                if i = current then
                     mout <= in_buf(top downto bottom);
                 end if;
             end loop;
@@ -141,23 +151,17 @@ begin
 
         -- Assign mmask.
         -- This is assigned based on state like mout.
-        process(state, next_state, mask, in_mask, mready)
+        process(in_mask, current)
             variable top    : natural;
             variable bottom : natural;
         begin
-            if state = LAST_STATE then
-                mmask <= mask(OUT_MASK_BITS - 1 downto 0);
-            else
-                for i in 1 to LAST_STATE - 1 loop
-                    bottom  := i * OUT_MASK_BITS;
-                    top     := bottom + OUT_MASK_BITS - 1;
-                    if state = i and mready = '0' then
-                        mmask <= in_mask(top downto bottom);
-                    elsif next_state = i and mready = '1' then
-                        mmask <= in_mask(top downto bottom);
-                    end if;
-                end loop;
-            end if;
+            for i in 0 to LAST_STATE loop
+                bottom  := i * OUT_MASK_BITS;
+                top     := bottom + OUT_MASK_BITS - 1;
+                if i = current then
+                    mmask <= in_mask(top downto bottom);
+                end if;
+            end loop;
         end process;
 
         -- Assign maddr.
