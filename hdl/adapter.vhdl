@@ -102,10 +102,10 @@ begin
                 if we = '1' then
                     in_buf <= din;
                 elsif do_read = '1' and mready = '1' then
-                    for i in 0 to LAST_STATE - 1 loop
+                    for i in 0 to LAST_STATE loop
                         bottom  := i * OUT_WORD_WIDTH;
                         top     := bottom + OUT_WORD_WIDTH - 1;
-                        if state - 1 = i then
+                        if next_state - 1 = i then
                             in_buf(top downto bottom) <= min;
                         end if;
                     end loop;
