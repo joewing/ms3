@@ -433,7 +433,6 @@ begin
            dirty, tags, updated_ages, ages, min, din, current_offset,
            transfer_count, row, is_hit, mask)
       variable offset      : natural;
-      variable line_top    : natural;
       variable line_bottom : natural;
       variable tag_top     : natural;
       variable tag_bottom  : natural;
@@ -473,7 +472,6 @@ begin
       for way in 0 to ASSOCIATIVITY - 1 loop
          offset      := way * WAY_BITS;
          line_bottom := offset + LINE_OFFSET;
-         line_top    := line_bottom + LINE_BITS - 1;
          tag_bottom  := offset + TAG_OFFSET;
          tag_top     := tag_bottom + TAG_BITS - 1;
          age_bottom  := offset + AGE_OFFSET;

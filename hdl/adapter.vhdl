@@ -41,6 +41,7 @@ architecture rtl of adapter is
 
     signal state        : natural;
     signal next_state   : natural;
+    signal start        : std_logic;
     signal current      : natural;
     signal do_read      : std_logic;
     signal do_write     : std_logic;
@@ -211,13 +212,12 @@ begin
             variable top    : natural;
             variable bottom : natural;
         begin
+            mmask <= (others => '0');
             for i in 0 to bound loop
                 bottom  := i * (IN_WORD_WIDTH / 8);
                 top     := bottom + (IN_WORD_WIDTH / 8) - 1;
                 if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
                     mmask(top downto bottom) <= mask;
-                else
-                    mmask(top downto bottom) <= (others => '0');
                 end if;
             end loop;
         end process;
@@ -235,8 +235,8 @@ begin
                 top     := bottom + IN_WORD_WIDTH - 1;
                 if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
                     dout <= min(top downto bottom);
-                    mout(top downto bottom) <= din;
                 end if;
+                mout(top downto bottom) <= din;
             end loop;
         end process;
 
