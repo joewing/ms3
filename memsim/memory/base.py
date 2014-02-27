@@ -60,6 +60,14 @@ class Memory(object):
         """Create a deep copy of this memory."""
         return copy.deepcopy(self)
 
+    def get_main(self):
+        """Return the main memory."""
+        n = self.get_next()
+        if n is not None:
+            return n.get_main()
+        else:
+            return None
+
     def set_main(self, mem):
         """Set the main memory.
         Returns the updated memory subsystem.

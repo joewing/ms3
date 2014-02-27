@@ -6,7 +6,7 @@ import re
 
 from memsim import database
 from memsim import vhdl
-from memsim.memory import ram, memlist
+from memsim.memory import ram, memlist, subsystem
 
 
 freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")
@@ -29,22 +29,30 @@ class XilinxResult(object):
         return hash(self.get_pair())
 
 
-def run_xilinx(machine, mem, keep=False, full=False):
+def run_xilinx(machine, mem, keep=False):
     """Get the results of running XST on the specified memory."""
 
-    if full:
-        # Get the timing for the complete memory subsystem.
-        component = mem
+    # Create a dummy main memory with the correct word size.
+    word_size = mem.get_main().get_word_size()
+    main = ram.RAM(word_size=word_size, latency=0)
+
+    # Clone the memory so we can safely modify it.
+    mem = mem.clone()
+
+    # If we got a memory list, get timing for the complete
+    # memory subsystem.  Otherwise, only report timing for the
+    # specified component.
+    if isinstance(mem, memlist.MemoryList):
+        ml = mem
     else:
-        # Get the individual memory component with a simple main memory.
-        component = mem.clone()
-        component.access_time = 0
-        component.cycle_time = 0
-        component.set_next(ram.RAM(latency=0))
+        mem.set_next(None)
+        ml = memlist.MemoryList(main)
+        ml.add_memory(subsystem.Subsystem(0, word_size, mem))
+    ml.set_main(main)
 
     # Determine if we've already processed this memory.
     db = database.get_instance()
-    name = machine.part + str(component)
+    name = machine.part + str(mem)
     temp = db.get_fpga_result(name)
     if temp:
         return XilinxResult(temp[0], temp[1])
@@ -62,11 +70,6 @@ def run_xilinx(machine, mem, keep=False, full=False):
 
         # Generate the HDL for the component.
         gen = vhdl.VHDLGenerator(machine)
-        if isinstance(component, memlist.MemoryList):
-            ml = component
-        else:
-            ml = memlist.MemoryList(ram.RAM(latency=0))
-            ml.add_memory(component)
         hdl = gen.generate(ml)
         with open(vhdl_file, 'w') as f:
             f.write(hdl)

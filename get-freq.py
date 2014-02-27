@@ -28,16 +28,16 @@ def get_frequency(experiment, mem, baseline, keep):
         subsystem = m.memory
     elif mem == 'baseline':
         with open(baseline, 'r') as f:
-            subsystem = memory.parse_memory(lex.Lexer(f))
+            subsystem = memory.parse_memory_list(lex.Lexer(f))
     elif mem == 'best':
         best_name, _, _ = db.get_best(m)
         best_file = StringIO.StringIO(best_name)
-        subsystem = memory.parse_memory(lex.Lexer(best_file))
+        subsystem = memory.parse_memory_list(lex.Lexer(best_file))
     else:
         print('ERROR: invalid memory selected:', mem)
         sys.exit(-1)
     m.machine.frequency = 1 << 31
-    result = xilinx.run_xilinx(m.machine, subsystem, keep, True)
+    result = xilinx.run_xilinx(m.machine, subsystem, keep)
     print(get_experiment_name(experiment) + ',' +
           str(result.frequency) + ',' +
           str(result.bram_count))

@@ -17,6 +17,9 @@ class MainMemory(base.Memory):
     def can_insert(self):
         return True
 
+    def get_main(self):
+        return self
+
     def set_main(self, mem):
         return mem
 

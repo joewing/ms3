@@ -38,6 +38,14 @@ class MemoryList(object):
         else:
             assert(False)
 
+    def get_main(self):
+        return self.main_memory
+
+    def set_main(self, main):
+        self.main_memory = main
+        for m in self.all_memories():
+            m.set_main(main)
+
     def get_subsystem(self, index):
         return self.subsystems[index]
 
