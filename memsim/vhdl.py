@@ -185,37 +185,45 @@ class VHDLGenerator(object):
         self.append(pname + "_ready : in std_logic;")
 
     def _emit_downstream_signals(self, ml):
+        main = ml.main_memory
+        word_size = main.get_word_size()
+        word_width = word_size * 8
         port_count = len(list(ml.all_memories()))
-        top = str(port_count - 1)
-        port_spec = 'std_logic_vector(' + top + ' downto 0)'
+        port_spec = 'std_logic_vector(' + str(port_count - 1) + ' downto 0)'
+        bus_width = word_width * port_count
+        bus_spec = 'std_logic_vector(' + str(bus_width - 1) + ' downto 0)'
         pname = 'port0'
+        self.append('signal ' + pname + '_dout_vec : ' + bus_spec + ';')
         self.append('signal ' + pname + '_re_vec : ' + port_spec + ';')
         self.append('signal ' + pname + '_we_vec : ' + port_spec + ';')
         self.append('signal ' + pname + '_ready_vec : ' + port_spec + ';')
 
     def _connect_downstream_ports(self, ml):
 
+        main = ml.main_memory
+        word_size = main.get_word_size()
+        word_width = word_size * 8
+
         pname = 'port0'
         addr_ports = []
-        dout_ports = []
         din_ports = []
         mask_ports = []
         for i, mem in enumerate(ml.all_memories()):
             name = self._get_interface_name(mem)
             vec = '_vec(' + str(i) + ')'
             addr_ports.insert(0, name + '_addr')
-            dout_ports.insert(0, name + '_dout')
             din_ports.insert(0, name + '_din')
             mask_ports.insert(0, name + '_mask')
-            self.append(name + '_ready' + ' <= ' +
-                        pname + '_ready' + vec + ';')
+            dout_bottom = i * word_width
+            dout_top = dout_bottom + word_width - 1
+            dout_range = str(dout_top) + ' downto ' + str(dout_bottom)
+            self.append(name + '_dout <= ' + pname +
+                        '_dout_vec(' + dout_range + ');')
+            self.append(name + '_ready <= ' + pname + '_ready' + vec + ';')
             self.append(pname + '_re' + vec + ' <= ' + name + '_re' + ';')
             self.append(pname + '_we' + vec + ' <= ' + name + '_we' + ';')
 
         port_count = len(addr_ports)
-        main = ml.main_memory
-        word_size = main.get_word_size()
-        word_width = word_size * 8
         addr_width = self.get_addr_width(word_size)
         self.append('main_arbiter : entity work.arbiter')
         self.enter()
@@ -232,7 +240,7 @@ class VHDLGenerator(object):
         self.append('rst => rst,')
         self.append('addr => ' + '&'.join(addr_ports) + ',')
         self.append('din => ' + '&'.join(din_ports) + ',')
-        self.append('dout => ' + '&'.join(dout_ports) + ',')
+        self.append('dout => ' + pname + '_dout_vec,')
         self.append('re => ' + pname + '_re_vec,')
         self.append('we => ' + pname + '_we_vec,')
         self.append('mask => ' + '&'.join(mask_ports) + ',')
