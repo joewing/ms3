@@ -50,12 +50,12 @@ class SPM(container.Container):
     def get_word_size(self):
         return self.word_size
 
-    def generate(self, gen):
-        name = self.get_id()
+    def generate(self, gen, source):
+        name = gen.get_name(source, self)
         word_size = self.get_word_size()
         word_width = word_size * 8
         addr_width = gen.get_addr_width(word_size)
-        oname = gen.generate_next(word_size, self.get_next())
+        oname = gen.generate_next(self, self.get_next())
         size_bits = util.log2(self.size // word_size) - 1
         gen.declare_signals(name, word_size)
         gen.add_code(name + '_inst : entity work.spm')

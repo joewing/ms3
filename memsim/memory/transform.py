@@ -11,16 +11,16 @@ class Transform(container.Container):
         self.bank = bank
         join.set_parent(bank, self)
 
-    def generate_transform(self, op, value, inverse, gen):
+    def generate_transform(self, op, value, inverse, gen, source):
 
-        name = self.get_id()
+        name = gen.get_name(source, self)
         jname = join.find_join(self.bank, self).get_id()
         word_size = self.get_word_size()
         addr_width = gen.get_addr_width(word_size)
         word_width = word_size * 8
 
-        oname = gen.generate_next(word_size, self.get_next())
-        bname = gen.generate_next(word_size, self.bank)
+        oname = gen.generate_next(self, self.get_next())
+        bname = gen.generate_next(self, self.bank)
         gen.declare_signals(name, self.get_word_size())
 
         # Transform into the bank.

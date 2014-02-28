@@ -11,8 +11,8 @@ class Stats(container.Container):
     def __str__(self):
         return '(stats ' + self.mem.get_name() + ')'
 
-    def generate(self, gen):
-        return self.get_next().generate(gen)
+    def generate(self, gen, source):
+        return self.get_next().generate(gen, source)
 
     def get_word_size(self):
         return self.mem.get_word_size()

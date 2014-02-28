@@ -21,8 +21,8 @@ class Join(base.Memory):
     def can_insert(self):
         return True
 
-    def generate(self, gen):
-        name = self.get_id()
+    def generate(self, gen, source):
+        name = gen.get_name(source, self)
         gen.declare_signals(name, self.get_word_size())
         return name
 

@@ -45,8 +45,11 @@ class Memory(object):
         return False
 
     @abstractmethod
-    def generate(self, gen):
+    def generate(self, gen, source):
         """Generate the HDL model for this memory.
+
+        gen is the HDL generator.
+        source is the upstream memory component.
 
         Returns the base name for the memory port."""
         return ''
@@ -79,14 +82,9 @@ class Memory(object):
             self.set_next(mem)
         return self
 
-    def get_id(self, prefix='m'):
+    def get_id(self):
         """Get this memory's identifier."""
-        return prefix + str(self.memory_id)
-
-    def get_ports(self, mach):
-        """Get a list of main memory ports for this subsystem."""
-        n = self.get_next()
-        return n.get_ports(mach) if n else []
+        return 'm' + str(self.memory_id)
 
     def get_next(self):
         """Get the next memory component."""

@@ -28,12 +28,12 @@ class Prefetch(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
-    def generate(self, gen):
-        name = self.get_id()
+    def generate(self, gen, source):
+        name = gen.get_name(source, self)
         word_size = self.get_word_size()
         word_width = word_size * 8
         addr_width = gen.get_addr_width(word_size)
-        oname = gen.generate_next(word_width, self.get_next())
+        oname = gen.generate_next(self, self.get_next())
         gen.declare_signals(name, self.get_word_size())
         gen.add_code(name + "_inst : entity work.prefetch")
         gen.enter()

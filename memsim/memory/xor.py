@@ -24,8 +24,9 @@ class XOR(transform.Transform):
         result += ')'
         return result
 
-    def generate(self, gen):
-        return self.generate_transform("eor", self.value, self.value, gen)
+    def generate(self, gen, source):
+        value = self.value
+        return self.generate_transform('eor', value, value, gen, source)
 
     def is_empty(self):
         return self.value == 0

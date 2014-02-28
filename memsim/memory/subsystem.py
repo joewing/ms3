@@ -36,9 +36,9 @@ class Subsystem(base.Memory):
     def can_insert(self):
         return False
 
-    def generate(self, gen):
-        name = self.get_id()
-        oname = gen.generate_next(self.word_size, self.mem)
+    def generate(self, gen, source):
+        name = gen.get_name(source, self)
+        oname = gen.generate_next(self, self.mem)
         gen.declare_signals(name, self.get_word_size())
         gen.add_code(oname + '_addr <= ' + name + '_addr;')
         gen.add_code(oname + '_din <= ' + name + '_din;')

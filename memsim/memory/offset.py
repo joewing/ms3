@@ -27,9 +27,9 @@ class Offset(transform.Transform):
         result += ')'
         return result
 
-    def generate(self, gen):
+    def generate(self, gen, source):
         value = self.offset
-        return self.generate_transform("offset", value, -value, gen)
+        return self.generate_transform("offset", value, -value, gen, source)
 
     def is_empty(self):
         return self.offset == 0

@@ -99,10 +99,10 @@ class Cache(container.Container):
         result += ')'
         return result
 
-    def generate(self, gen):
-        name = self.get_id()
+    def generate(self, gen, source):
+        name = source.get_id() + self.get_id()
         word_size = self.get_word_size()
-        oname = gen.generate_next(word_size, self.get_next())
+        oname = gen.generate_next(self, self.get_next())
         addr_width = gen.get_addr_width(word_size)
         word_width = word_size * 8
         line_size_bits = util.log2(8 * self.line_size // word_width - 1)

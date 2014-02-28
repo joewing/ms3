@@ -1,3 +1,4 @@
+from memsim.memory.main import MainMemory
 
 
 class VHDLGenerator(object):
@@ -34,6 +35,13 @@ class VHDLGenerator(object):
     def get_addr_width(self, word_size):
         return self.machine.get_addr_width(word_size)
 
+    def get_name(self, source, mem):
+        """Get the base port name for connecting source to mem."""
+        if source is not None:
+            return source.get_id() + mem.get_id()
+        else:
+            return mem.get_id()
+
     def declare_signal(self, name, width_str=None):
         """Declare a signal."""
         if width_str is None:
@@ -54,16 +62,17 @@ class VHDLGenerator(object):
         self.declare_signal(name + "_mask", str(word_width // 8))
         self.declare_signal(name + "_ready")
 
-    def generate_next(self, word_size, mem):
+    def generate_next(self, source, mem):
         """Generate VHDL for the next memory in the subsystem.
 
-        word_size is the size of the upstream word in bytes.
+        source is the upstream memory.
         mem is the downstream memory to create.
         Returns the base name for the interface to the (adapted)
         downstream memory.
         """
-        name = mem.generate(self)
+        name = mem.generate(self, source)
         next_word_size = mem.get_word_size()
+        word_size = source.get_word_size()
         if next_word_size == word_size:
             return name
 
@@ -113,7 +122,7 @@ class VHDLGenerator(object):
         # Generate subsystems.
         for m in ml.all_memories():
             self.enter()
-            m.generate(self)
+            m.generate(self, None)
             self.leave()
             assert(self.indent == 0)
 
@@ -134,6 +143,9 @@ class VHDLGenerator(object):
         self.leave()
         self.append("end mem;")
         self.append("architecture rtl of mem is")
+        self.enter()
+        self._emit_downstream_signals(ml)
+        self.leave()
         self.result += self.sigs
         self.append("begin")
         self.result += self.code
@@ -145,37 +157,96 @@ class VHDLGenerator(object):
         assert(self.indent == 0)
         return self.result
 
+    def _get_interface_name(self, mem):
+        while not isinstance(mem.get_next(), MainMemory):
+            mem = mem.get_next()
+        main = mem.get_next()
+        return self.get_name(mem, main)
+
     def _emit_downstream_ports(self, ml):
-        ports = ml.main_memory.get_ports(self.machine)
-        for i, p in enumerate(ports):
-            pname = "port" + str(i)
-            addr_range = str(p.addr_width - 1) + ' downto 0'
-            word_range = str(p.word_size * 8 - 1) + ' downto 0'
-            mask_top = str(p.word_size - 1)
-            self.append(pname + '_addr : out std_logic_vector(' +
-                        addr_range + ');')
-            self.append(pname + '_din : in std_logic_vector(' +
-                        word_range + ');')
-            self.append(pname + '_dout : out std_logic_vector(' +
-                        word_range + ');')
-            self.append(pname + "_re : out std_logic;")
-            self.append(pname + "_we : out std_logic;")
-            self.append(pname + "_mask : out " +
-                        "std_logic_vector(" + mask_top + " downto 0);")
-            self.append(pname + "_ready : in std_logic;")
+        mem = ml.main_memory
+        word_size = mem.get_word_size()
+        word_width = word_size * 8
+        addr_width = self.get_addr_width(word_size)
+        pname = "port0"
+        addr_range = str(addr_width - 1) + ' downto 0'
+        word_range = str(word_width - 1) + ' downto 0'
+        mask_top = str(word_size - 1)
+        self.append(pname + '_addr : out std_logic_vector(' +
+                    addr_range + ');')
+        self.append(pname + '_din : in std_logic_vector(' +
+                    word_range + ');')
+        self.append(pname + '_dout : out std_logic_vector(' +
+                    word_range + ');')
+        self.append(pname + "_re : out std_logic;")
+        self.append(pname + "_we : out std_logic;")
+        self.append(pname + "_mask : out " +
+                    "std_logic_vector(" + mask_top + " downto 0);")
+        self.append(pname + "_ready : in std_logic;")
+
+    def _emit_downstream_signals(self, ml):
+        port_count = len(list(ml.all_memories()))
+        top = str(port_count - 1)
+        port_spec = 'std_logic_vector(' + top + ' downto 0)'
+        pname = 'port0'
+        self.append('signal ' + pname + '_re_vec : ' + port_spec + ';')
+        self.append('signal ' + pname + '_we_vec : ' + port_spec + ';')
+        self.append('signal ' + pname + '_ready_vec : ' + port_spec + ';')
 
     def _connect_downstream_ports(self, ml):
-        ports = ml.main_memory.get_ports(self.machine)
-        for i, p in enumerate(ports):
-            pname = "port" + str(i)
-            oname = p.name
-            self.append(pname + "_addr <= " + oname + "_addr;")
-            self.append(pname + "_dout <= " + oname + "_din;")
-            self.append(oname + "_dout <= " + pname + "_din;")
-            self.append(pname + "_re <= " + oname + "_re;")
-            self.append(pname + "_we <= " + oname + "_we;")
-            self.append(pname + "_mask <= " + oname + "_mask;")
-            self.append(oname + "_ready <= " + pname + "_ready;")
+
+        pname = 'port0'
+        addr_ports = []
+        dout_ports = []
+        din_ports = []
+        mask_ports = []
+        for i, mem in enumerate(ml.all_memories()):
+            name = self._get_interface_name(mem)
+            vec = '_vec(' + str(i) + ')'
+            addr_ports.insert(0, name + '_addr')
+            dout_ports.insert(0, name + '_dout')
+            din_ports.insert(0, name + '_din')
+            mask_ports.insert(0, name + '_mask')
+            self.append(name + '_ready' + ' <= ' +
+                        pname + '_ready' + vec + ';')
+            self.append(pname + '_re' + vec + ' <= ' + name + '_re' + ';')
+            self.append(pname + '_we' + vec + ' <= ' + name + '_we' + ';')
+
+        port_count = len(addr_ports)
+        main = ml.main_memory
+        word_size = main.get_word_size()
+        word_width = word_size * 8
+        addr_width = self.get_addr_width(word_size)
+        self.append('main_arbiter : entity work.arbiter')
+        self.enter()
+        self.append('generic map(')
+        self.enter()
+        self.append('PORT_COUNT => ' + str(port_count) + ',')
+        self.append('ADDR_WIDTH => ' + str(addr_width) + ',')
+        self.append('WORD_WIDTH => ' + str(word_width))
+        self.leave()
+        self.append(')')
+        self.append('port map (')
+        self.enter()
+        self.append('clk => clk,')
+        self.append('rst => rst,')
+        self.append('addr => ' + '&'.join(addr_ports) + ',')
+        self.append('din => ' + '&'.join(din_ports) + ',')
+        self.append('dout => ' + '&'.join(dout_ports) + ',')
+        self.append('re => ' + pname + '_re_vec,')
+        self.append('we => ' + pname + '_we_vec,')
+        self.append('mask => ' + '&'.join(mask_ports) + ',')
+        self.append('ready => ' + pname + '_ready_vec,')
+        self.append('maddr => ' + pname + '_addr,')
+        self.append('mout => ' + pname + '_dout,')
+        self.append('min => ' + pname + '_din,')
+        self.append('mre => ' + pname + '_re,')
+        self.append('mwe => ' + pname + '_we,')
+        self.append('mmask => ' + pname + '_mask,')
+        self.append('mready => ' + pname + '_ready')
+        self.leave()
+        self.append(');')
+        self.leave()
 
     def _emit_upstream_ports(self, ml):
         for i, m in enumerate(ml.all_memories()):

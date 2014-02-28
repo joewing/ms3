@@ -23,15 +23,8 @@ class MainMemory(base.Memory):
     def set_main(self, mem):
         return mem
 
-    def get_ports(self, mach):
-        name = self.get_id()
-        word_size = self.get_word_size()
-        word_bits = util.get_bus_shift(word_size)
-        addr_width = mach.addr_bits - word_bits
-        return [base.MemoryPort(name, word_size, addr_width)]
-
-    def generate(self, gen):
-        name = self.get_id()
+    def generate(self, gen, source):
+        name = gen.get_name(source, self)
         gen.declare_signals(name, self.get_word_size())
         return name
 

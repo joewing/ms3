@@ -32,21 +32,21 @@ class Split(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
-    def generate(self, gen):
+    def generate(self, gen, source):
 
-        word_size = self.get_word_size()
-        oname = gen.generate_next(word_size, self.get_next())
-        b0name = gen.generate_next(word_size, self.bank0)
-        b1name = gen.generate_next(word_size, self.bank1)
+        oname = gen.generate_next(self, self.get_next())
+        b0name = gen.generate_next(self, self.bank0)
+        b1name = gen.generate_next(self, self.bank1)
 
-        name = self.get_id()
-        word_width = word_size * 8
+        name = gen.get_name(source, self)
         j0name = join.find_join(self.bank0, self).get_id()
         j1name = join.find_join(self.bank1, self).get_id()
 
-        offset_bits = []
+        word_size = self.get_word_size()
+        word_width = word_size * 8
         addr_width = gen.get_addr_width(word_size)
         word_offset = self.offset // word_size
+        offset_bits = []
         for i in reversed(xrange(0, addr_width)):
             if word_offset & (1 << i):
                 offset_bits.append('1')
