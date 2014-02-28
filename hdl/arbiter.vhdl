@@ -58,7 +58,10 @@ begin
         variable mask_bottom    : natural;
     begin
         if rising_edge(clk) then
-            if mready = '1' then
+            if rst = '1' then
+                re_buffer <= (others => '0');
+                we_buffer <= (others => '0');
+            elsif mready = '1' then
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
                     addr_top    := addr_bottom + ADDR_WIDTH - 1;
@@ -67,8 +70,8 @@ begin
                     mask_bottom := i * MASK_WIDTH;
                     mask_top    := mask_bottom + MASK_WIDTH - 1;
                     if active = i then
-                        re_buffer(i) <= re(i);
-                        we_buffer(i) <= we(i);
+                        re_buffer(i) <= '0';
+                        we_buffer(i) <= '0';
                     else
                         re_buffer(i) <= re(i) or re_buffer(i);
                         we_buffer(i) <= we(i) or we_buffer(i);
@@ -88,7 +91,6 @@ begin
 
     -- Determine which port should be connected.
     process(clk)
-        variable comb : std_logic;
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -96,17 +98,36 @@ begin
             elsif mready = '1' then
                 active <= PORT_COUNT;
                 for i in 0 to PORT_COUNT - 1 loop
-                    comb := re(i) or re_buffer(i) or we(i) or we_buffer(i);
-                    if comb = '1' then
-                        active <= i;
+                    if re(i) = '1' or we(i) = '1' then
+                        active  <= i;
+                    elsif re_buffer(i) = '1' or we_buffer(i) = '1' then
+                        active  <= i;
                     end if;
                 end loop;
             end if;
         end if;
     end process;
 
-    -- Connect the current port.
-    process(active)
+    -- Set the output.
+    process(active, min, mready, re_buffer, we_buffer)
+        variable word_top       : natural;
+        variable word_bottom    : natural;
+    begin
+        for i in 0 to PORT_COUNT - 1 loop
+            word_bottom := i * WORD_WIDTH;
+            word_top    := word_bottom + WORD_WIDTH - 1;
+            dout(word_top downto word_bottom) <= min;
+            if active = i then
+                ready(i) <= '0';
+            else
+                ready(i) <= not (re_buffer(i) or we_buffer(i));
+            end if;
+        end loop;
+    end process;
+
+    -- Drive the memory port.
+    process(active, addr_buffer, data_buffer,
+            re_buffer, we_buffer, mask_buffer)
         variable addr_top       : natural;
         variable addr_bottom    : natural;
         variable word_top       : natural;
@@ -114,11 +135,11 @@ begin
         variable mask_top       : natural;
         variable mask_bottom    : natural;
     begin
-        maddr   <= (others => '0');
-        mout    <= (others => '0');
+        maddr   <= (others => 'Z');
+        mout    <= (others => 'Z');
         mre     <= '0';
         mwe     <= '0';
-        mmask   <= (others => '0');
+        mmask   <= (others => 'Z');
         for i in 0 to PORT_COUNT - 1 loop
             addr_bottom := i * ADDR_WIDTH;
             addr_top    := addr_bottom + ADDR_WIDTH - 1;
@@ -126,17 +147,14 @@ begin
             word_top    := word_bottom + WORD_WIDTH - 1;
             mask_bottom := i * MASK_WIDTH;
             mask_top    := mask_bottom + MASK_WIDTH - 1;
-            dout(word_top downto word_bottom) <= min;
-            ready(i) <= not (re_buffer(i) or we_buffer(i));
             if active = i then
-                maddr       <= addr_buffer(addr_top downto addr_bottom);
-                mout        <= data_buffer(word_top downto word_bottom);
-                mre         <= re_buffer(i);
-                mwe         <= we_buffer(i);
-                mmask       <= mask_buffer(mask_top downto mask_bottom);
-                ready(i)    <= mready;
+                maddr   <= addr_buffer(addr_top downto addr_bottom);
+                mout    <= data_buffer(word_top downto word_bottom);
+                mre     <= re_buffer(i);
+                mwe     <= we_buffer(i);
+                mmask   <= mask_buffer(mask_top downto mask_bottom);
             end if;
         end loop;
     end process;
-    
+
 end rtl;

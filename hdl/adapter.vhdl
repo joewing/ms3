@@ -133,36 +133,30 @@ begin
             end if;
         end process;
 
-        -- Assign mout.
-        -- This is assigned based on state.  In the first state, it
-        -- is assigned directly from the low bits of din, otherwise, it is
-        -- assigned from in_buf.
-        process(in_buf, current)
-            variable top    : natural;
-            variable bottom : natural;
+        -- Assign mout and mmask.
+        -- This is assigned based on state.  In the first state, we
+        -- assign directly from the low bits of the input, otherwise,
+        -- we assign from the buffer.
+        process(in_buf, in_mask, current, din, mask)
+            variable word_top       : natural;
+            variable word_bottom    : natural;
+            variable mask_top       : natural;
+            variable mask_bottom    : natural;
         begin
-            for i in 0 to LAST_STATE loop
-                bottom  := i * OUT_WORD_WIDTH;
-                top     := bottom + OUT_WORD_WIDTH - 1;
+            for i in 1 to LAST_STATE - 1 loop
+                word_bottom     := i * OUT_WORD_WIDTH;
+                word_top        := word_bottom + OUT_WORD_WIDTH - 1;
+                mask_bottom     := i * OUT_MASK_BITS;
+                mask_top        := mask_bottom + OUT_MASK_BITS - 1;
                 if i = current then
-                    mout <= in_buf(top downto bottom);
+                    mout <= in_buf(word_top downto word_bottom);
+                    mmask <= in_mask(mask_top downto mask_bottom);
                 end if;
             end loop;
-        end process;
-
-        -- Assign mmask.
-        -- This is assigned based on state like mout.
-        process(in_mask, current)
-            variable top    : natural;
-            variable bottom : natural;
-        begin
-            for i in 0 to LAST_STATE loop
-                bottom  := i * OUT_MASK_BITS;
-                top     := bottom + OUT_MASK_BITS - 1;
-                if i = current then
-                    mmask <= in_mask(top downto bottom);
-                end if;
-            end loop;
+            if current = 0 then
+                mout <= din(OUT_WORD_WIDTH - 1 downto 0);
+                mmask <= mask(OUT_MASK_BITS - 1 downto 0);
+            end if;
         end process;
 
         -- Assign maddr.
