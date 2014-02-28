@@ -130,7 +130,7 @@ class SPM(container.Container):
 
     def simplify(self):
         self.mem = self.mem.simplify()
-        if self.size == 0:
+        if self.size < self.word_size:
             return self.mem
         else:
             return self
@@ -168,7 +168,7 @@ class SPM(container.Container):
         elif addr >= self.size and last_addr > self.size:
             # Completely misses the scratchpad
             self.pending = self.machine.time + result
-            result = self.mem.process(result, write, addr, size)
+            result = base.send_request(self.mem, result, write, addr, size)
         elif addr > self.size and last_addr < self.size:
             # First part hits, second part misses
             msize = size - last_addr + 1
@@ -176,7 +176,7 @@ class SPM(container.Container):
             result += (count - 1) * self.cycle_time + self.access_time
             self.pending = self.machine.time + result
             self.pending += max(self.cycle_time - self.access_time, 0)
-            result = self.mem.process(result, write, addr, msize)
+            result = base.send_request(self.mem, result, write, addr, msize)
         else:
             # First part misses, second part hits
             hsize = self.size - addr
@@ -185,7 +185,8 @@ class SPM(container.Container):
             result += (count - 1) * self.cycle_time + self.access_time
             self.pending = self.machine.time + result
             self.pending += max(self.cycle_time - self.access_time, 0)
-            result = self.mem.process(result, write, self.size, size - hsize)
+            result = base.send_request(self.mem, result, write,
+                                       self.size, size - hsize)
         return result
 
 
