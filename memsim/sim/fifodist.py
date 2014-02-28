@@ -21,5 +21,5 @@ class FIFODistribution(BaseDistribution):
 
     def random_address(self, alignment):
         size = self.fifo.total_size()
-        temp = size // alignment
+        temp = (size + alignment - 1) // alignment
         return self.randint(0, temp - 1) * alignment
