@@ -1,4 +1,3 @@
-from memsim.memory.main import MainMemory
 
 
 class VHDLGenerator(object):
@@ -158,7 +157,8 @@ class VHDLGenerator(object):
         return self.result
 
     def _get_interface_name(self, mem):
-        while not isinstance(mem.get_next(), MainMemory):
+        main = mem.get_main()
+        while mem.get_next() is not main:
             mem = mem.get_next()
         main = mem.get_next()
         return self.get_name(mem, main)

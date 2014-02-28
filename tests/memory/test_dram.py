@@ -107,23 +107,6 @@ class TestDRAM(unittest.TestCase):
         simplified = dram.simplify()
         self.assertEqual(dram, simplified)
 
-    def test_ports(self):
-        dram = DRAM(frequency=1e9 / 2,
-                    cas_cycles=2,
-                    rcd_cycles=3,
-                    rp_cycles=4,
-                    wb_cycles=1,
-                    page_size=1024,
-                    page_count=2048,
-                    width=2,
-                    burst_size=2,
-                    open_page=False,
-                    ddr=False)
-        ports = dram.get_ports(self.machine)
-        self.assertEqual(len(ports), 1)
-        self.assertEqual(ports[0].word_size, 2 * 2)
-        self.assertEqual(ports[0].addr_width, 30)
-
     def test_parse(self):
         s = "(dram (frequency 1024)(cas_cycles 1)(rcd_cycles 2)"
         s += "(rp_cycles 3)(wb_cycles 4)(page_size 8)(page_count 16)"

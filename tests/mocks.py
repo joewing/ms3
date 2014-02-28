@@ -55,6 +55,7 @@ class MockMemory(memory.Memory):
         self.mem = mem
         self.banks = list(banks)
         self.word_size = 8
+        self.main_memory = None
 
     def __str__(self):
         if self.mem is None:
@@ -78,7 +79,11 @@ class MockMemory(memory.Memory):
         return str(self)
 
     def set_main(self, m):
+        self.main_memory = m
         return self
+
+    def get_main(self):
+        return self.main_memory
 
     def get_next(self):
         return self.mem
@@ -93,7 +98,7 @@ class MockMemory(memory.Memory):
         assert(i < len(self.banks))
         self.banks[i] = b
 
-    def generate(self, gen):
+    def generate(self, gen, source):
         self.generated += 1
         return 'mock'
 
