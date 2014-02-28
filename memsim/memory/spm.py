@@ -25,9 +25,7 @@ def random_spm(machine, nxt, rand, cost):
 
 class SPM(container.Container):
 
-    def __init__(self, mem, word_size, size,
-                 access_time=0,
-                 cycle_time=0):
+    def __init__(self, mem, word_size, size, access_time=0, cycle_time=0):
         container.Container.__init__(self, mem)
         self.word_size = word_size
         self.size = size

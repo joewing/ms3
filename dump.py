@@ -11,15 +11,18 @@ parser.add_option('-u', '--url', dest='url', default=None,
                   help='database URL')
 parser.add_option('-s', '--show', default=False, action='store_true',
                   help='show results')
-parser.add_option('-p', '--pending', default=False, action='store_true',
-                  help='show pending experiments')
 
 
-def get_name_map(db):
+def print_print_ml(ml):
+    s = str(ml)
+    return s.replace(') (', ')\n        (')
+
+
+def get_name_map(db, experiments):
     names = dict()
-    for name in os.listdir('experiments'):
+    for name in experiments:
         try:
-            with open('experiments/' + name, 'r') as f:
+            with open(name, 'r') as f:
                 m = model.parse_model(lex.Lexer(f))
                 key = db.get_hash(m)
                 names[key] = name
@@ -28,8 +31,8 @@ def get_name_map(db):
     return names
 
 
-def show_state(db):
-    names = get_name_map(db)
+def show_state(db, experiments):
+    names = get_name_map(db, experiments)
     for mname, evals, value in db.get_status():
         key = db.get_hash(mname)
         if key in names:
@@ -37,14 +40,14 @@ def show_state(db):
             best_name, best_value, best_cost = db.get_best(mname)
             print('  Hash:', db.get_hash(mname))
             print('  Iter:', evals)
-            print('  Best:', best_name)
+            print('  Best:', print_print_ml(best_name))
             print('  Time:', best_value)
             print('  Cost:', best_cost)
             print()
 
 
-def show_pending(db):
-    names = get_name_map(db)
+def show_pending(db, experiments):
+    names = get_name_map(db, experiments)
     for mname, evals, value in db.get_status():
         key = db.get_hash(mname)
         if key in names:
@@ -61,9 +64,9 @@ def main():
     options, args = parser.parse_args()
     db = database.get_instance(options.url)
     if options.show:
-        show_state(db)
-    if options.pending:
-        show_pending(db)
+        show_state(db, args)
+    else:
+        show_pending(db, args)
 
 
 if __name__ == '__main__':
