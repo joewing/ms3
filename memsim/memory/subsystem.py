@@ -59,7 +59,12 @@ class Subsystem(base.Memory):
         self.mem = n
 
     def get_path_length(self):
-        return self.get_next().get_path_length()
+        word_size = self.word_size
+        next_word_size = self.mem.get_word_size()
+        length = self.mem.get_path_length()
+        if word_size != next_word_size:
+            length += self.machine.addr_width
+        return length
 
     def process(self, start, write, addr, size):
         return base.send_request(self.mem, start, write, addr, size)

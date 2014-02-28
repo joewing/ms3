@@ -96,4 +96,4 @@ class TestSPM(unittest.TestCase):
         spm = SPM(self.main, word_size=2, size=1024,
                   access_time=1, cycle_time=1)
         spm.reset(self.machine)
-        self.assertEqual(spm.get_path_length(), self.machine.addr_bits)
+        self.assertEqual(spm.get_path_length(), 2 * self.machine.addr_bits)

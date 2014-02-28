@@ -150,7 +150,8 @@ class SPM(container.Container):
         rand.pop_limit()
 
     def get_path_length(self):
-        return self.machine.addr_bits + self.get_next().get_path_length()
+        tl = container.Container.get_path_length(self)
+        return tl + self.machine.addr_bits
 
     def done(self):
         return max(self.pending - self.machine.time, 0)

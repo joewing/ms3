@@ -276,7 +276,7 @@ class TestCache(unittest.TestCase):
                       cycle_time=1,
                       write_back=True)
         cache.reset(self.machine)
-        self.assertEqual(cache.get_path_length(), 0)
+        self.assertEqual(cache.get_path_length(), 32)
         self.assertEqual(cache.get_cost(), 4 * 2 * 8 + 4 * 17)
 
     def test_generate(self):

@@ -181,7 +181,8 @@ class Split(container.Container):
         return self.machine.addr_bits + max(b0, b1)
 
     def get_forward_path_length(self):
-        return self.machine.addr_bits + self.get_next().get_path_length()
+        tl = container.Container.get_path_length(self)
+        return tl + self.machine.addr_bits
 
     def done(self):
         return self.mem.done()

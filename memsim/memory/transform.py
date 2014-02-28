@@ -111,8 +111,8 @@ class Transform(container.Container):
 
     def get_forward_path_length(self):
         """Get the path length leaving the transform."""
-        tl = self.get_transform_path_length()
-        return tl + self.get_next().get_path_length()
+        tl = container.Container.get_path_length(self)
+        return tl + self.get_transform_path_length()
 
     def is_empty(self):
         return False
