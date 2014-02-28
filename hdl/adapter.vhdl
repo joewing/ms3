@@ -143,7 +143,7 @@ begin
             variable mask_top       : natural;
             variable mask_bottom    : natural;
         begin
-            for i in 1 to LAST_STATE - 1 loop
+            for i in 1 to LAST_STATE loop
                 word_bottom     := i * OUT_WORD_WIDTH;
                 word_top        := word_bottom + OUT_WORD_WIDTH - 1;
                 mask_bottom     := i * OUT_MASK_BITS;
