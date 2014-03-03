@@ -3,7 +3,7 @@ import random
 from StringIO import StringIO
 
 from optimizer import Optimizer
-from memsim import lex, memory, util
+from memsim import lex, memory
 from memsim.memory import (
     cache,
     offset,
@@ -153,15 +153,14 @@ class MemoryOptimizer(Optimizer):
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
         max_cost = self.model.machine.max_cost - last.get_cost()
-        offset = 0
+        max_size = 1 << self.model.machine.addr_bits
         for f in last.all_fifos():
-            offset = util.align(f.get_word_size(), offset)
-            offset += f.total_size()
+            max_size -= f.total_size()
+            max_size -= f.get_word_size()
         for b in self.model.benchmarks:
             m = last.get_subsystem(b.index)
-            offset = util.align(m.get_word_size(), offset)
-            offset += b.get_size(self.directory)
-        max_size = (1 << self.model.machine.addr_bits) - offset
+            max_size -= m.get_word_size()
+            max_size -= b.get_size(self.directory)
         while True:
 
             # Select an action to perform.  We make multiple

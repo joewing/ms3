@@ -60,9 +60,9 @@ class FIFO(subsystem.Subsystem):
 
     def permute(self, rand, max_cost, max_size):
         max_size += self.size
-        if self.size * 2 > max_size:
+        if self.total_size() * 2 > max_size:
             self.size //= 2
-        elif self.size // 2 < self.word_size:
+        elif self.size == 1:
             self.size *= 2
         elif rand.randint(0, 1) == 0:
             self.size //= 2
