@@ -4,8 +4,8 @@ import json
 import sys
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
-                        UniqueConstraint)
-from sqlalchemy.sql import select, and_, func
+                        UniqueConstraint, literal)
+from sqlalchemy.sql import select, and_, func, exists
 from sqlalchemy.exc import ProgrammingError, IntegrityError
 
 from memsim.resultcache import ResultCache
@@ -78,11 +78,11 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(8192)
+        self.results = ResultCache(16384)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(32)       # model_hash -> (id, state)
-        self.memories = ResultCache(8192)   # memory_hash -> id
+        self.memories = ResultCache(16384)  # memory_hash -> id
         self.send_count = 0
 
     def connect(self):
@@ -101,16 +101,6 @@ class SQLDatabase(base.BaseDatabase):
         """Execute a query."""
         self.send_count += 1
         return self.engine.execute(stmt)
-
-    def _try_insert(self, stmt):
-        """Attempt to insert ignoring errors from duplicate values."""
-        try:
-            self._execute(stmt)
-        except ProgrammingError as e:
-            if e.orig[1] != '23505':
-                raise
-        except IntegrityError:
-            pass
 
     def load(self, mod):
         """Load state data from the database for the specified model."""
@@ -139,6 +129,7 @@ class SQLDatabase(base.BaseDatabase):
             return self.models[mod_hash]
 
         # Check the database.
+        # Note that this is the model likely senario.
         stmt = select([
             models_table.c.id,
             models_table.c.data
@@ -153,12 +144,21 @@ class SQLDatabase(base.BaseDatabase):
             return ident, state
 
         # Insert a new model.
-        stmt = models_table.insert().values(
-            model_hash=mod_hash,
-            name=str(mod),
-            data='{}',
+        stmt = models_table.insert().from_select([
+                models_table.c.model_hash,
+                models_table.c.name,
+                models_table.c.data,
+            ], select([
+                literal(mod_hash),
+                literal(str(mod)),
+                literal('{}'),
+            ]).where(
+                ~exists([models_table.c.id]).where(
+                    models_table.c.model_hash == mod_hash
+                )
+            )
         )
-        self._try_insert(stmt)
+        self._execute(stmt)
         return self._load_model(mod)
 
     def _get_model_id(self, mod):
@@ -172,23 +172,30 @@ class SQLDatabase(base.BaseDatabase):
         if mem_hash in self.memories:
             return self.memories[mem_hash]
 
+        # Attempt to insert a new memory.
+        # This is the expected case.
+        stmt = memories_table.insert().from_select([
+                memories_table.c.name_hash,
+                memories_table.c.name,
+            ], select([
+                literal(mem_hash),
+                literal(str(mem)),
+            ]).where(
+                ~exists([memories_table.c.id]).where(
+                    memories_table.c.name_hash == mem_hash
+                )
+            )
+        )
+        self._execute(stmt)
+
         # Check the database.
         stmt = select([memories_table.c.id]).where(
             memories_table.c.name_hash == mem_hash
         )
         row = self._execute(stmt).first()
-        if row:
-            ident = row['id']
-            self.memories[mem_hash] = ident
-            return ident
-
-        # Attempt to insert a new memory.
-        stmt = memories_table.insert().values(
-            name_hash=mem_hash,
-            name=str(mem),
-        )
-        self._try_insert(stmt)
-        return self._get_memory_id(mem)
+        ident = row['id']
+        self.memories[mem_hash] = ident
+        return ident
 
     def get_result(self, mod, mem):
         """Look up the result for the specified model.
@@ -238,13 +245,26 @@ class SQLDatabase(base.BaseDatabase):
         # Insert to the database.
         mod_id = self._get_model_id(mod)
         mem_id = self._get_memory_id(mem)
-        stmt = results_table.insert().values(
-            model_id=mod_id,
-            memory_id=mem_id,
-            value=value,
-            cost=cost,
+        stmt = results_table.insert().from_select([
+                results_table.c.model_id,
+                results_table.c.memory_id,
+                results_table.c.value,
+                results_table.c.cost,
+            ], select([
+                literal(mod_id),
+                literal(mem_id),
+                literal(value),
+                literal(cost),
+            ]).where(
+                ~exists([results_table.c.model_id]).where(
+                    and_(
+                        results_table.c.model_id == mod_id,
+                        results_table.c.memory_id == mem_id,
+                    )
+                )
+            )
         )
-        self._try_insert(stmt)
+        self._execute(stmt)
         return True
 
     def get_best(self, mod):
@@ -294,8 +314,10 @@ class SQLDatabase(base.BaseDatabase):
             return self.fpga_results[name_hash]
 
         # Check the database.
-        stmt = select([fpga_results_table.c.frequency,
-                       fpga_results_table.c.bram_count]).where(
+        stmt = select([
+            fpga_results_table.c.frequency,
+            fpga_results_table.c.bram_count
+        ]).where(
             fpga_results_table.c.name_hash == name_hash
         )
         row = self._execute(stmt).first()
@@ -314,13 +336,23 @@ class SQLDatabase(base.BaseDatabase):
         self.fpga_results[name_hash] = (frequency, bram_count)
 
         # Insert into the database.
-        stmt = fpga_results_table.insert().values(
-            name_hash=name_hash,
-            name=str(name),
-            frequency=frequency,
-            bram_count=bram_count,
+        stmt = fpga_results_table.insert().from_select([
+                fpga_results_table.c.name_hash,
+                fpga_results_table.c.name,
+                fpga_results_table.c.frequency,
+                fpga_results_table.c.bram_count,
+            ], select([
+                literal(name_hash),
+                literal(str(name)),
+                literal(frequency),
+                literal(bram_count),
+            ]).where(
+                ~exists([fpga_results_table.c.name_hash]).where(
+                    fpga_results_table.c.name_hash == name_hash
+                )
+            )
         )
-        self._try_insert(stmt)
+        self._execute(stmt)
         return True
 
     def get_cacti_result(self, name):
@@ -332,9 +364,11 @@ class SQLDatabase(base.BaseDatabase):
             return self.cacti_results[name_hash]
 
         # Check the database.
-        stmt = select([cacti_results_table.c.access_time,
-                       cacti_results_table.c.cycle_time,
-                       cacti_results_table.c.area]).where(
+        stmt = select([
+            cacti_results_table.c.access_time,
+            cacti_results_table.c.cycle_time,
+            cacti_results_table.c.area
+        ]).where(
             cacti_results_table.c.name_hash == name_hash
         )
         row = self._execute(stmt).first()
@@ -353,14 +387,25 @@ class SQLDatabase(base.BaseDatabase):
         self.cacti_results[name_hash] = (access_time, cycle_time, area)
 
         # Insert into the database.
-        stmt = cacti_results_table.insert().values(
-            name_hash=name_hash,
-            name=str(name),
-            area=area,
-            access_time=access_time,
-            cycle_time=cycle_time,
+        stmt = cacti_results_table.insert().from_select([
+                cacti_results_table.c.name_hash,
+                cacti_results_table.c.name,
+                cacti_results_table.c.area,
+                cacti_results_table.c.access_time,
+                cacti_results_table.c.cycle_time,
+            ], select([
+                literal(name_hash),
+                literal(str(name)),
+                literal(area),
+                literal(access_time),
+                literal(cycle_time),
+            ]).where(
+                ~exists([cacti_results_table.c.name_hash]).where(
+                    cacti_results_table.c.name_hash == name_hash
+                )
+            )
         )
-        self._try_insert(stmt)
+        self._execute(stmt)
         return True
 
     def get_status(self):
