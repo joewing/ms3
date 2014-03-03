@@ -6,7 +6,6 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
                         UniqueConstraint, literal)
 from sqlalchemy.sql import select, and_, func, exists
-from sqlalchemy.exc import ProgrammingError, IntegrityError
 
 from memsim.resultcache import ResultCache
 from memsim.database import base
@@ -144,7 +143,8 @@ class SQLDatabase(base.BaseDatabase):
             return ident, state
 
         # Insert a new model.
-        stmt = models_table.insert().from_select([
+        stmt = models_table.insert().from_select(
+            [
                 models_table.c.model_hash,
                 models_table.c.name,
                 models_table.c.data,
@@ -174,7 +174,8 @@ class SQLDatabase(base.BaseDatabase):
 
         # Attempt to insert a new memory.
         # This is the expected case.
-        stmt = memories_table.insert().from_select([
+        stmt = memories_table.insert().from_select(
+            [
                 memories_table.c.name_hash,
                 memories_table.c.name,
             ], select([
@@ -245,7 +246,8 @@ class SQLDatabase(base.BaseDatabase):
         # Insert to the database.
         mod_id = self._get_model_id(mod)
         mem_id = self._get_memory_id(mem)
-        stmt = results_table.insert().from_select([
+        stmt = results_table.insert().from_select(
+            [
                 results_table.c.model_id,
                 results_table.c.memory_id,
                 results_table.c.value,
@@ -336,7 +338,8 @@ class SQLDatabase(base.BaseDatabase):
         self.fpga_results[name_hash] = (frequency, bram_count)
 
         # Insert into the database.
-        stmt = fpga_results_table.insert().from_select([
+        stmt = fpga_results_table.insert().from_select(
+            [
                 fpga_results_table.c.name_hash,
                 fpga_results_table.c.name,
                 fpga_results_table.c.frequency,
@@ -387,7 +390,8 @@ class SQLDatabase(base.BaseDatabase):
         self.cacti_results[name_hash] = (access_time, cycle_time, area)
 
         # Insert into the database.
-        stmt = cacti_results_table.insert().from_select([
+        stmt = cacti_results_table.insert().from_select(
+            [
                 cacti_results_table.c.name_hash,
                 cacti_results_table.c.name,
                 cacti_results_table.c.area,
