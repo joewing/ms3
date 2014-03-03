@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import json
 import sys
@@ -36,6 +35,7 @@ models_table = Table(
     Column('model_hash', String(64), nullable=False, unique=True),
     Column('name', Text, nullable=False),
     Column('data', Text, nullable=False),
+    implicit_returning=False,
 )
 fpga_results_table = Table(
     'fpga_results', metadata,
@@ -43,6 +43,7 @@ fpga_results_table = Table(
     Column('name', Text, nullable=False),
     Column('frequency', Float, nullable=False),
     Column('bram_count', BigInteger, nullable=False),
+    implicit_returning=False,
 )
 cacti_results_table = Table(
     'cacti_results', metadata,
@@ -51,12 +52,14 @@ cacti_results_table = Table(
     Column('area', Float, nullable=False),
     Column('access_time', Float, nullable=False),
     Column('cycle_time', Float, nullable=False),
+    implicit_returning=False,
 )
 memories_table = Table(
     'memories', metadata,
     Column('id', Integer, primary_key=True),
     Column('name_hash', String(64), nullable=False, unique=True),
     Column('name', Text, nullable=False),
+    implicit_returning=False,
 )
 results_table = Table(
     'results', metadata,
@@ -67,6 +70,7 @@ results_table = Table(
     Column('value', BigInteger, nullable=False),
     Column('cost', BigInteger, nullable=False),
     UniqueConstraint('model_id', 'memory_id'),
+    implicit_returning=False,
 )
 
 
