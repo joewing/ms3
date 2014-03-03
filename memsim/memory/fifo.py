@@ -68,8 +68,8 @@ class FIFO(subsystem.Subsystem):
             self.size //= 2
         else:
             self.size *= 2
-        assert(self.size >= self.word_size)
-        assert(self.size <= max_size)
+        assert(self.size >= 1)
+        assert(self.total_size() <= max_size)
         return True
 
     def process(self, start, write, addr, size):
