@@ -29,7 +29,7 @@ except ImportError:
 
 
 # Seconds to cache the best result before checking the database.
-CACHE_SECONDS = 60
+CACHE_SECONDS = 5 * 60
 
 
 # Schema
@@ -248,6 +248,13 @@ class SQLDatabase(base.BaseDatabase):
 
         assert(value > 0)
 
+        if self.best is None:
+            self.best = str(mem), value, cost
+        elif value < self.best[1]:
+            self.best = str(mem), value, cost
+        elif value == self.best[1] and cost < self.best[2]:
+            self.best = str(mem), value, cost
+
         # Insert to our local cache.
         mod_hash = self.get_hash(mod)
         mem_hash = self.get_hash(mem)
@@ -286,7 +293,7 @@ class SQLDatabase(base.BaseDatabase):
         Returns (name, value, cost).
         """
 
-        if self.best is not None:
+        if self.best_time is not None:
             now = datetime.now()
             if now - self.best_time < timedelta(seconds=CACHE_SECONDS):
                 return self.best
