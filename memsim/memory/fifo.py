@@ -5,17 +5,17 @@ from memsim.memory import subsystem, base
 class FIFO(subsystem.Subsystem):
     """Container for FIFO memories."""
 
-    def __init__(self, index, mem, word_size, size):
+    def __init__(self, index, mem, word_size, depth):
         """Create a memory to be used as a FIFO.
 
         Arguments:
             index:      A unique identifier for this FIFO.
             mem:        The memory subsystem.
             word_size:  The size of an item in the FIFO.
-            size:       The total size of the FIFO in items.
+            depth:      The depth of the FIFO in items.
         """
         subsystem.Subsystem.__init__(self, index, word_size, mem)
-        self.size = size
+        self.depth = depth
         self.read_ptr = 0
         self.write_ptr = 0
         self.used = 0
@@ -23,14 +23,14 @@ class FIFO(subsystem.Subsystem):
     def __str__(self):
         result = '(fifo '
         result += '(id ' + str(self.index) + ')'
-        result += '(size ' + str(self.size) + ')'
+        result += '(depth ' + str(self.depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
         result += '(memory ' + self.get_next().get_name() + ')'
         result += ')'
         return result
 
     def total_size(self):
-        return self.size * self.word_size
+        return self.depth * self.word_size
 
     def reset(self, machine):
         subsystem.Subsystem.reset(self, machine)
@@ -39,7 +39,7 @@ class FIFO(subsystem.Subsystem):
         self.used = 0
 
     def is_full(self):
-        return self.used == self.size
+        return self.used == self.depth
 
     def is_empty(self):
         return self.used == 0
@@ -59,16 +59,16 @@ class FIFO(subsystem.Subsystem):
         return name
 
     def permute(self, rand, max_cost, max_size):
-        max_size += self.size
+        max_size += self.total_size()
         if self.total_size() * 2 > max_size:
-            self.size //= 2
-        elif self.size == 1:
-            self.size *= 2
+            self.depth //= 2
+        elif self.depth == 1:
+            self.depth *= 2
         elif rand.randint(0, 1) == 0:
-            self.size //= 2
+            self.depth //= 2
         else:
-            self.size *= 2
-        assert(self.size >= 1)
+            self.depth *= 2
+        assert(self.depth >= 1)
         assert(self.total_size() <= max_size)
         return True
 
@@ -83,11 +83,11 @@ class FIFO(subsystem.Subsystem):
 
         Returns the access time or -1 if the FIFO is full.
         """
-        if self.used == self.size:
+        if self.used == self.depth:
             return -1
         else:
             addr = self.offset + self.write_ptr * self.word_size
-            self.write_ptr = (self.write_ptr + 1) % self.size
+            self.write_ptr = (self.write_ptr + 1) % self.depth
             self.used += 1
             return base.send_request(self.mem, 0, True, addr, self.word_size)
 
@@ -100,7 +100,7 @@ class FIFO(subsystem.Subsystem):
             return -1
         else:
             addr = self.offset + self.read_ptr * self.word_size
-            self.read_ptr = (self.read_ptr + 1) % self.size
+            self.read_ptr = (self.read_ptr + 1) % self.depth
             self.used -= 1
             return base.send_request(self.mem, 0, False, addr, self.word_size)
 
@@ -108,7 +108,7 @@ class FIFO(subsystem.Subsystem):
 def _create_fifo(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
-    size = parser.get_argument(lexer, args, 'size', 1)
+    depth = parser.get_argument(lexer, args, 'depth', 1)
     mem = parser.get_argument(lexer, args, 'memory')
-    return FIFO(index=index, mem=mem, size=size, word_size=word_size)
+    return FIFO(index=index, mem=mem, depth=depth, word_size=word_size)
 base.constructors['fifo'] = _create_fifo
