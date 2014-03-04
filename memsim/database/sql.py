@@ -1,4 +1,5 @@
 from __future__ import print_function
+from datetime import datetime, timedelta
 import json
 import sys
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
@@ -25,6 +26,10 @@ except ImportError:
             print("Using psycopg2ct", file=sys.stderr)
         except ImportError:
             print("psycopg2 not available", file=sys.stderr)
+
+
+# Seconds to cache the best result before checking the database.
+CACHE_SECONDS = 60
 
 
 # Schema
@@ -81,11 +86,13 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(16384)
+        self.results = ResultCache(65536)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(32)       # model_hash -> (id, state)
-        self.memories = ResultCache(16384)  # memory_hash -> id
+        self.memories = ResultCache(65536)  # memory_hash -> id
+        self.best = None
+        self.best_time = None
         self.send_count = 0
 
     def connect(self):
@@ -278,6 +285,12 @@ class SQLDatabase(base.BaseDatabase):
 
         Returns (name, value, cost).
         """
+
+        if self.best is not None:
+            now = datetime.now()
+            if now - self.best_time < timedelta(seconds=CACHE_SECONDS):
+                return self.best
+
         mod_id = self._get_model_id(mod)
         min_query = select([
             func.min(results_table.c.value)
@@ -298,7 +311,9 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            return row['name'], row['value'], row['cost']
+            self.best_time = datetime.now()
+            self.best = row['name'], row['value'], row['cost']
+            return self.best
         else:
             return None, 0, 0
 

@@ -1,9 +1,10 @@
-
 from unittest import TestCase
+from mock import patch
 
 from memsim.database.sql import SQLDatabase
 
 
+@patch('memsim.database.sql.CACHE_SECONDS', 0)
 class TestSQLDatabase(TestCase):
 
     def setUp(self):
