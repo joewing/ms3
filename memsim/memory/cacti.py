@@ -162,11 +162,13 @@ def _run_cacti(params):
 
 def _get_cache_params(machine, mem):
     """Get the CACTI parameters for a cache."""
+    next_word_size = mem.get_next().get_word_size()
+    next_word_width = next_word_size * 8
     params = CACTIParams()
     params.technology = machine.technology
     params.size = mem.line_count * mem.line_size
     params.block_size = mem.line_size
-    params.bus_bits = machine.addr_bits + mem.get_word_size() * 8
+    params.bus_bits = min(next_word_width, mem.line_size * 8)
     params.associativity = mem.associativity
     params.is_cache = True
     return params

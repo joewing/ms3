@@ -22,7 +22,7 @@ class TestCACTI(unittest.TestCase):
         params = cacti.CACTIParams()
         params.size = 16 * 8
         params.block_size = 8
-        params.bus_bits = self.machine.addr_bits + 8 * 8
+        params.bus_bits = 8 * 8
         params.associativity = 2
         params.is_cache = True
         self.db.add_cacti_result(params, 5, 6, 1.2)
