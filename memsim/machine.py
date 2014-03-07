@@ -35,7 +35,7 @@ class MachineType(object):
                  target=TargetType.SIMPLE,
                  frequency=1e9,
                  addr_bits=32,
-                 max_path_length=64,
+                 max_path_length=128,
                  max_cost=10000,
                  technology=0.045,
                  part='xc7v585t'):
