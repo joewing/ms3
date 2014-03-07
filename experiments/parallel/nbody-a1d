@@ -1,0 +1,55 @@
+(machine
+   (word_size  4)
+   (addr_bits  32)
+   (target     asic)
+   (frequency  1000000000)
+   (technology 0.045)
+   (max_cost   1000000)
+)
+(memory
+    (main (memory
+       (dram
+          (frequency     400000000)
+          (cas_cycles    5)
+          (rcd_cycles    5)
+          (rp_cycles     5)
+          (page_size     1024)
+          (page_count    65536)
+          (width         8)
+          (burst_size    4)
+          (open_page     true)
+          (ddr           true)
+       )
+    ))
+  (subsystem (id 1)(word_size 4)(memory (main)))
+  (subsystem (id 2)(word_size 4)(memory (main)))
+  (subsystem (id 3)(word_size 4)(memory (main)))
+  (subsystem (id 4)(word_size 4)(memory (main)))
+  (subsystem (id 5)(word_size 4)(memory (main)))
+  (subsystem (id 6)(word_size 4)(memory (main)))
+  (subsystem (id 7)(word_size 4)(memory (main)))
+  (subsystem (id 8)(word_size 4)(memory (main)))
+  (subsystem (id 9)(word_size 4)(memory (main)))
+  (fifo (id 8)(depth 256)(word_size 28)(memory (main))) ; 4 -> 7
+  (fifo (id 11)(depth 256)(word_size 28)(memory (main))) ; 8 -> 9
+  (fifo (id 7)(depth 256)(word_size 16)(memory (main))) ; 6 -> 5
+  (fifo (id 12)(depth 256)(word_size 28)(memory (main))) ; 8 -> 2
+  (fifo (id 4)(depth 256)(word_size 28)(memory (main))) ; 3 -> 4
+  (fifo (id 1)(depth 256)(word_size 28)(memory (main))) ; 1 -> 2
+  (fifo (id 9)(depth 256)(word_size 16)(memory (main))) ; 5 -> 7
+  (fifo (id 10)(depth 256)(word_size 28)(memory (main))) ; 7 -> 8
+  (fifo (id 5)(depth 256)(word_size 28)(memory (main))) ; 4 -> 6
+  (fifo (id 3)(depth 256)(word_size 28)(memory (main))) ; 2 -> 3
+  (fifo (id 6)(depth 256)(word_size 16)(memory (main))) ; 3 -> 6
+)
+(benchmarks
+  (trace (id 1)(name Source1))
+  (trace (id 2)(name Buffer2))
+  (trace (id 3)(name Streamer3))
+  (trace (id 4)(name kernel24))
+  (trace (id 5)(name Accumulate5))
+  (trace (id 6)(name Force6))
+  (trace (id 7)(name Update7))
+  (trace (id 8)(name kernel28))
+  (trace (id 9)(name Print9))
+)
