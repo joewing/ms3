@@ -117,7 +117,8 @@ def run_xilinx(machine, mem, keep=False):
         return result
 
     except Exception as e:
-        print("ERROR: XST run failed:", e)
+        print('ERROR: XST run failed:', e)
+        print('ERROR: Memory:', mem)
         raise
 
     finally:
