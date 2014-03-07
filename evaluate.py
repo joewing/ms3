@@ -25,6 +25,9 @@ parser.add_option('-d', '--directory', dest='directory', default=None,
                   help='directory containing trace data')
 parser.add_option('-r', '--replace', dest='replace', default=None,
                   help='file containing an alternate main memory')
+parser.add_option('-p', '--path-length', dest='path_length', default=False,
+                  action='store_true',
+                  help='get the max path length')
 
 
 def get_best(db, mod):
@@ -43,16 +46,11 @@ def get_memory_list(db, mem, mod, baseline, replace):
     """
     if mem == 'model':
         # Use the subsystem from the model.
-        ml = memory.MemoryList(mod.memory)
-        for _ in mod.benchmarks:
-            ml.add_memory()
+        ml = mod.memory
     elif mem == 'baseline':
         # Use the baseline subsystem.
         with open(baseline, 'r') as f:
-            main_mem = memory.parse_memory(lex.Lexer(f))
-        ml = memory.MemoryList(main_mem)
-        for _ in mod.benchmarks:
-            ml.add_memory()
+            ml = memory.parse_memory_list(lex.Lexer(f))
     elif mem == 'best':
         # Use the best subsystem.
         ml = get_best(db, mod)
@@ -81,6 +79,16 @@ def simulate(experiment, mem, baseline, replace, directory):
         time, cost = evaluate(mod, ml, directory)
         db.add_result(mod, ml, time, cost)
     print(get_experiment_name(experiment) + ',' + str(time))
+
+
+def get_path_lengths(experiments, mem, baseline, replace, directory):
+    db = database.get_instance()
+    for experiment in experiments:
+        mod = model.parse_model_file(experiment)
+        ml = get_memory_list(db, mem, mod, baseline, replace)
+        ml.reset(mod.machine)
+        pl = ml.get_max_path_length()
+        print(get_experiment_name(experiment) + ',' + str(pl))
 
 
 def generate_array(experiments, mem, baseline, replace, directory):
@@ -113,7 +121,10 @@ def main():
         print('ERROR: could not connect to the database')
         sys.exit(-1)
     directory = options.directory if options.directory else os.getcwd()
-    if options.compare:
+    if options.path_length:
+        get_path_lengths(args, options.memory, options.baseline,
+                         options.replace, directory)
+    elif options.compare:
         generate_matrix(args, options.memory, options.baseline,
                         options.replace, directory)
     else:
