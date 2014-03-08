@@ -114,7 +114,7 @@ def parse_machine(lexer):
     frequency = parser.get_argument(lexer, args, 'frequency', 1e9)
     technology = parser.get_argument(lexer, args, 'technology', 0.045)
     part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
-    max_path = parser.get_argument(lexer, args, 'max_path', 64)
+    max_path = parser.get_argument(lexer, args, 'max_path', 128)
     max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
     tstr = parser.get_argument(lexer, args, 'target', 'simple')
     target = parse_target(tstr)
