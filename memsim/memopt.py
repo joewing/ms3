@@ -50,14 +50,45 @@ class MemoryOptimizer(Optimizer):
         return db.get_result(self.model, str(current.simplified()))
 
     def create_memory(self, dist, nxt, cost, in_bank):
-        index = self.rand.randint(0, len(self.constructors) - 1)
-        constructor = self.constructors[index]
+
+        # Attempt to create the new subsystem component.
+        constructor = self.rand.choice(self.constructors)
         result = constructor(self.model.machine, nxt, dist, cost)
-        if result is not None:
+        if result is None:
+            return nxt
+
+        # A new component was created.
+        # If the new subsystem has banks, select parts of the
+        # existing subsystem to go into the banks.
+        bank_count = len(result.get_banks())
+        if bank_count == 0:
             result.reset(self.model.machine)
             return result
+
+        # Determine the extent of the existing subsystem that can
+        # go into the bank(s).
+        following = []
+        last = nxt
+        while last.can_remove():
+            following.append(last)
+            last = last.get_next()
+
+        # Divide the components into banks.
+        start_index = 0
+        for b in range(bank_count):
+            end_index = self.rand.randint(start_index, len(following) - 1)
+            if end_index > start_index:
+                following[end_index].set_next(result.get_bank(b))
+                result.set_bank(b, following[start_index])
+            start_index = end_index + 1
+        if start_index < len(following):
+            result.set_next(following[start_index])
         else:
-            return nxt
+            result.set_next(last)
+
+        # Reset and return the new component.
+        result.reset(self.model.machine)
+        return result
 
     def permute(self, dist, mem, index, max_cost, max_size):
         """Permute a specific memory component.
