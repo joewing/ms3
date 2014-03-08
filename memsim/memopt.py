@@ -24,7 +24,7 @@ class MemoryOptimizer(Optimizer):
         split.random_split,
         split.random_split,
         spm.random_spm,
-        xor.random_xor
+        xor.random_xor,
     ]
 
     def __init__(self, mod, ml, seed, dist, directory, use_prefetch=False):
@@ -74,9 +74,12 @@ class MemoryOptimizer(Optimizer):
             last = last.get_next()
 
         # Divide the components into banks.
+        last_following = len(following) - 1
         start_index = 0
         for b in range(bank_count):
-            end_index = self.rand.randint(start_index, len(following) - 1)
+            if start_index >= last_following:
+                break
+            end_index = self.rand.randint(start_index, last_following)
             if end_index > start_index:
                 following[end_index].set_next(result.get_bank(b))
                 result.set_bank(b, following[start_index])
@@ -196,7 +199,7 @@ class MemoryOptimizer(Optimizer):
 
             # Select an action to perform.  We make multiple
             # attempts to use the selected action.
-            action = self.rand.randint(0, 7)
+            action = self.rand.randint(0, 3)
             for i in xrange(10):
 
                 # Select a memory to modify.
@@ -220,7 +223,7 @@ class MemoryOptimizer(Optimizer):
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
-                elif action <= 2 and count > 1:  # Remove
+                elif action <= 1 and count > 1:  # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)

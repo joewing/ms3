@@ -94,6 +94,11 @@ class Memory(object):
         """Get memory subcomponents."""
         return []
 
+    def get_bank(self, i):
+        """Return the specified memory bank."""
+        banks = self.get_banks()
+        return banks[i]
+
     def set_next(self, n):
         """Set the next memory."""
         assert(False)
