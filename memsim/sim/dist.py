@@ -29,6 +29,16 @@ class BaseDistribution(object):
         pass
 
     @abstractmethod
+    def get_min_address(self):
+        """Get the minimum address encountered."""
+        return 0
+
+    @abstractmethod
+    def get_max_address(self):
+        """Get the maximum address encountered."""
+        return 0
+
+    @abstractmethod
     def insert_range(self, addr, size):
         """Insert a new range into the set of address ranges."""
         pass

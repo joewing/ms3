@@ -19,6 +19,12 @@ class FIFODistribution(BaseDistribution):
     def insert_range(self, addr, size):
         pass
 
+    def get_min_address(self):
+        return 0
+
+    def get_max_address(self):
+        return self.fifo.total_size()
+
     def random_address(self, alignment):
         size = self.fifo.total_size()
         temp = (size + alignment - 1) // alignment
