@@ -86,7 +86,8 @@ class Prefetch(container.Container):
         self.time = 0
 
     def done(self):
-        return max(self.time - self.machine.time, 0)
+        t = container.Container.done(self)
+        return max(self.time - self.machine.time, t)
 
     def process(self, start, write, addr, size):
         result = max(start, self.time - self.machine.time)

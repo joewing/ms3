@@ -152,7 +152,8 @@ class SPM(container.Container):
         return tl + self.machine.addr_bits
 
     def done(self):
-        return max(self.pending - self.machine.time, 0)
+        t = container.Container.done(self)
+        return max(self.pending - self.machine.time, t)
 
     def process(self, start, write, addr, size):
         word_size = self.get_word_size()

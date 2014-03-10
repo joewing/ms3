@@ -185,7 +185,10 @@ class Split(container.Container):
         return tl + self.machine.addr_bits
 
     def done(self):
-        return self.mem.done()
+        t1 = self.bank0.done()
+        t2 = self.bank1.done()
+        t3 = self.mem.done()
+        return max(t1, t2, t3)
 
     def process(self, start, write, addr, size):
         mask = self.machine.addr_mask

@@ -270,7 +270,8 @@ class Cache(container.Container):
         self.update_latency()
 
     def done(self):
-        return max(self.pending - self.machine.time, 0)
+        t = container.Container.done(self)
+        return max(self.pending - self.machine.time, t)
 
     def process(self, start, write, addr, size):
         extra = size // self.line_size
