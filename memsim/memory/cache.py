@@ -367,7 +367,7 @@ class Cache(container.Container):
 
         else:
             # Write on a write-through cache.
-            t = self.mem.process(start, True, addr, size)
+            t = base.send_request(self.mem, start, True, addr, size)
             return t + self.access_time
 
 
