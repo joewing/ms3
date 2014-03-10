@@ -18,6 +18,7 @@ class Subsystem(base.Memory):
         self.word_size = util.round_power2(word_size)
         self.mem = mem
         self.offset = 0
+        self.score = 0
 
     def __str__(self):
         result = '(subsystem '
@@ -66,11 +67,19 @@ class Subsystem(base.Memory):
             length += self.machine.addr_bits
         return length
 
+    def reset(self, machine):
+        base.Memory.reset(self, machine)
+        self.score = 0
+
     def process(self, start, write, addr, size):
-        return base.send_request(self.mem, start, write, addr, size)
+        result = base.send_request(self.mem, start, write, addr, size)
+        self.score += result
+        return result
 
     def done(self):
-        return self.mem.done()
+        result = self.mem.done()
+        self.score += result
+        return result
 
 
 def _create_subsystem(lexer, args):

@@ -27,7 +27,16 @@ class MemoryList(object):
         lst[index] = value
 
     def choice(self, rand):
-        return rand.choice(list(self.all_memories()))
+        scores = [m.score for m in self.all_memories()]
+        total_score = sum(scores)
+        if total_score == 0:
+            return rand.choice(list(self.all_memories()))
+        draw = rand.randint(0, total_score - 1)
+        for score, mem in zip(scores, self.all_memories()):
+            if score > draw:
+                return mem
+            draw -= score
+        assert(False)
 
     def update(self, mem):
         index = mem.index

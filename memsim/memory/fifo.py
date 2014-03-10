@@ -72,12 +72,6 @@ class FIFO(subsystem.Subsystem):
         assert(self.total_size() <= max_size)
         return True
 
-    def process(self, start, write, addr, size):
-        return self.mem.process(start, write, addr, size)
-
-    def done(self):
-        return self.mem.done()
-
     def produce(self):
         """Put a value on the FIFO.
 
@@ -89,7 +83,7 @@ class FIFO(subsystem.Subsystem):
             addr = self.offset + self.write_ptr * self.word_size
             self.write_ptr = (self.write_ptr + 1) % self.depth
             self.used += 1
-            return base.send_request(self.mem, 0, True, addr, self.word_size)
+            return self.process(0, True, addr, self.word_size)
 
     def consume(self):
         """Remove a value from the FIFO.
@@ -102,7 +96,7 @@ class FIFO(subsystem.Subsystem):
             addr = self.offset + self.read_ptr * self.word_size
             self.read_ptr = (self.read_ptr + 1) % self.depth
             self.used -= 1
-            return base.send_request(self.mem, 0, False, addr, self.word_size)
+            return self.process(0, False, addr, self.word_size)
 
 
 def _create_fifo(lexer, args):
