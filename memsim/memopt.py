@@ -199,7 +199,7 @@ class MemoryOptimizer(Optimizer):
 
             # Select an action to perform.  We make multiple
             # attempts to use the selected action.
-            action = self.rand.randint(0, 3)
+            action = self.rand.randint(0, 7)
             for i in xrange(10):
 
                 # Select a memory to modify.
@@ -223,7 +223,7 @@ class MemoryOptimizer(Optimizer):
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
-                elif action <= 1 and count > 1:  # Remove
+                elif action <= 2 and count > 1:  # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
