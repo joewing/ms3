@@ -5,7 +5,7 @@ from memsim.memory import subsystem, base
 class FIFO(subsystem.Subsystem):
     """Container for FIFO memories."""
 
-    def __init__(self, index, mem, word_size, depth):
+    def __init__(self, index, mem, word_size, depth, min_depth):
         """Create a memory to be used as a FIFO.
 
         Arguments:
@@ -13,9 +13,12 @@ class FIFO(subsystem.Subsystem):
             mem:        The memory subsystem.
             word_size:  The size of an item in the FIFO.
             depth:      The depth of the FIFO in items.
+            min_depth:  Minimum depth in items.
         """
         subsystem.Subsystem.__init__(self, index, word_size, mem)
+        assert(depth >= min_depth)
         self.depth = depth
+        self.min_depth = min_depth
         self.read_ptr = 0
         self.write_ptr = 0
         self.used = 0
@@ -24,6 +27,8 @@ class FIFO(subsystem.Subsystem):
         result = '(fifo '
         result += '(id ' + str(self.index) + ')'
         result += '(depth ' + str(self.depth) + ')'
+        if self.min_depth > 1:
+            result += '(min_depth ' + str(self.min_depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
         result += '(memory ' + self.get_next().get_name() + ')'
         result += ')'
@@ -61,14 +66,16 @@ class FIFO(subsystem.Subsystem):
     def permute(self, rand, max_cost, max_size):
         max_size += self.total_size()
         if self.total_size() * 2 > max_size:
+            if self.depth // 2 < self.min_depth:
+                return False
             self.depth //= 2
-        elif self.depth == 1:
+        elif self.depth <= self.min_depth:
             self.depth *= 2
         elif rand.randint(0, 1) == 0:
             self.depth //= 2
         else:
             self.depth *= 2
-        assert(self.depth >= 1)
+        assert(self.depth >= self.min_depth)
         assert(self.total_size() <= max_size)
         return True
 
@@ -116,6 +123,8 @@ def _create_fifo(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
     depth = parser.get_argument(lexer, args, 'depth', 1)
+    min_depth = parser.get_argument(lexer, args, 'min_depth', 1)
     mem = parser.get_argument(lexer, args, 'memory')
-    return FIFO(index=index, mem=mem, depth=depth, word_size=word_size)
+    return FIFO(index=index, mem=mem, depth=depth, min_depth=min_depth,
+                word_size=word_size)
 base.constructors['fifo'] = _create_fifo

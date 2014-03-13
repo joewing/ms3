@@ -13,7 +13,7 @@ class TestFIFO(TestCase):
         self.mem.get_word_size.return_value = 4
         self.mem.machine = mach
         self.mem.process.return_value = 123
-        self.fifo = FIFO(1, self.mem, 4, 16)
+        self.fifo = FIFO(1, self.mem, 4, 16, 1)
         self.fifo.set_offset(8)
         self.fifo.reset(mach)
 
