@@ -58,6 +58,19 @@ class ProcessList(object):
             del self.producers[index]
         return rc
 
+    def peek(self, p, index, offset):
+        """Peek at a value on the specified FIFO (0 base).
+
+        Returns the access cycle count or -1 if not available.
+        """
+        rc = self.ml.get_fifo(index).peek(offset)
+        if rc < 0:
+            self.consumers[index] = p
+        elif index in self.producers:
+            self.heap.push(self.machine.time, self.producers[index])
+            del self.producers[index]
+        return rc
+
     def reset(self, ml):
         self.ml = ml
         self.machine.reset()

@@ -98,6 +98,19 @@ class FIFO(subsystem.Subsystem):
             self.used -= 1
             return self.process(0, False, addr, self.word_size)
 
+    def peek(self, offset):
+        """Peek at a value on the FIFO.
+
+        offset is the offset back from the read pointer in items.
+        Returns the access time or -1 if not available.
+        """
+        if self.used <= offset:
+            return -1
+        else:
+            temp = (self.read_ptr - offset) % self.depth
+            addr = self.offset + temp * self.word_size
+            return self.process(0, False, addr, self.word_size)
+
 
 def _create_fifo(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)

@@ -6,4 +6,5 @@ class AccessType(object):
     IDLE = 2        # Idle
     CONSUME = 3     # Consume a value from an input port
     PRODUCE = 4     # Produce a value on an output port
-    END = 5         # Produce a value indicating the end of a stream
+    PEEK = 5        # Peek at a value on an input port
+    END = 6         # Produce a value indicating the end of a stream

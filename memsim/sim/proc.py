@@ -22,6 +22,7 @@ class Process(object):
         self.machine = None
         self.consume_waiting = -1
         self.produce_waiting = -1
+        self.peek_waiting = None
         self.delay = False
 
     def has_delay(self):
@@ -40,6 +41,7 @@ class Process(object):
         self.mem = mem
         self.consume_waiting = -1
         self.produce_waiting = -1
+        self.peek_waiting = None
         self.benchmark.reset(offset, self.directory)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)
@@ -69,6 +71,12 @@ class Process(object):
             if temp >= 0:
                 self.produce_waiting = -1
             return temp
+        if self.peek_waiting is not None:
+            addr, size = self.peek_waiting
+            temp = self.pl.peek(self, addr, size)
+            if temp >= 0:
+                self.peek_waiting = None
+            return temp
 
         # Perform the access.
         at, addr, size = next(self.generator)
@@ -90,6 +98,12 @@ class Process(object):
             temp = self.pl.consume(self, addr)
             if temp < 0:
                 self.consume_waiting = addr
+            return temp
+        elif at == AccessType.PEEK:
+            self.delay = True
+            temp = self.pl.peek(self, addr, size)
+            if temp < 0:
+                self.peek_waiting = addr, size
             return temp
         elif at == AccessType.END:
             self.machine.end(addr)

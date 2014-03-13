@@ -14,7 +14,7 @@ class Trace(base.Benchmark):
     def __init__(self, index, name):
         base.Benchmark.__init__(self, index)
         self.name = name
-        self.expr = re.compile(r'([RWMIPCX])([0-9a-fA-F]+):([0-9a-fA-F]+)')
+        self.expr = re.compile(r'([RWMIPCKX])([0-9a-fA-F]+):([0-9a-fA-F]+)')
         self.fd = None
 
     def __str__(self):
@@ -49,6 +49,8 @@ class Trace(base.Benchmark):
                     yield AccessType.PRODUCE, addr, size
                 elif at == 'C':
                     yield AccessType.CONSUME, addr, size
+                elif at == 'K':
+                    yield AccessType.PEEK, addr, size
                 elif at == 'X':
                     yield AccessType.END, addr, size
 
