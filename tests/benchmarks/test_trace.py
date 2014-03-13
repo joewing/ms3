@@ -22,6 +22,7 @@ class TestTrace(unittest.TestCase):
                 f.write("I18:0\n")
                 f.write("P1:0\n")
                 f.write("C2:0\n")
+                f.write("K2:1\n")
                 f.write("X3:0\n")
             name = re.sub(r'.trace', '', file_name)
             trace = Trace(1, name)
@@ -58,6 +59,11 @@ class TestTrace(unittest.TestCase):
             t, addr, size = next(output)
             self.assertEqual(t, AccessType.CONSUME)
             self.assertEqual(addr, 2)
+
+            t, addr, size = next(output)
+            self.assertEqual(t, AccessType.PEEK)
+            self.assertEqual(addr, 2)
+            self.assertEqual(size, 1)
 
             t, addr, size = next(output)
             self.assertEqual(t, AccessType.END)
