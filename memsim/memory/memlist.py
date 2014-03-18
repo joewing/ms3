@@ -7,10 +7,8 @@ from memsim.memory.fifo import FIFO
 from memsim.memory.subsystem import Subsystem
 
 
-def _get_weight(m, total_score, total_cost):
-    cost = float(m.get_cost()) / float(total_cost)
-    score = float(m.score) / float(total_score)
-    return int(cost * 0.5 + score * 0.5)
+def _get_weight(m):
+    return (m.get_cost() + 1) * m.score
 
 
 class MemoryList(object):
@@ -33,16 +31,15 @@ class MemoryList(object):
         lst[index] = value
 
     def choice(self, rand):
-        score = sum([m.score for m in self.all_memories()])
-        cost = sum([m.get_cost() for m in self.all_memories()])
-        if score == 0 or cost == 0:
+        weights = [_get_weight(m) for m in self.all_memories()]
+        total_weight = sum(weights)
+        if total_weight == 0:
             return rand.choice(list(self.all_memories()))
-        combined = [_get_weight(m, score, cost) for m in self.all_memories()]
-        draw = rand.randint(0, sum(combined) - 1)
-        for value, mem in zip(combined, self.all_memories()):
-            if value > draw:
+        draw = rand.randint(0, total_weight - 1)
+        for weight, mem in zip(weights, self.all_memories()):
+            if weight > draw:
                 return mem
-            draw -= value
+            draw -= weight
         assert(False)
 
     def update(self, mem):
