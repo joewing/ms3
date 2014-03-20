@@ -1,10 +1,9 @@
 (machine
-   (word_size  4)
    (addr_bits  32)
    (target     asic)
    (frequency  1000000000)
    (technology 0.045)
-   (max_cost   1000000)
+   (max_cost   500000)
 )
 (memory
     (main (memory
@@ -30,17 +29,17 @@
   (subsystem (id 7)(word_size 4)(memory (main)))
   (subsystem (id 8)(word_size 4)(memory (main)))
   (subsystem (id 9)(word_size 4)(memory (main)))
-  (fifo (id 8)(depth 256)(word_size 28)(memory (main))) ; 4 -> 7
-  (fifo (id 11)(depth 256)(word_size 28)(memory (main))) ; 8 -> 9
-  (fifo (id 7)(depth 256)(word_size 16)(memory (main))) ; 6 -> 5
-  (fifo (id 12)(depth 256)(word_size 28)(memory (main))) ; 8 -> 2
-  (fifo (id 4)(depth 256)(word_size 28)(memory (main))) ; 3 -> 4
-  (fifo (id 1)(depth 256)(word_size 28)(memory (main))) ; 1 -> 2
-  (fifo (id 9)(depth 256)(word_size 16)(memory (main))) ; 5 -> 7
-  (fifo (id 10)(depth 256)(word_size 28)(memory (main))) ; 7 -> 8
-  (fifo (id 5)(depth 256)(word_size 28)(memory (main))) ; 4 -> 6
-  (fifo (id 3)(depth 256)(word_size 28)(memory (main))) ; 2 -> 3
-  (fifo (id 6)(depth 256)(word_size 16)(memory (main))) ; 3 -> 6
+  (fifo (id 8)(depth 1)(word_size 28)(memory (main))) ; 4 -> 7
+  (fifo (id 11)(depth 1)(word_size 28)(memory (main))) ; 8 -> 9
+  (fifo (id 7)(depth 1)(word_size 16)(memory (main))) ; 6 -> 5
+  (fifo (id 12)(depth 1)(word_size 28)(memory (main))) ; 8 -> 2
+  (fifo (id 4)(depth 1)(word_size 28)(memory (main))) ; 3 -> 4
+  (fifo (id 1)(depth 1)(word_size 28)(memory (main))) ; 1 -> 2
+  (fifo (id 9)(depth 1)(word_size 16)(memory (main))) ; 5 -> 7
+  (fifo (id 10)(depth 1)(word_size 28)(memory (main))) ; 7 -> 8
+  (fifo (id 5)(depth 1)(word_size 28)(memory (main))) ; 4 -> 6
+  (fifo (id 3)(depth 1)(word_size 28)(memory (main))) ; 2 -> 3
+  (fifo (id 6)(depth 1)(word_size 16)(memory (main))) ; 3 -> 6
 )
 (benchmarks
   (trace (id 1)(name Source1))

@@ -3,7 +3,7 @@
     (addr_bits  32)
     (target     fpga)
     (frequency  250000000)
-    (max_cost   64)
+    (max_cost   32)
 )
 (memory
   (main (memory (dram)))
