@@ -1,0 +1,38 @@
+(machine
+    (addr_bits  32)
+    (target     fpga)
+    (frequency  250000000)
+    (max_cost   32)
+)
+(memory
+    (main (memory
+       (dram
+          (frequency     400000000)
+          (cas_cycles    5)
+          (rcd_cycles    5)
+          (rp_cycles     5)
+          (page_size     1024)
+          (page_count    65536)
+          (width         8)
+          (burst_size    4)
+          (open_page     true)
+          (ddr           true)
+       )
+    ))
+    (subsystem (id 1)(word_size 4)(memory (main)))
+    (subsystem (id 2)(word_size 4)(memory (main)))
+    (subsystem (id 3)(word_size 4)(memory (main)))
+    (subsystem (id 4)(word_size 4)(memory (main)))
+    (subsystem (id 5)(word_size 4)(memory (main)))
+    (fifo (id 0)(depth 1)(word_size 8)(memory (main)))  ; 1 -> 2
+    (fifo (id 1)(depth 1)(word_size 8)(memory (main)))  ; 2 -> 3
+    (fifo (id 2)(depth 1)(word_size 8)(memory (main)))  ; 3 -> 4
+    (fifo (id 3)(depth 1)(word_size 8)(memory (main)))  ; 4 -> 5
+)
+(benchmarks
+    (trace (id 1)(name Input))
+    (trace (id 2)(name Stage1A))
+    (trace (id 3)(name Stage1B))
+    (trace (id 4)(name Stage2))
+    (trace (id 5)(name Output))
+)
