@@ -17,46 +17,46 @@ class spm =
         | "cycle_time" -> cycle_time <- int_of_string value
         | _ -> super#set name value
 
-        method get_word_size = word_size
+        method word_size = word_size
 
         method reset m main =
             super#reset m main;
             pending <- 0
 
-        method finish = max (pending - mach#get_time) self#get_next#finish
+        method finish = max (pending - mach#time) self#next#finish
 
         method private process_hit start write addr size =
             let offset = addr mod word_size in
             let count = (size + word_size + offset - 1) / word_size in
-            pending <- mach#get_time + start;
+            pending <- mach#time + start;
             pending <- pending + max (cycle_time - access_time) 0;
             start + (count - 1) * cycle_time + access_time
 
         method private process_miss start write addr size =
-            pending <- mach#get_time + start;
-            send_request self#get_next start write addr size
+            pending <- mach#time + start;
+            send_request self#next start write addr size
 
         method private process_hit_miss start write addr size =
-            let last_addr = (addr + size) land mach#get_addr_mask in
+            let last_addr = (addr + size) land mach#addr_mask in
             let msize = size - last_addr + 1 in
             let count = (last_addr + word_size) / word_size in
             let result = start + (count - 1) * cycle_time + access_time in
-            pending <- mach#get_time + result;
+            pending <- mach#time + result;
             pending <- pending + max (cycle_time - access_time) 0;
-            send_request self#get_next result write addr msize
+            send_request self#next result write addr msize
 
         method private process_miss_hit start write addr size =
             let hsize = size - addr in
             let offset = addr mod word_size in
             let count = (hsize + word_size + offset - 1) / word_size in
             let result = start + (count - 1) * cycle_time + access_time in
-            pending <- mach#get_time + result;
+            pending <- mach#time + result;
             pending <- pending + max (cycle_time - access_time) 0;
-            send_request self#get_next result write size (size - hsize)
+            send_request self#next result write size (size - hsize)
  
         method process start write addr size =
-            let result = max start (pending - mach#get_time) in
-            let last_addr = (addr + size) land mach#get_addr_mask in
+            let result = max start (pending - mach#time) in
+            let last_addr = (addr + size) land mach#addr_mask in
             if addr < size && last_addr <= size then
                 (* Completely hits in the scratchpad. *)
                 self#process_hit result write addr size

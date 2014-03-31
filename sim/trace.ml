@@ -25,7 +25,7 @@ class trace =
         val mutable index : int = 0
         val mutable file_name : string = "trace"
 
-        method get_id = index
+        method id = index
 
         method set name value = match name with
         | "id" -> index <- int_of_string value

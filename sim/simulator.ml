@@ -47,16 +47,21 @@ class process simulator benchmark directory (mem : base_memory) =
             peek_waiting <- if temp < 0 then (addr, size) else (-1, -1);
             temp
 
+        method private process_modify addr size =
+            let start = send_request mem 0 false addr size in
+            send_request mem start true addr size
+
         method private process_access t addr size =
             match t with
             | 'R' -> send_request mem 0 false addr size
             | 'W' -> send_request mem 0 true addr size
+            | 'M' -> self#process_modify addr size
             | 'I' -> addr
             | 'P' -> self#process_produce addr
             | 'C' -> self#process_consume addr
             | 'K' -> self#process_peek addr size
-            | 'X' -> 0
-            | _ -> failwith "invalid access"
+            | 'X' -> -1
+            | _ -> failwith @@ "invalid access: " ^ (String.make 1 t)
 
         method step =
             if consume_waiting >= 0 then
@@ -84,14 +89,14 @@ class simulator mach directory main mem_list benchmarks =
 
         method private get_subsystem (index : int) : base_memory =
             List.find (fun m ->
-                not m#is_fifo && m#get_id = index
+                not m#is_fifo && m#id = index
             ) mem_list
 
         method private get_fifo (index : int) : base_memory =
-            List.find (fun m -> m#is_fifo && m#get_id = index) mem_list
+            List.find (fun m -> m#is_fifo && m#id = index) mem_list
 
         method private add_benchmark (b : Trace.trace) =
-            let mem = self#get_subsystem b#get_id in
+            let mem = self#get_subsystem b#id in
             let proc = new process self b directory mem in
             processes <- proc :: processes
 
@@ -117,7 +122,7 @@ class simulator mach directory main mem_list benchmarks =
                 else 
                     try
                         let c = Hashtbl.find consumers index in
-                        heap#push mach#get_time c;
+                        heap#push mach#time c;
                         Hashtbl.remove consumers index
                     with Not_found -> ()
             end; rc
@@ -131,7 +136,7 @@ class simulator mach directory main mem_list benchmarks =
                 else
                     try
                         let p = Hashtbl.find producers index in
-                        heap#push mach#get_time p;
+                        heap#push mach#time p;
                         Hashtbl.remove producers index
                     with Not_found -> ()
             end; rc
@@ -145,7 +150,7 @@ class simulator mach directory main mem_list benchmarks =
                 else
                     try
                         let p = Hashtbl.find producers index in
-                        heap#push mach#get_time p;
+                        heap#push mach#time p;
                         Hashtbl.remove producers index
                     with Not_found -> ()
             end; rc
@@ -158,13 +163,13 @@ class simulator mach directory main mem_list benchmarks =
             List.iter self#add_benchmark benchmarks;
             let offset = ref 0 in
             List.iter (fun f ->
-                offset := self#align f#get_word_size !offset;
+                offset := self#align f#word_size !offset;
                 f#set_offset !offset;
                 f#reset mach main;
                 offset := !offset + f#total_size
             ) self#all_fifos;
             List.iter (fun m ->
-                offset := self#align m#get_word_size !offset;
+                offset := self#align m#word_size !offset;
                 m#set_offset !offset;
                 offset := !offset + m#total_size
             ) self#all_subsystems;
@@ -176,19 +181,17 @@ class simulator mach directory main mem_list benchmarks =
         method run =
             self#reset ();
             while not heap#empty do
-                mach#set_time @@ max mach#get_time heap#key;
-                let proc = heap#value in
-                heap#pop ();
+                mach#set_time @@ max mach#time heap#key;
+                let proc = heap#pop in
                 let delta = proc#step in
                 if delta >= 0 then
-                    let next_time = mach#get_time + delta in
+                    let next_time = mach#time + delta in
                     heap#push next_time proc
             done;
             List.iter (fun p ->
                 let t = p#finish in
-                if t > mach#get_time then
-                    mach#set_time t
+                mach#set_time @@ max mach#time t
             ) processes;
-            mach#get_time
+            mach#time
 
     end

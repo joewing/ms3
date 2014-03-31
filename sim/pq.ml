@@ -33,7 +33,8 @@ class ['a] pq =
                 else i := 0
             done
 
-        method pop () =
+        method pop =
+            let result = self#value in
             heap.(1) <- heap.(size);
             size <- size - 1;
             let i = ref 1 in
@@ -51,6 +52,6 @@ class ['a] pq =
                 else if left <= size && (fst heap.(!i)) > (fst heap.(left)) then
                     i := self#swap !i left
                 else i := size
-            done
+            done; result
 
     end
