@@ -10,12 +10,13 @@ class spm =
         val mutable cycle_time : int = 0
         val mutable pending : int = 0
 
-        method set name value = match name with
-        | "word_size" -> word_size <- int_of_string value
-        | "size" -> size_bytes <- int_of_string value
-        | "access_time" -> access_time <- int_of_string value
-        | "cycle_time" -> cycle_time <- int_of_string value
-        | _ -> super#set name value
+        method set name value =
+            match name with
+            | "word_size" -> word_size <- int_of_string value
+            | "size" -> size_bytes <- int_of_string value
+            | "access_time" -> access_time <- int_of_string value
+            | "cycle_time" -> cycle_time <- int_of_string value
+            | _ -> super#set name value
 
         method word_size = word_size
 
@@ -36,7 +37,6 @@ class spm =
 
         method process start write addr size =
             let result = max start (pending - mach#time) in
-            let last_addr = (addr + size) land mach#addr_mask in
             if addr < size_bytes then
                 self#process_hit result write addr size
             else self#process_miss result write addr size

@@ -19,6 +19,12 @@ class virtual base_memory =
 
         method virtual process : int -> bool -> int -> int -> int
 
+        method forward (index : int) (start : int) (write : bool)
+                       (addr : int) (size : int) : int =
+            failwith "invalid"
+
+        method set_parent (p : base_memory) : unit = failwith "invalid"
+
         method id : int = failwith "invalid"
 
         method set_offset (offset: int) : unit = failwith "invalid"
@@ -41,9 +47,12 @@ class container =
 
         method set_next m = next <- m
 
-        method next = match next with
-        | Some m -> m
-        | None   -> failwith "no next"
+        method next =
+            match next with
+            | Some m -> m
+            | None   -> failwith "no next"
+
+        method set_parent p = self#next#set_parent p
 
         method word_size = self#next#word_size
 
@@ -59,6 +68,47 @@ class container =
 
         method process = self#next#process
 
+    end
+
+class join =
+    object (self)
+        inherit base_memory as super
+
+        val mutable index : int = 0
+        val mutable parent : base_memory option = None
+
+        method set_parent p = parent <- Some p
+
+        method parent =
+            match parent with
+            | Some p -> p
+            | None -> failwith "no parent"
+
+        method word_size = self#parent#word_size
+
+        method process start write addr size =
+            self#parent#forward index start write addr size
+
+    end
+
+class virtual transform =
+    object (self)
+        inherit container as super
+
+        val mutable bank : base_memory option = None
+
+        method set_bank m =
+            bank <- m;
+            self#bank#set_parent (self :> base_memory)
+
+        method bank =
+            match bank with
+            | Some m -> m
+            | None -> failwith "no bank"
+
+        method reset m main =
+            super#reset m main;
+            self#bank#reset m main
     end
 
 let send_request mem start write addr size =
