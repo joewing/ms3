@@ -81,6 +81,11 @@ and set_dram mem name = function
     | [Literal (s, _)] -> mem#set name s
     | t -> parse_error t ("invalid dram argument" ^ name)
 
+and set_cache mem name = function
+    | [Literal (s, _)] -> mem#set name s
+    | v when name = "memory" -> mem#set_next @@ parse_memory v
+    | t -> parse_error t ("invalid cache argument: " ^ name)
+
 and create_memory name =
     let wrap m = Some (m :> base_memory) in
     match name with
@@ -92,6 +97,7 @@ and create_memory name =
             let m = new Fifo.fifo in (wrap m, set_fifo m)
     | "spm" -> let m = new Spm.spm in (wrap m, set_spm m)
     | "dram" -> let m = new Dram.dram in (wrap m, set_dram m)
+    | "cache" -> let m = new Cache.cache in (wrap m, set_cache m)
     | name -> parse_error [] ("invalid memory: " ^ name)
 
 and match_memory token_list =

@@ -29,7 +29,7 @@ class cache =
         val mutable write_back : bool = true
         val mutable pending : int = 0
         val mutable lines : cache_line array = Array.make 0 {
-            page = -1; dirty = false; time = 0.0
+            tag = -1; age = 0; dirty = false
         }
 
         method set name value = match name with
@@ -65,18 +65,18 @@ class cache =
                 else total
             in loop 0 0
 
-        method private update_ages () =
+        method private update_ages first_line =
             let rec update i =
                 if i < associativity then
                     let line_index = first_line + i * self#set_size in
                     let line = lines.(line_index) in
                     let age = line.age in
-                    if policy = PRLU then
+                    if policy = PLRU then
                         line.age <- 0
                     else
-                        line.age <- age + increment;
-                    update_ages (i + 1)
-            in update_ages 0
+                        line.age <- age + 1;
+                    update (i + 1)
+            in update 0
 
         method private find_hit addr =
             let tag = addr land lnot (line_size - 1) in
@@ -120,21 +120,26 @@ class cache =
                 else best
             in loop 1 lines.(first_line)
 
-        method private process_hit start line =
+        method private process_hit start write line_index : int =
+
+            (* Update ages. *)
             let set_size = self#set_size in
-            let line_addr = addr / line_size in
+            let line = lines.(line_index) in
+            let line_addr = line.tag / line_size in
             let first_line = line_addr mod set_size in
             if policy = PLRU then
                 begin
-                    let age_sum = sum_ages first_line in
+                    let age_sum = self#sum_ages first_line in
                     if age_sum + 1 = associativity then
-                        self#update_ages ()
+                        self#update_ages first_line
                     else ();
                     line.age <- 1
                 end
             else if policy <> FIFO then
                 line.age <- 0
             else ();
+
+            (* Return access time. *)
             if (not write) || write_back then
                 begin
                     line.dirty <- line.dirty || write;
@@ -145,37 +150,55 @@ class cache =
                 let t = send_request self#next start true addr size in
                 access_time + t
 
+        method private process_miss start write addr size : int =
+            let line = self#find_replacement addr in
+            let tag = addr land lnot (line_size - 1) in
+            if (not write) or write_back then
+                let t = start + access_time in
+
+                (* Write-back. *)
+                let t =
+                    if line.dirty then
+                        let addr, size = line.tag, line_size in
+                        send_request self#next t true addr size
+                    else t
+                in
+                line.tag <- tag;
+                line.dirty <- write;
+
+                (* Update age. *)
+                if policy = PLRU then
+                    begin
+                        let line_addr = addr / line_size in
+                        let first_line = line_addr mod self#set_size in
+                        self#update_ages first_line;
+                        line.age <- 1
+                    end
+                else line.age <- 0;
+
+                (* Read the new entry. *)
+                if (not write) || size < line_size then
+                    send_request self#next t false tag line_size
+                else t
+
+            else
+                let t = send_request self#next start true addr size in
+                t + access_time
+
         method process start write addr size =
+            let set_size = self#set_size in
             let tag = addr land lnot (line_size - 1) in
             let line_addr = addr / line_size in
             let first_line = line_addr mod set_size in
 
             (* Update ages. *)
-            if policy = PLRU then
-                self#update_ages ();
+            if policy <> PLRU then
+                self#update_ages first_line
+            else ();
 
-            (* Check if this address is in the cache. *)
-            let to_replace = ref lines.(first_list) in
-            let rec check i =
-                if i < associativity then
-                    let line_index = first_line + i * self#set_size in
-                    let line = lines.(line_index) in
-                    if tag = line.tag then
-                        self#process_hit start line
-                    else
-                        self#process_miss
-                    else if policy = MRU then
-                        if line.age < to_replace.age then
-                            to_replace := line
-                        else ()
-                    else if policy = PLRU then
-                        if line.age = 0 then
-                            to_replace := line
-                        else ()
-                    else
-                        if line.age > to_replace.age then
-                            to_replace := line
-                        else ();
-
+            (* Check for a hit. *)
+            match self#find_hit addr with
+            | Some index -> self#process_hit start write index
+            | None -> self#process_miss start write addr size
 
     end
