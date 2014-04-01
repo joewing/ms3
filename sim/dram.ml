@@ -20,7 +20,7 @@ class dram =
         val mutable burst_size = 4
         val mutable open_page = true
         val mutable ddr = true
-        val mutable banks : dram_bank array = Array.create 0 {
+        val mutable banks : dram_bank array = Array.make 0 {
             page = -1; dirty = false; time = 0.0
         }
 
