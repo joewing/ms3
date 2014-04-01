@@ -111,6 +111,14 @@ class virtual transform =
             self#bank#reset m main
     end
 
+let log2 n =
+    let rec f i r =
+        if i > 0 then
+            f (i lsr 1) (r + 1)
+        else r
+    in f n 0
+;;
+
 let send_request mem start write addr size =
     let word_size = mem#word_size in
     let word_mask = word_size - 1 in

@@ -10,6 +10,8 @@ class machine =
             | "frequency" -> frequency <- float_of_string value
             | _ -> ()
 
+        method addr_bits = addr_bits
+
         method addr_mask = (1 lsl addr_bits) - 1
 
         method frequency = frequency

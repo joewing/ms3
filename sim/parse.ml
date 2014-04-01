@@ -104,6 +104,7 @@ and create_memory name =
     | "cache" -> let m = new Cache.cache in (wrap m, set_cache m)
     | "offset" -> let m = new Offset.offset in (wrap m, set_transform m)
     | "xor" -> let m = new Xor.xor in (wrap m, set_transform m)
+    | "shift" -> let m = new Shift.shift in (wrap m, set_transform m)
     | "join" -> let m = new join in (wrap m, set_none)
     | name -> parse_error [] ("invalid memory: " ^ name)
 
