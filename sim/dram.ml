@@ -21,7 +21,7 @@ class dram =
         val mutable open_page = true
         val mutable ddr = true
         val mutable banks : dram_bank array = Array.create 0 {
-            page = 0; dirty = false; time = 0.0
+            page = -1; dirty = false; time = 0.0
         }
 
         method private bank_size = page_size * page_count
@@ -50,45 +50,40 @@ class dram =
 
         method reset m main =
             super#reset m main;
-            banks <- Array.create self#bank_count {
-                page = 0; dirty = false; time = 0.0
-            }
+            banks <- Array.init self#bank_count (fun _ ->
+                { page = -1; dirty = false; time = 0.0 }
+            )
 
         method process start write addr size =
             let mult = self#multiplier in
             let delta = ref ((float_of_int start) /. mult) in
             let bsize = burst_size * width in
             let last_addr = addr + size - 1 in
-            let current_addr = ref addr in
-            while !current_addr <= last_addr do
-                let temp = addr - (addr mod bsize) + bsize in
-                let is_last = temp >= last_addr in
-                current_addr := !current_addr land mach#addr_mask;
-                delta := self#do_process !delta write
-                                         !current_addr is_last;
-                current_addr := temp
+            let current = ref addr in
+            while !current <= last_addr do
+                let temp = !current - (!current mod bsize) + bsize in
+                current := !current land mach#addr_mask;
+                delta := self#do_process !delta write !current;
+                current := temp
             done;
-            mult *. !delta |> ceil |> int_of_float
+            (mult *. !delta) |> ceil |> int_of_float
 
-        method private do_process start write addr is_last =
+        method private do_process start write addr =
 
             (* Look up the bank. *)
-            let bank_size = page_size * page_count in
-            let bank_index = addr / bank_size in
+            let bank_index = addr / self#bank_size in
             let bank = banks.(bank_index) in
 
             (* Make sure the bank is ready for another request. *)
             let mtime = (float_of_int mach#time) /. self#multiplier in
-            let cycles = min start (bank.time -. mtime) in
+            let cycles = max start (bank.time -. mtime) in
 
             (* Determine how many cycles to use for the burst. *)
-            let cycles = cycles +. if ddr then
-                (float_of_int burst_size) /. 2.0
-            else float_of_int burst_size
-            in
+            let bsize = float_of_int burst_size in
+            let cycles = cycles +. (if ddr then bsize /. 2.0 else bsize) in
 
             (* Extra time until the page can be used again. *)
-            let extra = float_of_int @@ if not open_page then
+            let extra = if not open_page then
                 rp_cycles + (if write then wb_cycles else 0)
             else 0
             in
@@ -101,15 +96,15 @@ class dram =
                 cas_cycles
             else if bank.dirty then
                 rp_cycles + rcd_cycles + cas_cycles + wb_cycles
-            else rp_cycles + rcd_cycles + cas_cycles)
+            else
+                rp_cycles + rcd_cycles + cas_cycles)
             in
 
             (* Update the bank. *)
-            bank.time <- mtime +. cycles +. extra;
+            bank.time <- mtime +. cycles +. (float_of_int extra);
             bank.page <- page_index;
             bank.dirty <-
-                if bank.page = page_index then
-                    bank.dirty || write
+                if bank.page = page_index then (bank.dirty || write)
                 else write;
 
             (* Return the result. *)

@@ -2,20 +2,7 @@ open Str
 
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 
-let parse_hex s =
-    let len = String.length s in
-    let rec helper pos value =
-        if pos < len then
-            let ch = s.[pos] in
-            value * 16 + if ch >= '0' && ch <= '9' then
-                (int_of_char ch) - (int_of_char '0')
-            else if ch >= 'a' && ch <= 'f' then
-                (int_of_char ch) - (int_of_char 'a') + 10
-            else
-                (int_of_char ch) - (int_of_char 'A') + 10
-        else value
-    in helper 0 0
-;;
+let parse_hex s = int_of_string @@ "0x" ^ s;;
 
 class trace =
     object (self)

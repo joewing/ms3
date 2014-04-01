@@ -66,19 +66,20 @@ let send_request mem start write addr size =
     let word_mask = word_size - 1 in
     let addr_mask = mem#machine#addr_mask in
     let offset = addr land word_mask in
-    let current_addr = ref addr in
+    let current = ref addr in
     let left = ref size in
     let time = ref start in
     if offset <> 0 then
-        let first_size = min (word_size - offset) size in
-        time := mem#process !time write addr first_size;
-        current_addr := (addr + first_size) land addr_mask;
-        left := !left - first_size;
-    else ();
+        begin
+            let first_size = min (word_size - offset) size in
+            time := mem#process !time write addr first_size;
+            current := (addr + first_size) land addr_mask;
+            left := !left - first_size;
+        end;
     while !left > 0 do
-        let temp_size = min word_size size in
-        time := mem#process !time write !current_addr temp_size;
-        current_addr := (!current_addr + temp_size) land addr_mask;
+        let temp_size = min word_size !left in
+        time := mem#process !time write !current temp_size;
+        current := (!current + temp_size) land addr_mask;
         left := !left - temp_size
     done;
     !time
