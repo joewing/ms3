@@ -169,13 +169,6 @@ class Cache(container.Container):
         elif self.machine.target == machine.TargetType.FPGA:
             self.access_time = 3
             self.cycle_time = 3
-        else:
-            if self.policy == CachePolicy.PLRU:
-                latency = 3 + self.associativity // 8
-            else:
-                latency = 3 + self.associativity // 4
-            self.access_time = latency
-            self.cycle_time = latency
 
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
@@ -195,7 +188,7 @@ class Cache(container.Container):
             width *= self.associativity
             depth = self.line_count // self.associativity
             return width * depth
-        elif self.machine.target == machine.TargetType.ASIC:
+        if self.machine.target == machine.TargetType.ASIC:
             return cacti.get_area(self.machine, self)
         elif self.machine.target == machine.TargetType.FPGA:
             return xilinx.get_bram_count(self.machine, self)
