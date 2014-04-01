@@ -61,7 +61,7 @@ class cache =
                 if i < associativity then
                     let line_index = first_line + i * set_size in
                     let line = lines.(line_index) in
-                    loop (i - 1) (total + line.age)
+                    loop (i + 1) (total + line.age)
                 else total
             in loop 0 0
 
@@ -73,8 +73,7 @@ class cache =
                     let age = line.age in
                     if policy = PLRU then
                         line.age <- 0
-                    else
-                        line.age <- age + 1;
+                    else line.age <- age + 1;
                     update (i + 1)
             in update 0
 
@@ -103,24 +102,15 @@ class cache =
                     let line = lines.(index) in
                     let ni = i + 1 in
                     match policy with
-                    | MRU ->
-                            if line.age < best.age then
-                                loop ni line
-                            else loop ni best
-                    | PLRU ->
-                            if line.age = 0 then
-                                loop ni line
-                            else
-                                loop ni best
-                    | _ ->
-                            if line.age > best.age then
-                                loop ni line
-                            else
-                                loop ni best
+                    | MRU when line.age < best.age  -> loop ni line
+                    | PLRU when line.age = 0        -> loop ni line
+                    | LRU when line.age > best.age  -> loop ni line
+                    | FIFO when line.age > best.age -> loop ni line
+                    | _                             -> loop ni best
                 else best
             in loop 1 lines.(first_line)
 
-        method private process_hit start write line_index : int =
+        method private process_hit start write line_index =
 
             (* Update ages. *)
             let set_size = self#set_size in
@@ -150,10 +140,10 @@ class cache =
                 let t = send_request self#next start true addr size in
                 access_time + t
 
-        method private process_miss start write addr size : int =
+        method private process_miss start write addr size =
             let line = self#find_replacement addr in
             let tag = addr land lnot (line_size - 1) in
-            if (not write) or write_back then
+            if (not write) || write_back then
                 let t = start + access_time in
 
                 (* Write-back. *)
@@ -171,7 +161,10 @@ class cache =
                     begin
                         let line_addr = addr / line_size in
                         let first_line = line_addr mod self#set_size in
-                        self#update_ages first_line;
+                        let age_sum = self#sum_ages first_line in
+                        if age_sum + 1 = associativity then
+                            self#update_ages first_line
+                        else ();
                         line.age <- 1
                     end
                 else line.age <- 0;
@@ -186,19 +179,26 @@ class cache =
                 t + access_time
 
         method process start write addr size =
-            let set_size = self#set_size in
-            let tag = addr land lnot (line_size - 1) in
-            let line_addr = addr / line_size in
-            let first_line = line_addr mod set_size in
+
+            (* Get earliest time we could process this event. *)
+            let t = max start (pending - self#machine#time) in
 
             (* Update ages. *)
             if policy <> PLRU then
+                let line_addr = addr / line_size in
+                let first_line = line_addr mod self#set_size in
                 self#update_ages first_line
             else ();
 
-            (* Check for a hit. *)
-            match self#find_hit addr with
-            | Some index -> self#process_hit start write index
-            | None -> self#process_miss start write addr size
+            (* Process the access. *)
+            let t = match self#find_hit addr with
+            | Some index -> self#process_hit t write index
+            | None -> self#process_miss t write addr size
+            in
+
+            (* Update the pending time. *)
+            let temp = max (cycle_time - access_time) 0 in
+            pending <- self#machine#time + t + temp;
+            t
 
     end
