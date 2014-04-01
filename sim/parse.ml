@@ -86,11 +86,11 @@ and set_cache mem name = function
     | v when name = "memory" -> mem#set_next @@ parse_memory v
     | t -> parse_error t ("invalid cache argument: " ^ name)
 
-and set_offset mem name = function
+and set_transform mem name = function
     | [Literal (s, _)] -> mem#set name s
     | v when name = "memory" -> mem#set_next @@ parse_memory v
     | v when name = "bank" -> mem#set_bank @@ parse_memory v
-    | t -> parse_error t ("invalid offset argument: " ^ name)
+    | t -> parse_error t ("invalid transform argument: " ^ name)
 
 and create_memory name =
     let wrap m = Some (m :> base_memory) in
@@ -102,7 +102,8 @@ and create_memory name =
     | "spm" -> let m = new Spm.spm in (wrap m, set_spm m)
     | "dram" -> let m = new Dram.dram in (wrap m, set_dram m)
     | "cache" -> let m = new Cache.cache in (wrap m, set_cache m)
-    | "offset" -> let m = new Offset.offset in (wrap m, set_offset m)
+    | "offset" -> let m = new Offset.offset in (wrap m, set_transform m)
+    | "xor" -> let m = new Xor.xor in (wrap m, set_transform m)
     | "join" -> let m = new join in (wrap m, set_none)
     | name -> parse_error [] ("invalid memory: " ^ name)
 
