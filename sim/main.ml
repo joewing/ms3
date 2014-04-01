@@ -22,7 +22,10 @@ let run_experiment () =
 
 let main () =
     Arg.parse opts set_experiment "usage: sim [options] <experiment>";
-    run_experiment ()
+    try
+        run_experiment ()
+    with Lex.ParseError msg ->
+        print_endline @@ "ERROR: " ^ msg
 ;;
 
 main ()

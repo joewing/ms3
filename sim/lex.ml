@@ -1,64 +1,91 @@
-type token  = Invalid
-            | Open
-            | Close
-            | Literal of string
+type file_position = string * int;;
+
+type token  = Invalid of file_position
+            | Open of file_position
+            | Close of file_position
+            | Literal of string * file_position
 ;;
 
-let tokenize chan =
-    let rec process s =
+exception ParseError of string;;
+
+let tokenize file_name =
+    let chan = open_in file_name in
+    let rec process line s =
         let has_str = String.length s > 0 in
+        let pos = (file_name, line) in
         try
             match input_char chan with
-            | '(' when not has_str -> Open :: process ""
-            | '(' when has_str -> (Literal s) :: Open :: process ""
-            | ')' when not has_str -> Close :: process ""
-            | ')' when has_str -> (Literal s) :: Close :: process ""
-            | ' ' | '\t' | '\r' | '\n'  ->
-                    if not has_str then process ""
-                    else (Literal s) :: process ""
-            | ch -> process (s ^ String.make 1 ch)
+            | '(' when not has_str ->
+                    Open pos :: process line ""
+            | '(' when has_str ->
+                    Literal (s, pos) :: Open pos :: process line ""
+            | ')' when not has_str -> Close pos :: process line ""
+            | ')' when has_str ->
+                    Literal (s, pos) :: Close pos :: process line ""
+            | ' ' | '\t' | '\r' ->
+                    if not has_str then process line ""
+                    else Literal (s, pos) :: process line ""
+            | '\n' ->
+                    let line = line + 1 in
+                    if not has_str then process line ""
+                    else Literal (s, pos) :: process line ""
+            | ch -> process line (s ^ String.make 1 ch)
         with End_of_file ->
-            if has_str then [Literal s] else []
-    in process ""
+            if has_str then [Literal (s, pos)] else []
+    in
+    let result = process 1 "" in
+    close_in chan; result
 ;;
 
 let peek_token token_list = List.hd token_list ;;
 
+let get_position = function
+    | Invalid pos -> pos
+    | Open pos -> pos
+    | Close pos -> pos
+    | Literal (_, pos) -> pos
+;;
+
+let parse_error token_list msg =
+    let (file_name, line) = match token_list with
+    | t :: _ -> get_position t
+    | _ -> ("<EOF>", 0) in
+    let prefix = file_name ^ "[" ^ (string_of_int line) ^ "]: " in
+    raise @@ ParseError (prefix ^ msg)
+
 let match_open = function
-    | Open :: tl -> tl
-    | _ -> failwith "expected '('"
+    | Open _ :: tl -> tl
+    | tl -> parse_error tl "expected '('"
 ;;
 
 let match_close = function
-    | Close :: tl -> tl
-    | _ -> failwith "expected ')'"
+    | Close _ :: tl -> tl
+    | tl -> parse_error tl "expected ')'"
 ;;
 
 let match_string = function
-    | Literal s :: tl -> (s, tl)
-    | _ -> failwith "expected literal"
+    | Literal (s, _) :: tl -> (s, tl)
+    | tl -> parse_error tl "expected literal"
 ;;
 
 let match_literal name = function
-    | Literal name :: tl -> tl
-    | _ -> failwith @@ "expected " ^ name
+    | Literal (name, _) :: tl -> tl
+    | tl -> parse_error tl ("expected " ^ name)
 ;;
 
 let match_int token_list =
     let s, tl = match_string token_list in (int_of_string s, tl)
 ;;
 
-let match_bool token_list =
-    let s, tl = match_string token_list in
-    match s with
-    | "true" -> (true, tl)
-    | "false" -> (false, tl)
-    | _ -> failwith "expected 'true' or 'false'"
+let match_bool = function
+    | Literal ("true", _) :: tl -> (true, tl)
+    | Literal ("false", _) :: tl -> (false, tl)
+    | tl -> parse_error tl "expected 'true' or 'false'"
 ;;
 
 let rec tokens_to_string = function
-    | Open :: tl -> "(" ^ (tokens_to_string tl)
-    | Close :: tl -> ")" ^ (tokens_to_string tl)
-    | Literal s :: tl -> s ^ " " ^ (tokens_to_string tl)
+    | Open _ :: tl -> "(" ^ (tokens_to_string tl)
+    | Close _ :: tl -> ")" ^ (tokens_to_string tl)
+    | Literal (s, _) :: tl -> s ^ " " ^ (tokens_to_string tl)
     | _ -> "\n"
 ;;
