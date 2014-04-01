@@ -40,11 +40,7 @@ class TestTrace(unittest.TestCase):
             self.assertEqual(size, 8)
 
             t, addr, size = next(output)
-            self.assertEqual(t, AccessType.READ)
-            self.assertEqual(addr, 0)
-            self.assertEqual(size, 4)
-            t, addr, size = next(output)
-            self.assertEqual(t, AccessType.WRITE)
+            self.assertEqual(t, AccessType.MODIFY)
             self.assertEqual(addr, 0)
             self.assertEqual(size, 4)
 
