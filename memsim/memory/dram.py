@@ -101,7 +101,7 @@ class DRAM(main.MainMemory):
 
         # Convert machine time to DRAM time.
         # Note that delta is already in DRAM time.
-        mtime = self.machine.time / self.multiplier
+        mtime = float(self.machine.time) / self.multiplier
 
         # Make sure this bank is ready for another request.
         if mtime + delta < bank.time:

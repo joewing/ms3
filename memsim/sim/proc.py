@@ -84,6 +84,9 @@ class Process(object):
             return send_request(self.mem, 0, False, addr, size)
         elif at == AccessType.WRITE:
             return send_request(self.mem, 0, True, addr, size)
+        elif at == AccessType.MODIFY:
+            temp = send_request(self.mem, 0, False, addr, size)
+            return send_request(self.mem, temp, True, addr, size)
         elif at == AccessType.IDLE:
             self.delay = self.delay or (addr > 0)
             return addr

@@ -41,8 +41,7 @@ class Trace(base.Benchmark):
                 elif at == 'W':
                     yield AccessType.WRITE, addr, size
                 elif at == 'M':
-                    yield AccessType.READ, addr, size
-                    yield AccessType.WRITE, addr, size
+                    yield AccessType.MODIFY, addr, size
                 elif at == 'I':
                     yield AccessType.IDLE, addr, size
                 elif at == 'P':
