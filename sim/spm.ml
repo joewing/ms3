@@ -4,10 +4,10 @@ class spm =
     object (self)
         inherit container as super
 
-        val mutable word_size : int = 0
+        val mutable word_size : int = 4
         val mutable size_bytes : int = 0
-        val mutable access_time : int = 0
-        val mutable cycle_time : int = 0
+        val mutable access_time : int = 2
+        val mutable cycle_time : int = 2
         val mutable pending : int = 0
 
         method set name value =
