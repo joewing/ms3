@@ -109,6 +109,9 @@ class virtual transform =
         method reset m main =
             super#reset m main;
             self#bank#reset m main
+
+        method finish =
+            max super#finish self#bank#finish
     end
 
 let log2 n =

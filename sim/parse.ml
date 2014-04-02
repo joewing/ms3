@@ -92,6 +92,13 @@ and set_transform mem name = function
     | v when name = "bank" -> mem#set_bank @@ parse_memory v
     | t -> parse_error t ("invalid transform argument: " ^ name)
 
+and set_split mem name = function
+    | [Literal (s, _)] -> mem#set name s
+    | v when name = "memory" -> mem#set_next @@ parse_memory v
+    | v when name = "bank0" -> mem#set_bank0 @@ parse_memory v
+    | v when name = "bank1" -> mem#set_bank1 @@ parse_memory v
+    | t -> parse_error t ("invalid split argument: " ^ name)
+
 and create_memory name =
     let wrap m = Some (m :> base_memory) in
     match name with
@@ -105,6 +112,7 @@ and create_memory name =
     | "offset" -> let m = new Offset.offset in (wrap m, set_transform m)
     | "xor" -> let m = new Xor.xor in (wrap m, set_transform m)
     | "shift" -> let m = new Shift.shift in (wrap m, set_transform m)
+    | "split" -> let m = new Split.split in (wrap m, set_split m)
     | "join" -> let m = new join in (wrap m, set_none)
     | name -> parse_error [] ("invalid memory: " ^ name)
 
