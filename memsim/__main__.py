@@ -261,8 +261,7 @@ def experiment_done(ident):
         return
 
     with main_context.lock:
-        data = main_context.data[ident]
-        print('Finished {}'.format(data[0]))
+        print('Finished', ident)
         main_context.thread_count -= 1
         main_context.server.remove_client(ident)
         del main_context.data[ident]
@@ -315,6 +314,7 @@ def main():
                         active = True
                         break
             elif main_context.thread_count == 0:
+                main_context.stop = True
                 break
             time.sleep(0.125)
         main_context.pool.terminate()
