@@ -37,6 +37,8 @@ parser.add_option('-t', '--threads', dest='threads', default=1,
                   help='number of threads')
 parser.add_option('-v', '--verbose', dest='verbose', default=False,
                   action='store_true', help='be verbose')
+parser.add_option('-f', '--nofast', dest='fast', default=True,
+                  action='store_false', help='disable fastsim')
 
 
 class MainContext(object):
@@ -49,6 +51,7 @@ class MainContext(object):
     thread_count = 0
     pool = None
     verbose = False
+    fast = True
     stop = False
     lock = threading.Lock()
 
@@ -121,7 +124,7 @@ def get_initial_memory(db, m, dist, directory):
         print('Initial Memory: {}'.format(ml))
 
     # Collect statistics and get the execution time.
-    best_value = pl.run(ml)
+    best_value = pl.run(ml, False)
     best_cost = ml.get_cost()
 
     if main_context.verbose:
@@ -182,7 +185,7 @@ def optimize(db, mod, iterations, seed, directory):
         # Evaluate the memory subsystem.
         if main_context.verbose:
             print(ml.simplified())
-        t = pl.run(ml.simplified())
+        t = pl.run(ml.simplified(), main_context.fast)
         if main_context.verbose:
             print('Time: {}'.format(t))
 
@@ -287,6 +290,7 @@ def main():
     main_context.seed = int(options.seed) if options.seed else int(time.time())
     main_context.iterations = int(options.iterations)
     main_context.verbose = options.verbose
+    main_context.fast = options.fast
     db = database.get_instance(options.url)
 
     # Create the database server.

@@ -23,7 +23,7 @@ class MockProcessList(object):
     def add_benchmark(self, b):
         self.benchmarks.append(b)
 
-    def run(self, ml):
+    def run(self, ml, fast):
         return 5
 
 
@@ -36,6 +36,6 @@ class EvaluateTestCase(TestCase):
         mod = Model()
         mod.benchmarks = [MockBenchmark(), MockBenchmark()]
         ml = MockMemoryList()
-        result = evaluate(mod, ml, '/')
+        result = evaluate(mod, ml, '/', False)
         self.assertEqual(result, (5, 10))
         self.assertEqual(len(pl.benchmarks), 2)

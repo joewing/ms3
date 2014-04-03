@@ -138,7 +138,7 @@ class ProcessList(object):
                     assert(False)
         return total
 
-    def run(self, ml):
+    def run(self, ml, use_fastsim):
         """Run a simulation.
 
         Argument:
@@ -148,9 +148,10 @@ class ProcessList(object):
         self.reset(ml)
 
         # Try to use fastsim.
-        rc = self.fastsim(ml)
-        if rc >= 0:
-            return rc
+        if use_fastsim:
+            rc = self.fastsim(ml)
+            if rc >= 0:
+                return rc
 
         # fastsim not available.
         # Run the simulation until there are no more events to process.

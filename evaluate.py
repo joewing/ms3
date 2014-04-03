@@ -28,6 +28,8 @@ parser.add_option('-r', '--replace', dest='replace', default=None,
 parser.add_option('-s', '--stats', dest='stats', default=False,
                   action='store_true',
                   help='get the max path length and cost')
+parser.add_option('-f', '--nofast', dest='fast', default=True,
+                  action='store_false', help='disable fastsim')
 
 
 def get_best(db, mod):
@@ -70,13 +72,13 @@ def get_memory_list(db, mem, mod, baseline, replace):
     return ml
 
 
-def simulate(experiment, mem, baseline, replace, directory):
+def simulate(experiment, mem, baseline, replace, directory, fast):
     mod = model.parse_model_file(experiment)
     db = database.get_instance()
     ml = get_memory_list(db, mem, mod, baseline, replace)
     time = db.get_result(mod, ml)
     if time is None:
-        time, cost = evaluate(mod, ml, directory)
+        time, cost = evaluate(mod, ml, directory, fast)
         db.add_result(mod, ml, time, cost)
     print(get_experiment_name(experiment) + ',' + str(time))
 
@@ -93,12 +95,12 @@ def get_stats(experiments, mem, baseline, replace, directory):
         print('{},{},{}'.format(name, pl, cost))
 
 
-def generate_array(experiments, mem, baseline, replace, directory):
+def generate_array(experiments, mem, baseline, replace, directory, fast):
     for experiment in experiments:
-        simulate(experiment, mem, baseline, replace, directory)
+        simulate(experiment, mem, baseline, replace, directory, fast)
 
 
-def generate_matrix(experiments, mem, baseline, replace, directory):
+def generate_matrix(experiments, mem, baseline, replace, directory, fast):
     assert(mem == 'best')
     db = database.get_instance()
     for mem_model in experiments:
@@ -108,7 +110,7 @@ def generate_matrix(experiments, mem, baseline, replace, directory):
             mod = model.parse_model_file(experiment)
             time = db.get_result(mod, model_ml)
             if not time:
-                time, cost = evaluate(mod, model_ml, directory)
+                time, cost = evaluate(mod, model_ml, directory, fast)
                 db.add_result(mod, model_ml, time, cost)
             print(get_experiment_name(experiment) + ',' +
                   get_experiment_name(mem_model) + ',' + str(time))
@@ -131,7 +133,7 @@ def main():
                         options.replace, directory)
     else:
         generate_array(args, options.memory, options.baseline,
-                       options.replace, directory)
+                       options.replace, directory, options.fast)
 
 
 if __name__ == '__main__':
