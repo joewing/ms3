@@ -21,6 +21,7 @@ class TestFIFO(TestCase):
         fifo = self.fifo
         mem = self.mem
 
+        print fifo.write_ptr, fifo.offset
         result = fifo.produce()
         self.assertEqual(result, 123)
         result = mem.process.assert_called_once_with(0, True, 8, 4)

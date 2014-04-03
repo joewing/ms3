@@ -43,14 +43,14 @@ class TestMemsim(unittest.TestCase):
         mock_model.machine = MachineType()
         mock_model.benchmarks = [MockBenchmark()]
         mock_model.memory = MemoryList(MockMemory())
-        mock_model.memory.add_memory(Subsystem(1, 8, None))
+        mock_model.memory.add_memory(Subsystem(1, 8, 0, None))
         dist = Mock()
 
         result = get_initial_memory(mock_db, mock_model, dist, '.')
 
         self.assertEqual(len(result), 3)
         expected = '(main (memory (mock)))'
-        expected += ' (subsystem (id 1)(word_size 8)(memory (mock)))'
+        expected += ' (subsystem (id 1)(depth 0)(word_size 8)(memory (mock)))'
         self.assertEqual(str(result[0]), expected)
         self.assertEqual(result[1], 0)
         self.assertEqual(result[2], False)

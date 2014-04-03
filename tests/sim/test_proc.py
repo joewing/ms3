@@ -21,7 +21,7 @@ class TestProcess(unittest.TestCase):
         mem = mocks.MockMemory()
         mach = machine.MachineType()
         ml = memory.MemoryList(mem)
-        ml.add_memory(Subsystem(1, 8, mem))
+        ml.add_memory(Subsystem(1, 8, 0, mem))
         ml.add_memory(FIFO(1, mem, 8, 128, 1))
         ml.add_memory(FIFO(2, mem, 8, 256, 1))
         pl = sim.ProcessList(mach, '.')
@@ -29,39 +29,43 @@ class TestProcess(unittest.TestCase):
         pl.reset(ml)
         p = pl.processes[0]
 
+        fifo2_addr = 0
+        fifo1_addr = 8 * 128
+        sub_addr = 8 * 128 + 8 * 256
+
         t = p.step()    # Read
         self.assertEqual(t, 400)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 0)
-        self.assertEqual(mem.last_addr, 8)
+        self.assertEqual(mem.last_addr, 8 + sub_addr)
         self.assertEqual(mem.last_size, 4)
 
         t = p.step()    # Write
         self.assertEqual(t, 800)
         self.assertEqual(mem.reads, 1)
         self.assertEqual(mem.writes, 1)
-        self.assertEqual(mem.last_addr, 16)
+        self.assertEqual(mem.last_addr, 16 + sub_addr)
         self.assertEqual(mem.last_size, 8)
 
         t = p.step()    # Read
         self.assertEqual(t, 1600)
         self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
-        self.assertEqual(mem.last_addr, 16)
+        self.assertEqual(mem.last_addr, 16 + sub_addr)
         self.assertEqual(mem.last_size, 7)
 
         t = p.step()    # Idle
         self.assertEqual(t, 32)
         self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
-        self.assertEqual(mem.last_addr, 16)
+        self.assertEqual(mem.last_addr, 16 + sub_addr)
         self.assertEqual(mem.last_size, 7)
 
         t = p.step()    # Consume
         self.assertEqual(t, -1)
         self.assertEqual(mem.reads, 4)
         self.assertEqual(mem.writes, 1)
-        self.assertEqual(mem.last_addr, 16)
+        self.assertEqual(mem.last_addr, 16 + sub_addr)
         self.assertEqual(mem.last_size, 7)
         self.assertEqual(p.consume_waiting, 1)
 
@@ -76,7 +80,7 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(t, 800)
         self.assertEqual(mem.reads, 5)
         self.assertEqual(mem.writes, 3)
-        self.assertEqual(mem.last_addr, 1024)
+        self.assertEqual(mem.last_addr, 1024 + fifo2_addr)
         self.assertEqual(mem.last_size, 8)
         self.assertEqual(p.consume_waiting, -1)
         self.assertEqual(p.produce_waiting, -1)
@@ -85,7 +89,7 @@ class TestProcess(unittest.TestCase):
         self.assertEqual(t, 0)
         self.assertEqual(mem.reads, 5)
         self.assertEqual(mem.writes, 3)
-        self.assertEqual(mem.last_addr, 1024)
+        self.assertEqual(mem.last_addr, 1024 + fifo2_addr)
         self.assertEqual(mem.last_size, 8)
         self.assertEqual(p.consume_waiting, -1)
         self.assertEqual(p.produce_waiting, -1)

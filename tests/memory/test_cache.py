@@ -19,8 +19,8 @@ class TestCache(unittest.TestCase):
                       line_count=4,
                       line_size=8,
                       associativity=1,
-                      access_time=1,
-                      cycle_time=1,
+                      access_time=3,
+                      cycle_time=3,
                       write_back=True)
         cache.reset(self.machine)
         self.assertEqual(cache.access_time, 3)
@@ -71,8 +71,8 @@ class TestCache(unittest.TestCase):
                       line_size=4,
                       associativity=2,
                       policy=CachePolicy.LRU,
-                      access_time=1,
-                      cycle_time=1,
+                      access_time=3,
+                      cycle_time=3,
                       write_back=True)
         cache.reset(self.machine)
         self.assertEqual(cache.access_time, 3)
@@ -115,8 +115,8 @@ class TestCache(unittest.TestCase):
                       line_size=8,
                       associativity=2,
                       policy=CachePolicy.FIFO,
-                      access_time=1,
-                      cycle_time=1,
+                      access_time=3,
+                      cycle_time=3,
                       write_back=True)
         cache.reset(self.machine)
         self.assertEqual(cache.access_time, 3)
@@ -204,8 +204,8 @@ class TestCache(unittest.TestCase):
                       line_size=4,
                       associativity=1,
                       policy=CachePolicy.LRU,
-                      access_time=1,
-                      cycle_time=1,
+                      access_time=3,
+                      cycle_time=3,
                       write_back=False)
         cache.reset(self.machine)
         self.assertEqual(cache.access_time, 3)
@@ -290,7 +290,7 @@ class TestCache(unittest.TestCase):
                       write_back=True)
         gen = vhdl.VHDLGenerator(self.machine)
         ml = MemoryList(self.main)
-        ml.add_memory(Subsystem(0, 2, cache))
+        ml.add_memory(Subsystem(0, 2, 0, cache))
         result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)

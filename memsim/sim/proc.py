@@ -29,6 +29,14 @@ class Process(object):
         """Determine if prefetching would be beneficial."""
         return self.delay
 
+    def total_size(self, directory):
+        """Get the total size of the memory subsystem in bytes."""
+        size = self.mem.total_size()
+        if size == 0:
+            size = self.benchmark.get_size(directory)
+            self.mem.set_depth(size / self.mem.get_word_size())
+        return size
+
     def reset(self, machine, mem, offset):
         """Reset this process for the next simulation.
 

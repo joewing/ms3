@@ -133,7 +133,7 @@ class TestSplit(unittest.TestCase):
         split = Split(self.bank0, self.bank1, self.main, offset=128)
         gen = vhdl.VHDLGenerator(self.machine)
         ml = MemoryList(self.main)
-        ml.add_memory(Subsystem(0, 8, split))
+        ml.add_memory(Subsystem(0, 8, 0, split))
         result = gen.generate(ml)
         self.assertNotEqual(result, None)
         self.assertEqual(self.main.generated, 1)

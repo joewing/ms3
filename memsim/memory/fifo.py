@@ -15,9 +15,8 @@ class FIFO(subsystem.Subsystem):
             depth:      The depth of the FIFO in items.
             min_depth:  Minimum depth in items.
         """
-        subsystem.Subsystem.__init__(self, index, word_size, mem)
+        subsystem.Subsystem.__init__(self, index, word_size, depth, mem)
         assert(depth >= min_depth)
-        self.depth = depth
         self.min_depth = min_depth
         self.read_ptr = 0
         self.write_ptr = 0
@@ -87,7 +86,7 @@ class FIFO(subsystem.Subsystem):
         if self.used == self.depth:
             return -1
         else:
-            addr = self.offset + self.write_ptr * self.word_size
+            addr = self.write_ptr * self.word_size
             self.write_ptr = (self.write_ptr + 1) % self.depth
             self.used += 1
             return self.process(0, True, addr, self.word_size)
@@ -100,7 +99,7 @@ class FIFO(subsystem.Subsystem):
         if self.used == 0:
             return -1
         else:
-            addr = self.offset + self.read_ptr * self.word_size
+            addr = self.read_ptr * self.word_size
             self.read_ptr = (self.read_ptr + 1) % self.depth
             self.used -= 1
             return self.process(0, False, addr, self.word_size)
@@ -115,7 +114,7 @@ class FIFO(subsystem.Subsystem):
             return -1
         else:
             temp = (self.read_ptr - offset) % self.depth
-            addr = self.offset + temp * self.word_size
+            addr = temp * self.word_size
             return self.process(0, False, addr, self.word_size)
 
 

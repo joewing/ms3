@@ -5,24 +5,27 @@ from memsim.memory import base
 class Subsystem(base.Memory):
     """Container for per-kernel memory subsystems."""
 
-    def __init__(self, index, word_size, mem):
+    def __init__(self, index, word_size, depth, mem):
         """Create a memory to be used with a kernel.
 
         Arguments:
             index:      A unique identifier for this subsystem.
             word_size:  The word size in bytes.
+            depth:      The number of words.
             mem:        The memory subsystem.
         """
         base.Memory.__init__(self)
         self.index = index
         self.word_size = util.round_power2(word_size)
         self.mem = mem
+        self.depth = depth
         self.offset = 0
         self.score = 0
 
     def __str__(self):
         result = '(subsystem '
         result += '(id ' + str(self.index) + ')'
+        result += '(depth ' + str(self.depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
         result += '(memory ' + self.get_next().get_name() + ')'
         result += ')'
@@ -30,6 +33,9 @@ class Subsystem(base.Memory):
 
     def get_word_size(self):
         return self.word_size
+
+    def total_size(self):
+        return self.word_size * self.depth
 
     def can_remove(self):
         return False
@@ -53,6 +59,9 @@ class Subsystem(base.Memory):
     def set_offset(self, offset):
         self.offset = offset
 
+    def set_depth(self, depth):
+        self.depth = depth
+
     def get_next(self):
         return self.mem
 
@@ -72,6 +81,7 @@ class Subsystem(base.Memory):
         self.score = 0
 
     def process(self, start, write, addr, size):
+        addr += self.offset
         result = base.send_request(self.mem, start, write, addr, size)
         self.score += result
         return result
@@ -85,6 +95,7 @@ class Subsystem(base.Memory):
 def _create_subsystem(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
+    depth = parser.get_argument(lexer, args, 'depth', 0)
     mem = parser.get_argument(lexer, args, 'memory')
-    return Subsystem(word_size=word_size, index=index, mem=mem)
+    return Subsystem(word_size=word_size, index=index, depth=depth, mem=mem)
 base.constructors['subsystem'] = _create_subsystem

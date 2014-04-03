@@ -6,7 +6,7 @@ class subsystem =
 
         val mutable index : int = 0
         val mutable word_size : int = 4
-        val mutable size : int = 16777216
+        val mutable depth : int = 0
         val mutable next : base_memory option = None
         val mutable offset : int = 0
         val mutable score : int = 0
@@ -15,7 +15,7 @@ class subsystem =
 
         method set name value = match name with
         | "id" -> index <- int_of_string value
-        | "size" -> size <- int_of_string value
+        | "depth" -> depth <- int_of_string value
         | "word_size" -> word_size <- int_of_string value
         | _ -> super#set name value
 
@@ -23,7 +23,7 @@ class subsystem =
 
         method set_offset o = offset <- o
 
-        method total_size = size
+        method total_size = depth * word_size
 
         method next = match next with
             | Some m -> m
@@ -41,6 +41,7 @@ class subsystem =
                     next <- Some main
 
         method process start write addr size =
+            let addr = addr + offset in
             let result = send_request self#next start write addr size in
             score <- score + result;
             result

@@ -33,7 +33,7 @@ class fifo =
             if used = depth then
                 -1
             else
-                let addr = offset + write_ptr * word_size in
+                let addr = write_ptr * word_size in
                 begin
                     write_ptr <- (write_ptr + 1) mod depth;
                     used <- used + 1;
@@ -44,7 +44,7 @@ class fifo =
             if used == 0 then
                 -1
             else
-                let addr = offset + read_ptr * word_size in
+                let addr = read_ptr * word_size in
                 begin
                     read_ptr <- (read_ptr + 1) mod depth;
                     used <- used - 1;
@@ -56,7 +56,7 @@ class fifo =
                 -1
             else
                 let temp = (read_ptr - offset) mod depth in
-                let addr = offset + temp * word_size in
+                let addr = temp * word_size in
                 super#process 0 false addr word_size
 
     end
