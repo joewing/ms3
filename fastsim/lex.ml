@@ -9,7 +9,11 @@ type token  = Invalid of file_position
 exception ParseError of string;;
 
 let tokenize file_name =
-    let chan = open_in file_name in
+    let chan =
+        match file_name with
+        | "" -> stdin
+        | _ -> open_in file_name
+    in
     let rec process line s =
         let has_str = String.length s > 0 in
         let pos = (file_name, line) in
@@ -34,7 +38,7 @@ let tokenize file_name =
             if has_str then [Literal (s, pos)] else []
     in
     let result = process 1 "" in
-    close_in chan; result
+    close_in_noerr chan; result
 ;;
 
 let peek_token token_list = List.hd token_list ;;

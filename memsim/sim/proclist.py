@@ -1,4 +1,11 @@
+from __future__ import print_function
+from subprocess import Popen, PIPE
+from os.path import isfile
+import re
+import sys
+
 from memsim import priorityqueue, util
+from memsim.model import Model
 from .proc import Process
 
 
@@ -92,6 +99,45 @@ class ProcessList(object):
             offset += p.total_size(self.directory)
         assert(offset < (1 << self.machine.addr_bits))
 
+    def fastsim(self, ml):
+
+        # Check if fastsim is available.
+        cmd = 'fastsim/fastsim'
+        if not isfile(cmd):
+            print('{} not found'.format(cmd))
+            return -1
+
+        # Run the simulation.
+        total = -1
+        expr = re.compile(r'([a-z]+)([0-9]*) ([0-9]+)')
+        mod = Model()
+        mod.memory = ml
+        mod.machine = self.machine
+        mod.benchmarks = [p.benchmark for p in self.processes]
+        p = Popen([cmd, '-d', self.directory], stdin=PIPE, stdout=PIPE)
+        result, _ = p.communicate(input=str(mod))
+
+        # Parse the results.
+        for line in result.decode(sys.stdout.encoding).split('\n'):
+            for m in expr.finditer(line):
+                name = m.group(1)
+                index = 0
+                if len(m.group(2)) > 0:
+                    index = int(m.group(2))
+                result = int(m.group(3))
+                if name == 'fifo':
+                    mem = ml.get_fifo(index)
+                    mem.score = result
+                elif name == 'subsystem':
+                    mem = ml.get_subsystem(index)
+                    mem.score = result
+                elif name == 'total':
+                    total = result
+                else:
+                    print(name)
+                    assert(False)
+        return total
+
     def run(self, ml):
         """Run a simulation.
 
@@ -101,6 +147,12 @@ class ProcessList(object):
         # Reset to prepare for the simulation.
         self.reset(ml)
 
+        # Try to use fastsim.
+        rc = self.fastsim(ml)
+        if rc >= 0:
+            return rc
+
+        # fastsim not available.
         # Run the simulation until there are no more events to process.
         while not self.heap.empty():
             self.machine.time = max(self.machine.time, self.heap.key())

@@ -30,7 +30,6 @@ class TestProcess(unittest.TestCase):
         p = pl.processes[0]
 
         fifo2_addr = 0
-        fifo1_addr = 8 * 128
         sub_addr = 8 * 128 + 8 * 256
 
         t = p.step()    # Read
