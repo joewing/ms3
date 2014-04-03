@@ -74,9 +74,9 @@ and set_container mem name = function
     | v when name = "memory" -> mem#set_next @@ parse_memory v
     | t -> parse_error t ("invalid argument: " ^ name)
 
-and set_dram mem name = function
+and set_main mem name = function
     | [Literal (s, _)] -> mem#set name s
-    | t -> parse_error t ("invalid dram argument" ^ name)
+    | t -> parse_error t ("invalid argument" ^ name)
 
 and set_transform mem name = function
     | [Literal (s, _)] -> mem#set name s
@@ -99,7 +99,7 @@ and create_memory name =
         let m = new Subsystem.subsystem in (wrap m, set_subsystem m)
     | "fifo" -> let m = new Fifo.fifo in (wrap m, set_fifo m)
     | "spm" -> let m = new Spm.spm in (wrap m, set_container m)
-    | "dram" -> let m = new Dram.dram in (wrap m, set_dram m)
+    | "dram" -> let m = new Dram.dram in (wrap m, set_main m)
     | "cache" -> let m = new Cache.cache in (wrap m, set_container m)
     | "offset" -> let m = new Offset.offset in (wrap m, set_transform m)
     | "xor" -> let m = new Xor.xor in (wrap m, set_transform m)
@@ -107,6 +107,7 @@ and create_memory name =
     | "split" -> let m = new Split.split in (wrap m, set_split m)
     | "join" -> let m = new join in (wrap m, set_none)
     | "prefetch" -> let m = new Prefetch.prefetch in (wrap m, set_container m)
+    | "ram" -> let m = new Ram.ram in (wrap m, set_main m)
     | name -> parse_error [] ("invalid memory: " ^ name)
 
 and match_memory token_list =
