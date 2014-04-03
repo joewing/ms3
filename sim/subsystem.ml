@@ -25,6 +25,8 @@ class subsystem =
 
         method total_size = depth * word_size
 
+        method score = score
+
         method next = match next with
             | Some m -> m
             | None -> failwith "no next"

@@ -31,6 +31,8 @@ class virtual base_memory =
 
         method total_size : int = failwith "invalid"
 
+        method score : int = failwith "invalid"
+
         method consume () : int = failwith "invalid"
 
         method produce () : int = failwith "invalid"

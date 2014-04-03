@@ -16,8 +16,10 @@ let opts = [
 let run_experiment () =
     let (mach, main, mem, benchmarks) = parse_model_file !experiment in
     let sim = new simulator mach !directory main mem benchmarks in
-    let time = sim#run in
-    print_int time; print_newline ()
+    let results = sim#run in
+    List.iter (fun (name, value) ->
+        Printf.printf "%s %d\n" name value
+    ) results
 ;;
 
 let main () =

@@ -178,6 +178,13 @@ class simulator mach directory main mem_list benchmarks =
                 heap#push 0 p
             ) processes
 
+        method private scores =
+            List.map (fun m ->
+                let prefix = if m#is_fifo then "fifo" else "subsystem" in
+                let name = prefix ^ (string_of_int m#id) in
+                (name, m#score)
+            ) self#all_memories
+
         method run =
             self#reset ();
             while not heap#empty do
@@ -192,6 +199,6 @@ class simulator mach directory main mem_list benchmarks =
                 let t = p#finish in
                 mach#set_time @@ max mach#time t
             ) processes;
-            mach#time
+            ("total", mach#time) :: self#scores
 
     end
