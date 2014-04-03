@@ -15,18 +15,18 @@ def parse_target(s):
     elif s == "fpga":
         return TargetType.FPGA
     else:
-        return None
+        assert(False)
 
 
 def show_target(t):
     if t == TargetType.SIMPLE:
-        return "simple"
+        return 'simple'
     elif t == TargetType.ASIC:
-        return "asic"
+        return 'asic'
     elif t == TargetType.FPGA:
-        return "fpga"
+        return 'fpga'
     else:
-        return "?"
+        return '<{}>'.format(t)
 
 
 class MachineType(object):
