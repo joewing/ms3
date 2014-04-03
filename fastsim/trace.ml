@@ -7,7 +7,7 @@ let parse_hex s = int_of_string @@ "0x" ^ s;;
 class trace =
     object (self)
 
-        val re = regexp "\([RWMIPCKX]\)\([0-9a-fA-F]+\):\([0-9a-fA-F]+\)"
+        val re = regexp "\\([RWMIPCKX]\\)\\([0-9a-fA-F]+\\):\\([0-9a-fA-F]+\\)"
 
         val mutable index : int = 0
         val mutable file_name : string = "trace"
