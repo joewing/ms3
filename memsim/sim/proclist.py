@@ -136,6 +136,7 @@ class ProcessList(object):
                 else:
                     print(name)
                     assert(False)
+        assert(total > 0)
         return total
 
     def run(self, ml, use_fastsim):
