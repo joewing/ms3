@@ -62,13 +62,6 @@ let match_machine token_list =
 
 let rec set_none name value = ()
 
-and set_subsystem mem name = function
-    | [Literal (s, _)] -> mem#set name s
-    | v when name = "memory" -> mem#set_next @@ parse_memory v
-    | t -> parse_error t ("invalid argument: " ^ name)
-
-and set_fifo mem = set_subsystem (mem :> Subsystem.subsystem)
-
 and set_container mem name = function
     | [Literal (s, _)] -> mem#set name s
     | v when name = "memory" -> mem#set_next @@ parse_memory v
@@ -95,9 +88,6 @@ and create_memory name =
     let wrap m = Some (m :> base_memory) in
     match name with
     | "main" -> (None, set_none)
-    | "subsystem" ->
-        let m = new Subsystem.subsystem in (wrap m, set_subsystem m)
-    | "fifo" -> let m = new Fifo.fifo in (wrap m, set_fifo m)
     | "spm" -> let m = new Spm.spm in (wrap m, set_container m)
     | "dram" -> let m = new Dram.dram in (wrap m, set_main m)
     | "cache" -> let m = new Cache.cache in (wrap m, set_container m)
@@ -123,6 +113,32 @@ and match_memory token_list =
 and parse_memory token_list = fst @@ match_memory token_list
 ;;
 
+let set_subsystem mem name = function
+    | [Literal (s, _)] -> mem#set name s
+    | v when name = "memory" -> mem#set_next @@ parse_memory v
+    | t -> parse_error t ("invalid argument: " ^ name)
+;;
+
+let set_fifo mem = set_subsystem (mem :> Subsystem.subsystem);;
+
+let match_subsystem token_list =
+    let token_list = match_open token_list in
+    let token_list = match_literal "subsystem" token_list in
+    let m = new Subsystem.subsystem in
+    let token_list = match_arguments (set_subsystem m) token_list in
+    let token_list = match_close token_list in
+    (m, token_list)
+;;
+
+let match_fifo token_list =
+    let token_list = match_open token_list in
+    let token_list = match_literal "fifo" token_list in
+    let m = new Fifo.fifo in
+    let token_list = match_arguments (set_fifo m) token_list in
+    let token_list = match_close token_list in
+    (m, token_list)
+;;
+
 let match_main_memory token_list =
     let token_list = match_open token_list in
     let token_list = match_literal "main" token_list in
@@ -139,20 +155,21 @@ let match_memory_list token_list =
     let token_list = match_literal "memory" token_list in
     let (main, token_list) = match_main_memory token_list in
     let rec helper token_list =
-        match peek_token token_list with
-        | Open _ ->
-                begin
-                    let (mem, token_list) = match_memory token_list in
-                    let (next, token_list) = helper token_list in
-                    match mem with
-                    | Some mem -> (mem :: next, token_list)
-                    | None     -> (next, token_list)
-                end
-        | _ -> ([], token_list)
+        match token_list with
+        | Open _ :: Literal ("subsystem", _) :: _ ->
+            let (mem, token_list) = match_subsystem token_list in
+            let (subsystems, fifos, token_list) = helper token_list in
+            (mem :: subsystems, fifos, token_list)
+        | Open _ :: Literal ("fifo", _) :: _ ->
+            let (mem, token_list) = match_fifo token_list in
+            let (subsystems, fifos, token_list) = helper token_list in
+            (subsystems, mem :: fifos, token_list)
+        | _ -> ([], [], token_list)
     in
-    let (lst, token_list) = helper token_list in
+    let (subsystems, fifos, token_list) = helper token_list in
+    let token_list = match_close token_list in
     match main with
-    | Some main -> (main, lst, match_close token_list)
+    | Some main -> (main, subsystems, fifos, token_list)
     | None -> parse_error token_list "invalid main memory"
 ;;
 
@@ -180,9 +197,9 @@ let match_benchmarks token_list =
 
 let parse_model token_list =
     let (mach, token_list) = match_machine token_list in
-    let (main, mem_list, token_list) = match_memory_list token_list in
+    let (main, subsystems, fifos, token_list) = match_memory_list token_list in
     let (benchmarks, token_list) = match_benchmarks token_list in
-    (mach, main, mem_list, benchmarks)
+    (mach, main, subsystems, fifos, benchmarks)
 ;;
 
 let parse_model_file file_name = parse_model @@ tokenize file_name;;

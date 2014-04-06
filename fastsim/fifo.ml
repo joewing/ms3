@@ -11,8 +11,6 @@ class fifo =
 
         method total_size = depth * word_size
 
-        method is_fifo = true
-
         method set name value = match name with
         | "depth" -> depth <- int_of_string value
         | "min_depth" -> min_depth <- int_of_string value

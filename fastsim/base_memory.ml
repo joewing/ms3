@@ -4,8 +4,6 @@ class virtual base_memory =
     object (self)
         val mutable mach : machine = new machine
 
-        method is_fifo = false
-
         method set (name : string) (value : string) : unit =
             failwith @@ "invalid argument: (" ^ name ^ " " ^ value ^ ")"
 
@@ -26,18 +24,6 @@ class virtual base_memory =
         method set_parent (p : base_memory) : unit = failwith "invalid"
 
         method id : int = failwith "invalid"
-
-        method set_offset (offset: int) : unit = failwith "invalid"
-
-        method total_size : int = failwith "invalid"
-
-        method score : int = failwith "invalid"
-
-        method consume () : int = failwith "invalid"
-
-        method produce () : int = failwith "invalid"
-
-        method peek (offset: int) : int = failwith "invalid"
 
     end
 
