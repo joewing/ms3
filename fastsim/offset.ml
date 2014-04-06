@@ -12,11 +12,11 @@ class offset =
             | _ -> super#set name value
 
         method process start write addr size =
-            let addr = (addr + offset) land self#machine#addr_mask in
+            let addr = (addr + offset) land mach#addr_mask in
             send_request self#bank start write addr size
 
         method forward index start write addr size =
-            let addr = (addr - offset) land self#machine#addr_mask in
+            let addr = (addr - offset) land mach#addr_mask in
             send_request self#next start write addr size
 
     end

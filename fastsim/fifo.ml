@@ -11,10 +11,11 @@ class fifo =
 
         method total_size = depth * word_size
 
-        method set name value = match name with
-        | "depth" -> depth <- int_of_string value
-        | "min_depth" -> min_depth <- int_of_string value
-        | _ -> super#set name value
+        method set name value =
+            match name with
+            | "depth" -> depth <- int_of_string value
+            | "min_depth" -> min_depth <- int_of_string value
+            | _ -> super#set name value
 
         method reset m main =
             super#reset m main;

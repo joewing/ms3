@@ -1,5 +1,6 @@
 open Lex
 open Base_memory
+open Model
 
 let parse_string token_list = fst @@ match_string token_list;;
 
@@ -195,11 +196,11 @@ let match_benchmarks token_list =
     (result, match_close token_list)
 ;;
 
-let parse_model token_list =
+let parse_model token_list : Model.model =
     let (mach, token_list) = match_machine token_list in
     let (main, subsystems, fifos, token_list) = match_memory_list token_list in
     let (benchmarks, token_list) = match_benchmarks token_list in
-    (mach, main, subsystems, fifos, benchmarks)
+    { mach; main; subsystems; fifos; benchmarks }
 ;;
 
 let parse_model_file file_name = parse_model @@ tokenize file_name;;

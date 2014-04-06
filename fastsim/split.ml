@@ -41,7 +41,7 @@ class split =
             max self#next#finish bt
 
         method process start write addr size =
-            let mask = self#machine#addr_mask in
+            let mask = mach#addr_mask in
             let last = (addr + size - 1) land mask in
             let result = start in
             if addr > last then
@@ -52,7 +52,7 @@ class split =
                 self#do_process result addr size write
 
         method private do_process start addr size write =
-            let last = (addr + size - 1) land self#machine#addr_mask in
+            let last = (addr + size - 1) land mach#addr_mask in
             let start =
                 if addr < offset then
                     let temp_size =
@@ -72,7 +72,7 @@ class split =
             let addr =
                 match index with
                 | 0 -> addr
-                | 1 -> (addr + offset) land self#machine#addr_mask
+                | 1 -> (addr + offset) land mach#addr_mask
                 | _ -> failwith "invalid"
             in send_request self#next start write addr size
 

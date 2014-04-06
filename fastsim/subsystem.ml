@@ -13,11 +13,12 @@ class subsystem =
 
         method id = index
 
-        method set name value = match name with
-        | "id" -> index <- int_of_string value
-        | "depth" -> depth <- int_of_string value
-        | "word_size" -> word_size <- int_of_string value
-        | _ -> super#set name value
+        method set name value =
+            match name with
+            | "id" -> index <- int_of_string value
+            | "depth" -> depth <- int_of_string value
+            | "word_size" -> word_size <- int_of_string value
+            | _ -> super#set name value
 
         method word_size = word_size
 
@@ -27,7 +28,8 @@ class subsystem =
 
         method score = score
 
-        method next = match next with
+        method next =
+            match next with
             | Some m -> m
             | None -> failwith "no next"
 

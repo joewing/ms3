@@ -14,8 +14,8 @@ let opts = [
 ];;
 
 let run_experiment () =
-    let (mach, main, subs, fifos, benchmarks) = parse_model_file !experiment in
-    let sim = new simulator mach !directory main subs fifos benchmarks in
+    let m = parse_model_file !experiment in
+    let sim = new simulator !directory m in
     let results = sim#run in
     List.iter (fun (name, value) ->
         Printf.printf "%s %d\n" name value

@@ -23,8 +23,6 @@ class virtual base_memory =
 
         method set_parent (p : base_memory) : unit = failwith "invalid"
 
-        method id : int = failwith "invalid"
-
     end
 
 class container =

@@ -1,11 +1,17 @@
 open Base_memory
+open Model
 open Process
 open Trace
 open Pq
 
-class simulator mach directory main subsystems fifos benchmarks =
+class simulator directory model =
     object (self)
 
+        val mach : Machine.machine = model.mach
+        val main : Main_memory.main_memory = model.main
+        val subsystems : Subsystem.subsystem list = model.subsystems
+        val fifos : Fifo.fifo list = model.fifos
+        val benchmarks : Trace.trace list = model.benchmarks
         val mutable processes : process list = []
         val consumers = Hashtbl.create 64
         val producers = Hashtbl.create 64
