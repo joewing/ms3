@@ -1,5 +1,6 @@
 open Lex
 open Base_memory
+open Machine
 open Model
 
 let parse_string token_list = fst @@ match_string token_list;;
@@ -44,17 +45,17 @@ let rec match_arguments setter token_list =
     | _ -> token_list
 ;;
 
-let set_machine mach name = function
-    | [Literal (s, _)] -> mach#set name s
+let set_mach mach name = function
+    | [Literal (s, _)] -> set_machine mach name s
     | t -> parse_error t ("invalid machine argument: " ^ name)
 ;;
 
 let match_machine token_list =
     let token_list = match_open token_list in
-    let mach = new Machine.machine in
+    let mach = create_machine () in
     match match_string token_list with
     | ("machine", token_list) ->
-            let setter = set_machine mach in
+            let setter = set_mach mach in
             let token_list = match_arguments setter token_list in
             let token_list = match_close token_list in
             (mach, token_list)

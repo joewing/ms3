@@ -1,78 +1,86 @@
 open Base_memory
 open Trace
 
-class process simulator benchmark directory (mem : base_memory) =
-    object (self)
+type process = {
+    produce : process -> int -> int;
+    consume : process -> int -> int;
+    peek : process -> int -> int -> int;
+    run : string -> access stream;
+    directory : string;
+    mem : base_memory;
+    mutable accesses : access stream;
+    mutable consume_waiting : int;
+    mutable produce_waiting : int;
+    mutable peek_waiting : int * int
+}
 
-        val mutable accesses = SNil
-        val mutable consume_waiting : int = -1
-        val mutable produce_waiting : int = -1
-        val mutable peek_waiting : int * int = -1, -1
+let create_process sim benchmark directory mem =
+    {
+        produce = sim#produce;
+        consume = sim#consume;
+        peek = sim#peek;
+        run = benchmark#run;
+        directory = directory;
+        mem = mem;
+        accesses = SNil;
+        consume_waiting = -1;
+        produce_waiting = -1;
+        peek_waiting = (-1, -1);
+    }
+;;
 
-        method finish = mem#finish
+let process_produce proc addr =
+    let result = proc.produce proc addr in
+    proc.produce_waiting <- if result < 0 then addr else -1;
+    result
+;;
 
-        method reset () =
-            accesses <- benchmark#run directory
+let process_consume proc addr =
+    let result = proc.consume proc addr in
+    proc.consume_waiting <- if result < 0 then addr else -1;
+    result
+;;
 
-        method private process_pending_consume =
-            let temp = simulator#consume self consume_waiting in
-            consume_waiting <- if temp >= 0 then -1 else consume_waiting;
-            temp
+let process_peek proc addr size =
+    let result = proc.peek proc addr size in
+    proc.peek_waiting <- if result < 0 then (addr, size) else (-1, -1);
+    result
+;;
 
-        method private process_pending_produce =
-            let temp = simulator#produce self produce_waiting in
-            produce_waiting <- if temp >= 0 then -1 else produce_waiting;
-            temp
+let process_modify proc addr size =
+    let start = send_request proc.mem 0 false addr size in
+    send_request proc.mem start true addr size
+;;
 
-        method private process_pending_peek =
-            let addr, size = peek_waiting in
-            let temp = simulator#peek self addr size in
-            peek_waiting <- if temp >= 0 then (-1, -1) else peek_waiting;
-            temp
+let process_access proc t addr size =
+    match t with
+    | 'R' -> send_request proc.mem 0 false addr size
+    | 'W' -> send_request proc.mem 0 true addr size
+    | 'M' -> process_modify proc addr size
+    | 'I' -> addr
+    | 'P' -> process_produce proc addr
+    | 'C' -> process_consume proc addr
+    | 'K' -> process_peek proc addr size
+    | 'X' -> -1
+    | _ -> failwith @@ "invalid access: " ^ (String.make 1 t)
+;;
 
-        method private process_produce addr =
-            let temp = simulator#produce self addr in
-            produce_waiting <- if temp < 0 then addr else -1;
-            temp
+let process_reset proc = proc.accesses <- proc.run proc.directory;;
 
-        method private process_consume addr =
-            let temp = simulator#consume self addr in
-            consume_waiting <- if temp < 0 then addr else -1;
-            temp
+let process_step proc =
+    if proc.consume_waiting >= 0 then
+        process_consume proc proc.consume_waiting
+    else if proc.produce_waiting >= 0 then
+        process_produce proc proc.produce_waiting
+    else if (fst proc.peek_waiting) >= 0 then
+        let addr, size = proc.peek_waiting in
+        process_peek proc addr size
+    else
+        match proc.accesses with
+        | SCons ((t, addr, size), next) ->
+                proc.accesses <- next ();
+                process_access proc t addr size
+        | SNil -> -1
+;;
 
-        method private process_peek addr size =
-            let temp = simulator#peek self addr size in
-            peek_waiting <- if temp < 0 then (addr, size) else (-1, -1);
-            temp
-
-        method private process_modify addr size =
-            let start = send_request mem 0 false addr size in
-            send_request mem start true addr size
-
-        method private process_access t addr size =
-            match t with
-            | 'R' -> send_request mem 0 false addr size
-            | 'W' -> send_request mem 0 true addr size
-            | 'M' -> self#process_modify addr size
-            | 'I' -> addr
-            | 'P' -> self#process_produce addr
-            | 'C' -> self#process_consume addr
-            | 'K' -> self#process_peek addr size
-            | 'X' -> -1
-            | _ -> failwith @@ "invalid access: " ^ (String.make 1 t)
-
-        method step =
-            if consume_waiting >= 0 then
-                self#process_pending_consume
-            else if produce_waiting >= 0 then
-                self#process_pending_produce
-            else if (fst peek_waiting) >= 0 then
-                self#process_pending_peek
-            else
-                match accesses with
-                | SCons ((t, addr, size), next) ->
-                        accesses <- next ();
-                        self#process_access t addr size
-                | SNil -> -1
-
-    end
+let process_finish proc = proc.mem#finish;;

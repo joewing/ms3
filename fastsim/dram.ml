@@ -1,3 +1,4 @@
+open Machine
 open Main_memory
 
 type dram_bank = {
@@ -28,9 +29,9 @@ class dram =
 
         method private bank_count =
             let bank_size = self#bank_size in
-            (mach#addr_mask + bank_size) / bank_size
+            (mach.addr_mask + bank_size) / bank_size
 
-        method private multiplier = mach#frequency /. frequency
+        method private multiplier = mach.frequency /. frequency
 
         method set name value =
             match name with
@@ -57,17 +58,9 @@ class dram =
 
         method process start write addr size =
             let mult = self#multiplier in
-            let delta = ref ((float_of_int start) /. mult) in
-            let bsize = burst_size * width in
-            let last_addr = addr + size - 1 in
-            let current = ref addr in
-            while !current <= last_addr do
-                let temp = !current - (!current mod bsize) + bsize in
-                current := !current land mach#addr_mask;
-                delta := self#do_process !delta write !current;
-                current := temp
-            done;
-            (mult *. !delta) |> ceil |> int_of_float
+            let start = ((float_of_int start) /. mult) in
+            let result = self#do_process start write addr in
+            (mult *. result) |> ceil |> int_of_float
 
         method private do_process start write addr =
 
@@ -76,7 +69,7 @@ class dram =
             let bank = banks.(bank_index) in
 
             (* Make sure the bank is ready for another request. *)
-            let mtime = (float_of_int mach#time) /. self#multiplier in
+            let mtime = (float_of_int mach.time) /. self#multiplier in
             let cycles = max start (bank.time -. mtime) in
 
             (* Determine how many cycles to use for the burst. *)

@@ -1,3 +1,4 @@
+open Machine
 open Base_memory
 
 class prefetch =
@@ -16,18 +17,18 @@ class prefetch =
             super#reset m main;
             time <- 0
 
-        method finish = max (time - mach#time) super#finish
+        method finish = max (time - mach.time) super#finish
 
         method process start write addr size =
-            let result = max start (time - mach#time) in
+            let result = max start (time - mach.time) in
             let result = self#next#process result write addr size in
             begin
                 if write then
                     time <- 0
                 else
-                    let addr = (addr + stride) land mach#addr_mask in
+                    let addr = (addr + stride) land mach.addr_mask in
                     let t = self#next#process result write addr 1 in
-                    time <- mach#time + t
+                    time <- mach.time + t
             end;
             result
 

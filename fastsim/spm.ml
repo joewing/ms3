@@ -1,3 +1,4 @@
+open Machine
 open Base_memory
 
 class spm =
@@ -24,19 +25,19 @@ class spm =
             super#reset m main;
             pending <- 0
 
-        method finish = max (pending - mach#time) self#next#finish
+        method finish = max (pending - mach.time) self#next#finish
 
         method private process_hit start write addr size =
-            pending <- mach#time + start;
+            pending <- mach.time + start;
             pending <- pending + max (cycle_time - access_time) 0;
             start + access_time
 
         method private process_miss start write addr size =
-            pending <- mach#time + start;
+            pending <- mach.time + start;
             send_request self#next start write addr size
 
         method process start write addr size =
-            let result = max start (pending - mach#time) in
+            let result = max start (pending - mach.time) in
             if addr < size_bytes then
                 self#process_hit result write addr size
             else self#process_miss result write addr size

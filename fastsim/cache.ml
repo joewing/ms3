@@ -1,3 +1,4 @@
+open Machine
 open Base_memory
 
 type cache_policy = LRU | MRU | FIFO | PLRU
@@ -54,7 +55,7 @@ class cache =
                 { tag = 0; age = 0; dirty = false }
             )
 
-        method finish = max (pending - mach#time) self#next#finish
+        method finish = max (pending - mach.time) self#next#finish
 
         method private sum_ages first_line =
             let set_size = self#set_size in
@@ -182,7 +183,7 @@ class cache =
         method process start write addr size =
 
             (* Get earliest time we could process this event. *)
-            let t = max start (pending - mach#time) in
+            let t = max start (pending - mach.time) in
 
             (* Update ages. *)
             if policy <> PLRU then
@@ -199,7 +200,7 @@ class cache =
 
             (* Update the pending time. *)
             let temp = max (cycle_time - access_time) 0 in
-            pending <- mach#time + t + temp;
+            pending <- mach.time + t + temp;
             t
 
     end

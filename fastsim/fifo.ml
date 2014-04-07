@@ -13,8 +13,11 @@ class fifo =
 
         method set name value =
             match name with
-            | "depth" -> depth <- int_of_string value
-            | "min_depth" -> min_depth <- int_of_string value
+            | "depth" ->
+                depth <- max (int_of_string value) min_depth
+            | "min_depth" ->
+                min_depth <- int_of_string value;
+                depth <- max depth min_depth
             | _ -> super#set name value
 
         method reset m main =
@@ -27,7 +30,7 @@ class fifo =
 
         method is_empty = used = 0
 
-        method produce () =
+        method produce =
             if used = depth then
                 -1
             else
@@ -38,7 +41,7 @@ class fifo =
                     super#process 0 true addr word_size
                 end
 
-        method consume () =
+        method consume =
             if used == 0 then
                 -1
             else

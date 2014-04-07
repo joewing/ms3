@@ -1,57 +1,70 @@
+type 'a t = {
+    heap : (int * 'a option) array;
+    mutable size : int
+}
 
-class ['a] pq depth =
-    object (self)
+let create depth =
+    {
+        heap = Array.make (depth + 1) (0, None);
+        size = 0
+    }
+;;
 
-        val heap : (int * 'a option) array = Array.make depth (0, None)
-        val mutable size : int = 0
+let swap q a b =
+    let temp = q.heap.(a) in
+    q.heap.(a) <- q.heap.(b);
+    q.heap.(b) <- temp;
+    b
+;;
 
-        method private swap a b =
-            let temp = heap.(a) in
-            heap.(a) <- heap.(b);
-            heap.(b) <- temp;
-            b
+let reset q =
+    q.size <- 0
+;;
 
-        method reset = size <- 0
+let get_key q =
+    fst q.heap.(1)
+;;
 
-        method key = fst heap.(1)
+let get_value q =
+    match snd q.heap.(1) with
+    | Some t -> t
+    | None -> failwith "empty heap"
+;;
 
-        method value =
-            match snd heap.(1) with
-            | Some a -> a
-            | None -> failwith "empty heap"
+let is_empty q =
+    q.size = 0
+;;
 
-        method empty = size = 0
+let push q key value =
+    q.size <- q.size + 1;
+    q.heap.(q.size) <- (key, Some value);
+    let i = ref q.size in
+    while !i > 1 do
+        let ni = !i / 2 in
+        if (fst q.heap.(!i)) < (fst q.heap.(ni)) then
+            i := swap q !i ni
+        else i := 0
+    done
+;;
 
-        method push key value =
-            size <- size + 1;
-            heap.(size) <- (key, Some value);
-            let i = ref size in
-            while !i > 1 do
-                let ni = !i / 2 in
-                if (fst heap.(!i)) < (fst heap.(ni)) then
-                    i := self#swap !i ni
-                else i := 0
-            done
-
-        method pop =
-            let result = self#value in
-            heap.(1) <- heap.(size);
-            size <- size - 1;
-            let i = ref 1 in
-            while !i < size do
-                let left = !i * 2 in
-                let right = left + 1 in
-                if right <= size then
-                    if (fst heap.(left)) < (fst heap.(right)) then
-                        if (fst heap.(!i) ) > (fst heap.(left)) then
-                            i := self#swap !i left
-                        else i := size
-                    else if (fst heap.(!i)) > (fst heap.(right)) then
-                        i := self#swap !i right
-                    else i := size
-                else if left <= size && (fst heap.(!i)) > (fst heap.(left)) then
-                    i := self#swap !i left
-                else i := size
-            done; result
-
-    end
+let pop q =
+    let result = get_value q in
+    q.heap.(1) <- q.heap.(q.size);
+    q.size <- q.size - 1;
+    let i = ref 1 in
+    while !i < q.size do
+        let left = !i * 2 in
+        let right = left + 1 in
+        if right <= q.size then
+            if (fst q.heap.(left)) < (fst q.heap.(right)) then
+                if (fst q.heap.(!i) ) > (fst q.heap.(left)) then
+                    i := swap q !i left
+                else i := q.size
+            else if (fst q.heap.(!i)) > (fst q.heap.(right)) then
+                i := swap q !i right
+            else i := q.size
+        else if left <= q.size && (fst q.heap.(!i)) > (fst q.heap.(left)) then
+            i := swap q !i left
+        else i := q.size
+    done; result
+;;

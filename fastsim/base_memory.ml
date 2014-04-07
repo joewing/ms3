@@ -2,7 +2,7 @@ open Machine
 
 class virtual base_memory =
     object (self)
-        val mutable mach : machine = new machine
+        val mutable mach : machine = create_machine ()
 
         method set (name : string) (value : string) : unit =
             failwith @@ "invalid argument: (" ^ name ^ " " ^ value ^ ")"
@@ -111,7 +111,7 @@ let log2 n =
 let send_request mem start write addr size =
     let word_size = mem#word_size in
     let word_mask = word_size - 1 in
-    let addr_mask = mem#machine#addr_mask in
+    let addr_mask = mem#machine.addr_mask in
     let offset = addr land word_mask in
     let current = ref addr in
     let left = ref size in

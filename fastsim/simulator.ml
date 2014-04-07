@@ -3,6 +3,7 @@ open Subsystem
 open Fifo
 open Model
 open Process
+open Machine
 
 module Int = struct
     type t = int
@@ -14,13 +15,14 @@ module IntMap = Map.Make(Int)
 class simulator directory model =
     object (self)
 
-        val mach : Machine.machine = model.mach
-        val main : Main_memory.main_memory = model.main
-        val benchmarks : Trace.trace list = model.benchmarks
         val mutable processes : process list = []
-        val consumers = Hashtbl.create 64
-        val producers = Hashtbl.create 64
-        val heap : process Pq.pq = new Pq.pq 256
+        val consumers = Hashtbl.create (List.length model.fifos)
+        val producers = Hashtbl.create (List.length model.fifos)
+
+        val heap : process Pq.t =
+            let subsystem_count = List.length model.subsystems in
+            let fifo_count = List.length model.fifos in
+            Pq.create (subsystem_count + fifo_count)
 
         val subsystem_map : subsystem IntMap.t =
             List.fold_left (fun acc s ->
@@ -46,7 +48,7 @@ class simulator directory model =
 
         method private add_benchmark (b : Trace.trace) =
             let mem = (self#get_subsystem b#id :> base_memory) in
-            let proc = new process self b directory mem in
+            let proc = create_process self b directory mem in
             processes <- proc :: processes
 
         method private all_memories : subsystem list =
@@ -59,28 +61,28 @@ class simulator directory model =
 
         method produce (proc : process) (index : int) =
             let fifo = self#get_fifo index in
-            let rc = fifo#produce () in
+            let rc = fifo#produce in
             begin
                 if rc < 0 then
                     Hashtbl.add producers index proc
                 else 
                     try
                         let c = Hashtbl.find consumers index in
-                        heap#push mach#time c;
+                        Pq.push heap model.mach.time c;
                         Hashtbl.remove consumers index
                     with Not_found -> ()
             end; rc
 
         method consume (proc : process) (index : int) =
             let fifo = self#get_fifo index in
-            let rc = fifo#consume () in
+            let rc = fifo#consume in
             begin
                 if rc < 0 then
                     Hashtbl.add consumers index proc
                 else
                     try
                         let p = Hashtbl.find producers index in
-                        heap#push mach#time p;
+                        Pq.push heap model.mach.time p;
                         Hashtbl.remove producers index
                     with Not_found -> ()
             end; rc
@@ -94,27 +96,27 @@ class simulator directory model =
                 else
                     try
                         let p = Hashtbl.find producers index in
-                        heap#push mach#time p;
+                        Pq.push heap model.mach.time p;
                         Hashtbl.remove producers index
                     with Not_found -> ()
             end; rc
 
         method private reset () =
-            mach#reset ();
+            reset_machine model.mach;
             processes <- [];
             Hashtbl.clear producers;
             Hashtbl.clear consumers;
-            List.iter self#add_benchmark benchmarks;
+            List.iter self#add_benchmark model.benchmarks;
             let offset = ref 0 in
             List.iter (fun m ->
                 offset := self#align m#word_size !offset;
                 m#set_offset !offset;
-                m#reset mach main;
+                m#reset model.mach model.main;
                 offset := !offset + m#total_size
             ) self#all_memories;
             List.iter (fun p ->
-                p#reset ();
-                heap#push 0 p
+                process_reset p;
+                Pq.push heap 0 p
             ) processes
 
         method private scores =
@@ -130,18 +132,18 @@ class simulator directory model =
 
         method run =
             self#reset ();
-            while not heap#empty do
-                mach#set_time @@ max mach#time heap#key;
-                let proc = heap#pop in
-                let delta = proc#step in
+            while not (Pq.is_empty heap) do
+                model.mach.time <- max model.mach.time (Pq.get_key heap);
+                let proc = Pq.pop heap in
+                let delta = process_step proc in
                 if delta >= 0 then
-                    let next_time = mach#time + delta in
-                    heap#push next_time proc
+                    let next_time = model.mach.time + delta in
+                    Pq.push heap next_time proc
             done;
             List.iter (fun p ->
-                let t = p#finish in
-                mach#set_time @@ max mach#time t
+                let t = process_finish p in
+                model.mach.time <- max model.mach.time t
             ) processes;
-            ("total", mach#time) :: self#scores
+            ("total", model.mach.time) :: self#scores
 
     end

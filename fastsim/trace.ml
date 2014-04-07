@@ -2,6 +2,8 @@ open Str
 
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 
+type access = char * int * int
+
 let parse_hex s = int_of_string @@ "0x" ^ s;;
 
 class trace =
