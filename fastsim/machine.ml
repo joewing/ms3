@@ -24,4 +24,3 @@ class machine =
             time <- 0
 
     end
-

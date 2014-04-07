@@ -1,8 +1,8 @@
 
-class ['a] pq =
+class ['a] pq depth =
     object (self)
 
-        val heap : (int * 'a option) array = Array.make 256 (0, None)
+        val heap : (int * 'a option) array = Array.make depth (0, None)
         val mutable size : int = 0
 
         method private swap a b =

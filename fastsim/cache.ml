@@ -32,15 +32,16 @@ class cache =
             tag = -1; age = 0; dirty = false
         }
 
-        method set name value = match name with
-        | "line_count" -> line_count <- int_of_string value
-        | "line_size" -> line_size <- int_of_string value
-        | "associativity" -> associativity <- int_of_string value
-        | "policy" -> policy <- parse_cache_policy value
-        | "write_back" -> write_back <- value = "true"
-        | "access_time" -> access_time <- int_of_string value
-        | "cycle_time" -> cycle_time <- int_of_string value
-        | _ -> super#set name value
+        method set name value =
+            match name with
+            | "line_count" -> line_count <- int_of_string value
+            | "line_size" -> line_size <- int_of_string value
+            | "associativity" -> associativity <- int_of_string value
+            | "policy" -> policy <- parse_cache_policy value
+            | "write_back" -> write_back <- value = "true"
+            | "access_time" -> access_time <- int_of_string value
+            | "cycle_time" -> cycle_time <- int_of_string value
+            | _ -> super#set name value
 
         method word_size = line_size
 

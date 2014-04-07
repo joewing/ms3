@@ -1,35 +1,56 @@
 open Base_memory
+open Subsystem
+open Fifo
 open Model
 open Process
-open Trace
-open Pq
+
+module Int = struct
+    type t = int
+    let compare = compare
+end
+
+module IntMap = Map.Make(Int)
 
 class simulator directory model =
     object (self)
 
         val mach : Machine.machine = model.mach
         val main : Main_memory.main_memory = model.main
-        val subsystems : Subsystem.subsystem list = model.subsystems
-        val fifos : Fifo.fifo list = model.fifos
         val benchmarks : Trace.trace list = model.benchmarks
         val mutable processes : process list = []
         val consumers = Hashtbl.create 64
         val producers = Hashtbl.create 64
-        val heap : process pq = new pq
+        val heap : process Pq.pq = new Pq.pq 256
 
-        method private get_subsystem (index : int) : Subsystem.subsystem =
-            List.find (fun m -> m#id = index) subsystems
+        val subsystem_map : subsystem IntMap.t =
+            List.fold_left (fun acc s ->
+                IntMap.add s#id s acc
+            ) IntMap.empty model.subsystems
 
-        method private get_fifo (index : int) : Fifo.fifo =
-            List.find (fun m -> m#id = index) fifos
+        val fifo_map : fifo IntMap.t =
+            List.fold_left (fun acc f ->
+                IntMap.add f#id f acc
+            ) IntMap.empty model.fifos
+
+        method private get_subsystem (index : int) : subsystem =
+            try
+                IntMap.find index subsystem_map
+            with Not_found ->
+                failwith @@ "Subsystem " ^ (string_of_int index) ^ " not found"
+
+        method private get_fifo (index : int) : fifo =
+            try
+                IntMap.find index fifo_map
+            with Not_found ->
+                failwith @@ "FIFO " ^ (string_of_int index) ^ " not found"
 
         method private add_benchmark (b : Trace.trace) =
             let mem = (self#get_subsystem b#id :> base_memory) in
             let proc = new process self b directory mem in
             processes <- proc :: processes
 
-        method private all_memories : Subsystem.subsystem list =
-            subsystems @ (fifos :> Subsystem.subsystem list)
+        method private all_memories : subsystem list =
+            model.subsystems @ (model.fifos :> subsystem list)
 
         method private align word_size addr =
             let temp = addr land (word_size - 1) in
@@ -100,11 +121,11 @@ class simulator directory model =
             let subsystem_scores = List.map (fun m ->
                 let name = "subsystem" ^ (string_of_int m#id) in
                 (name, m#score)
-            ) subsystems in
+            ) model.subsystems in
             let fifo_scores = List.map (fun m ->
                 let name = "fifo" ^ (string_of_int m#id) in
                 (name, m#score)
-            ) fifos in
+            ) model.fifos in
             subsystem_scores @ fifo_scores
 
         method run =

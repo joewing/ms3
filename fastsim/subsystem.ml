@@ -2,12 +2,11 @@ open Base_memory
 
 class subsystem =
     object (self)
-        inherit base_memory as super
+        inherit container as super
 
         val mutable index : int = 0
         val mutable word_size : int = 4
         val mutable depth : int = 0
-        val mutable next : base_memory option = None
         val mutable offset : int = 0
         val mutable score : int = 0
 
@@ -28,21 +27,9 @@ class subsystem =
 
         method score = score
 
-        method next =
-            match next with
-            | Some m -> m
-            | None -> failwith "no next"
-
-        method set_next n = next <- n
-
         method reset m main =
             super#reset m main;
             score <- 0;
-            match next with
-            | Some mem  -> mem#reset m main
-            | None      ->
-                    main#reset m main;
-                    next <- Some main
 
         method process start write addr size =
             let addr = addr + offset in

@@ -32,19 +32,20 @@ class dram =
 
         method private multiplier = mach#frequency /. frequency
 
-        method set name value = match name with
-        | "frequency" -> frequency <- float_of_string value
-        | "cas_cycles" -> cas_cycles <- int_of_string value
-        | "rcd_cycles" -> rcd_cycles <- int_of_string value
-        | "rp_cycles" -> rp_cycles <- int_of_string value
-        | "wb_cycles" -> wb_cycles <- int_of_string value
-        | "page_size" -> page_size <- int_of_string value
-        | "page_count" -> page_count <- int_of_string value
-        | "width" -> width <- int_of_string value
-        | "burst_size" -> burst_size <- int_of_string value
-        | "open_page" -> open_page <- value = "true"
-        | "ddr" -> ddr <- value = "true"
-        | _ -> super#set name value
+        method set name value =
+            match name with
+            | "frequency" -> frequency <- float_of_string value
+            | "cas_cycles" -> cas_cycles <- int_of_string value
+            | "rcd_cycles" -> rcd_cycles <- int_of_string value
+            | "rp_cycles" -> rp_cycles <- int_of_string value
+            | "wb_cycles" -> wb_cycles <- int_of_string value
+            | "page_size" -> page_size <- int_of_string value
+            | "page_count" -> page_count <- int_of_string value
+            | "width" -> width <- int_of_string value
+            | "burst_size" -> burst_size <- int_of_string value
+            | "open_page" -> open_page <- value = "true"
+            | "ddr" -> ddr <- value = "true"
+            | _ -> super#set name value
 
         method word_size = width * burst_size
 
