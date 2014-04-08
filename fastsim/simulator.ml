@@ -12,145 +12,169 @@ end
 
 module IntMap = Map.Make(Int)
 
-class simulator directory model =
-    object (self)
+type simulator = {
+    model : model;
+    directory : string;
+    mutable processes : process list;
+    consumers : (int, process) Hashtbl.t;
+    producers : (int, process) Hashtbl.t;
+    heap : process Pq.t;
+    subsystem_map : subsystem IntMap.t;
+    fifo_map : fifo IntMap.t;
+}
 
-        val mutable processes : process list = []
-        val consumers = Hashtbl.create (List.length model.fifos)
-        val producers = Hashtbl.create (List.length model.fifos)
+let create_simulator directory model =
+    let subsystem_count = List.length model.subsystems in
+    let fifo_count = List.length model.fifos in
+    let subsystem_map = List.fold_left (fun acc s ->
+        IntMap.add s#id s acc
+    ) IntMap.empty model.subsystems in
+    let fifo_map = List.fold_left (fun acc f ->
+        IntMap.add f#id f acc
+    ) IntMap.empty model.fifos in
+    {
+        model = model;
+        directory = directory;
+        processes = [];
+        consumers = Hashtbl.create fifo_count;
+        producers = Hashtbl.create fifo_count;
+        heap = Pq.create (subsystem_count + fifo_count);
+        subsystem_map = subsystem_map;
+        fifo_map = fifo_map;
+    }
+;;
 
-        val heap : process Pq.t =
-            let subsystem_count = List.length model.subsystems in
-            let fifo_count = List.length model.fifos in
-            Pq.create (subsystem_count + fifo_count)
+let get_subsystem sim index =
+    try
+        IntMap.find index sim.subsystem_map
+    with Not_found ->
+        failwith @@ "Subsystem " ^ (string_of_int index) ^ " not found"
+;;
 
-        val subsystem_map : subsystem IntMap.t =
-            List.fold_left (fun acc s ->
-                IntMap.add s#id s acc
-            ) IntMap.empty model.subsystems
+let get_fifo sim index =
+    try
+        IntMap.find index sim.fifo_map
+    with Not_found ->
+        failwith @@ "FIFO " ^ (string_of_int index) ^ " not found"
+;;
 
-        val fifo_map : fifo IntMap.t =
-            List.fold_left (fun acc f ->
-                IntMap.add f#id f acc
-            ) IntMap.empty model.fifos
+let all_memories sim =
+    let m = sim.model in
+    m.subsystems @ (m.fifos :> subsystem list)
+;;
 
-        method private get_subsystem (index : int) : subsystem =
+let align word_size addr =
+    let temp = addr land (word_size - 1) in
+    if temp = 0 then addr else addr + (word_size - temp)
+;;
+
+let produce sim proc index =
+    let fifo = get_fifo sim index in
+    let rc = fifo#produce in
+    begin
+        if rc < 0 then
+            Hashtbl.add sim.producers index proc
+        else
             try
-                IntMap.find index subsystem_map
-            with Not_found ->
-                failwith @@ "Subsystem " ^ (string_of_int index) ^ " not found"
+                let c = Hashtbl.find sim.consumers index in
+                Pq.push sim.heap sim.model.mach.time c;
+                Hashtbl.remove sim.consumers index
+            with Not_found -> ()
+    end; rc
+;;
 
-        method private get_fifo (index : int) : fifo =
+
+let consume sim proc index =
+    let fifo = get_fifo sim index in
+    let rc = fifo#consume in
+    begin
+        if rc < 0 then
+            Hashtbl.add sim.consumers index proc
+        else
             try
-                IntMap.find index fifo_map
-            with Not_found ->
-                failwith @@ "FIFO " ^ (string_of_int index) ^ " not found"
+                let p = Hashtbl.find sim.producers index in
+                Pq.push sim.heap sim.model.mach.time p;
+                Hashtbl.remove sim.producers index
+            with Not_found -> ()
+    end; rc
+;;
 
-        method private add_benchmark (b : Trace.trace) =
-            let mem = (self#get_subsystem b#id :> base_memory) in
-            let proc = create_process self#produce self#consume self#peek
-                                      b#run directory mem in
-            processes <- proc :: processes
+let peek sim proc index offset =
+    let fifo = get_fifo sim index in
+    let rc = fifo#peek offset in
+    begin
+        if rc < 0 then
+            Hashtbl.add sim.consumers index proc
+        else
+            try
+                let p = Hashtbl.find sim.producers index in
+                Pq.push sim.heap sim.model.mach.time p;
+                Hashtbl.remove sim.producers index
+            with Not_found -> ()
+    end; rc
+;;
 
-        method private all_memories : subsystem list =
-            model.subsystems @ (model.fifos :> subsystem list)
+let add_benchmark sim b =
+    let mem = (get_subsystem sim b#id :> base_memory) in
+    let produce = produce sim in
+    let consume = consume sim in
+    let peek = peek sim in
+    let run = b#run in
+    let proc = create_process produce consume peek run sim.directory mem in
+    sim.processes <- proc :: sim.processes
+;;
 
-        method private align word_size addr =
-            let temp = addr land (word_size - 1) in
-            if temp = 0 then addr
-            else addr + (word_size - temp) 
+let reset_simulator sim =
+    reset_machine sim.model.mach;
+    sim.processes <- [];
+    Hashtbl.clear sim.producers;
+    Hashtbl.clear sim.consumers;
+    List.iter (add_benchmark sim) sim.model.benchmarks;
+    let offset = ref 0 in
+    List.iter (fun m ->
+        offset := align m#word_size !offset;
+        m#set_offset !offset;
+        m#reset sim.model.mach sim.model.main;
+        offset := !offset + m#total_size
+    ) (all_memories sim);
+    List.iter (fun p ->
+        process_reset p;
+        Pq.push sim.heap 0 p
+    ) sim.processes
+;;
 
-        method produce (proc : process) (index : int) =
-            let fifo = self#get_fifo index in
-            let rc = fifo#produce in
-            begin
-                if rc < 0 then
-                    Hashtbl.add producers index proc
-                else 
-                    try
-                        let c = Hashtbl.find consumers index in
-                        Pq.push heap model.mach.time c;
-                        Hashtbl.remove consumers index
-                    with Not_found -> ()
-            end; rc
+let get_scores sim =
+    let subsystem_scores = List.map (fun m ->
+        let name = "subsystem" ^ (string_of_int m#id) in
+        (name, m#score)
+    ) sim.model.subsystems in
+    let fifo_scores = List.map (fun m ->
+        let name = "fifo" ^ (string_of_int m#id) in
+        (name, m#score)
+    ) sim.model.fifos in
+    subsystem_scores @ fifo_scores
+;;
 
-        method consume (proc : process) (index : int) =
-            let fifo = self#get_fifo index in
-            let rc = fifo#consume in
-            begin
-                if rc < 0 then
-                    Hashtbl.add consumers index proc
-                else
-                    try
-                        let p = Hashtbl.find producers index in
-                        Pq.push heap model.mach.time p;
-                        Hashtbl.remove producers index
-                    with Not_found -> ()
-            end; rc
+let check_done sim =
+    let has_done = List.exists process_is_done sim.processes in
+    if not has_done then
+        failwith "invalid trace"
+;;
 
-        method peek (proc : process) (index : int) (offset : int) =
-            let fifo = self#get_fifo index in
-            let rc = fifo#peek offset in
-            begin
-                if rc < 0 then
-                    Hashtbl.add consumers index proc
-                else
-                    try
-                        let p = Hashtbl.find producers index in
-                        Pq.push heap model.mach.time p;
-                        Hashtbl.remove producers index
-                    with Not_found -> ()
-            end; rc
-
-        method private reset () =
-            reset_machine model.mach;
-            processes <- [];
-            Hashtbl.clear producers;
-            Hashtbl.clear consumers;
-            List.iter self#add_benchmark model.benchmarks;
-            let offset = ref 0 in
-            List.iter (fun m ->
-                offset := self#align m#word_size !offset;
-                m#set_offset !offset;
-                m#reset model.mach model.main;
-                offset := !offset + m#total_size
-            ) self#all_memories;
-            List.iter (fun p ->
-                process_reset p;
-                Pq.push heap 0 p
-            ) processes
-
-        method private scores =
-            let subsystem_scores = List.map (fun m ->
-                let name = "subsystem" ^ (string_of_int m#id) in
-                (name, m#score)
-            ) model.subsystems in
-            let fifo_scores = List.map (fun m ->
-                let name = "fifo" ^ (string_of_int m#id) in
-                (name, m#score)
-            ) model.fifos in
-            subsystem_scores @ fifo_scores
-
-        method private check_done =
-            let has_done = List.exists process_is_done processes in
-            if not has_done then
-                failwith "invalid trace"
-
-        method run =
-            self#reset ();
-            while not (Pq.is_empty heap) do
-                model.mach.time <- max model.mach.time (Pq.get_key heap);
-                let proc = Pq.pop heap in
-                let delta = process_step proc in
-                if delta >= 0 then
-                    let next_time = model.mach.time + delta in
-                    Pq.push heap next_time proc
-            done;
-            self#check_done;
-            List.iter (fun p ->
-                let t = process_finish p in
-                model.mach.time <- max model.mach.time t
-            ) processes;
-            ("total", model.mach.time) :: self#scores
-
-    end
+let run_simulator sim =
+    reset_simulator sim;
+    while not (Pq.is_empty sim.heap) do
+        sim.model.mach.time <- max sim.model.mach.time (Pq.get_key sim.heap);
+        let proc = Pq.pop sim.heap in
+        let delta = process_step proc in
+        if delta >= 0 then
+            let next_time = sim.model.mach.time + delta in
+            Pq.push sim.heap next_time proc
+    done;
+    check_done sim;
+    List.iter (fun p ->
+        let t = process_finish p in
+        sim.model.mach.time <- max sim.model.mach.time t
+    ) sim.processes;
+    ("total", sim.model.mach.time) :: (get_scores sim)
+;;
