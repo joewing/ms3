@@ -14,12 +14,20 @@ type process = {
     mutable peek_waiting : int * int
 }
 
-let create_process sim benchmark directory mem =
+type producer = process -> int -> int
+
+type consumer = process -> int -> int
+
+type peeker = process -> int -> int -> int
+
+type runner = string -> access stream
+
+let create_process produce consume peek run directory mem =
     {
-        produce = sim#produce;
-        consume = sim#consume;
-        peek = sim#peek;
-        run = benchmark#run;
+        produce = produce;
+        consume = consume;
+        peek = peek;
+        run = run;
         directory = directory;
         mem = mem;
         accesses = SNil;
@@ -84,3 +92,9 @@ let process_step proc =
 ;;
 
 let process_finish proc = proc.mem#finish;;
+
+let process_is_done proc =
+    match proc.accesses with
+    | SCons _ -> false
+    | SNil -> true
+;;

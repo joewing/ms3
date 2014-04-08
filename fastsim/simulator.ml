@@ -48,7 +48,8 @@ class simulator directory model =
 
         method private add_benchmark (b : Trace.trace) =
             let mem = (self#get_subsystem b#id :> base_memory) in
-            let proc = create_process self b directory mem in
+            let proc = create_process self#produce self#consume self#peek
+                                      b#run directory mem in
             processes <- proc :: processes
 
         method private all_memories : subsystem list =
@@ -130,6 +131,11 @@ class simulator directory model =
             ) model.fifos in
             subsystem_scores @ fifo_scores
 
+        method private check_done =
+            let has_done = List.exists process_is_done processes in
+            if not has_done then
+                failwith "invalid trace"
+
         method run =
             self#reset ();
             while not (Pq.is_empty heap) do
@@ -140,6 +146,7 @@ class simulator directory model =
                     let next_time = model.mach.time + delta in
                     Pq.push heap next_time proc
             done;
+            self#check_done;
             List.iter (fun p ->
                 let t = process_finish p in
                 model.mach.time <- max model.mach.time t
