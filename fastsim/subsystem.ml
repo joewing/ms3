@@ -31,7 +31,7 @@ class subsystem =
             super#reset m main;
             score <- 0;
 
-        method process start write addr size =
+        method private process start write addr size =
             let addr = addr + offset in
             let result = self#next#send_request start write addr size in
             score <- score + result;

@@ -52,7 +52,7 @@ class dram =
                 { page = -1; dirty = false; time = 0.0 }
             )
 
-        method process start write addr size =
+        method private process start write addr size =
             let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in
 

@@ -36,7 +36,7 @@ class spm =
             pending <- mach.time + start;
             self#next#send_request start write addr size
 
-        method process start write addr size =
+        method private process start write addr size =
             let result = max start (pending - mach.time) in
             if addr < size_bytes then
                 self#process_hit result write addr size

@@ -63,12 +63,12 @@ let all_memories sim =
     m.subsystems @ (m.fifos :> subsystem list)
 ;;
 
-let align word_size addr =
+let align (word_size : int) (addr : int) =
     let temp = addr land (word_size - 1) in
     if temp = 0 then addr else addr + (word_size - temp)
 ;;
 
-let produce sim proc index =
+let produce sim proc (index : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#produce in
     begin
@@ -84,7 +84,7 @@ let produce sim proc index =
 ;;
 
 
-let consume sim proc index =
+let consume sim proc (index : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#consume in
     begin
@@ -99,7 +99,7 @@ let consume sim proc index =
     end; rc
 ;;
 
-let peek sim proc index offset =
+let peek sim proc (index : int) (offset : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#peek offset in
     begin

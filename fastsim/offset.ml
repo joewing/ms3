@@ -12,7 +12,7 @@ class offset =
             | "value" -> offset <- int_of_string value
             | _ -> super#set name value
 
-        method process start write addr size =
+        method private process start write addr size =
             let addr = (addr + offset) land mach.addr_mask in
             self#bank#send_request start write addr size
 

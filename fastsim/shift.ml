@@ -29,7 +29,7 @@ class shift =
                     ((addr lsl left) land mask) lor (addr lsr -count)
             in (shifted lsl word_bits) lor word
 
-        method process start write addr size =
+        method private process start write addr size =
             let addr = self#rotate addr offset in
             self#bank#send_request start write addr size
 

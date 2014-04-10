@@ -10,7 +10,7 @@ let create depth =
     }
 ;;
 
-let swap q a b =
+let swap (q : 'a t) (a : int) (b : int) : int =
     let temp = q.heap.(a) in
     q.heap.(a) <- q.heap.(b);
     q.heap.(b) <- temp;

@@ -180,7 +180,7 @@ class cache =
                 let t = self#next#send_request start true addr size in
                 t + access_time
 
-        method process start write addr size =
+        method private process start write addr size =
 
             (* Get earliest time we could process this event. *)
             let t = max start (pending - mach.time) in

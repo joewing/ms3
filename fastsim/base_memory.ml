@@ -7,11 +7,9 @@ class virtual base_memory =
         method set (name : string) (value : string) : unit =
             failwith @@ "invalid argument: (" ^ name ^ " " ^ value ^ ")"
 
-        method machine = mach
+        method reset (m : machine) (main : base_memory) : unit = mach <- m
 
-        method reset (m : machine) (main : base_memory) = mach <- m
-
-        method finish = 0
+        method finish : int = 0
 
         method virtual word_size : int
 
@@ -23,7 +21,8 @@ class virtual base_memory =
 
         method set_parent (p : base_memory) : unit = failwith "invalid"
 
-        method send_request start write addr size =
+        method send_request (start : int) (write : bool)
+                            (addr : int) (size : int) : int =
             let word_size = self#word_size in
             let word_mask = word_size - 1 in
             let addr_mask = mach.addr_mask in
@@ -121,7 +120,7 @@ class virtual transform =
             max super#finish self#bank#finish
     end
 
-let log2 n =
+let log2 (n : int) : int =
     let rec f i r =
         if i > 0 then
             f (i lsr 1) (r + 1)

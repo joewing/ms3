@@ -15,6 +15,6 @@ class ram =
 
         method word_size = word_size
 
-        method process start write addr size = start + latency
+        method private process start write addr size = start + latency
 
     end

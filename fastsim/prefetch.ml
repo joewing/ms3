@@ -19,7 +19,7 @@ class prefetch =
 
         method finish = max (time - mach.time) super#finish
 
-        method process start write addr size =
+        method private process start write addr size =
             let result = max start (time - mach.time) in
             let result = self#next#send_request result write addr size in
             begin

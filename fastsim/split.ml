@@ -41,7 +41,7 @@ class split =
             let bt = max (self#bank0#finish) (self#bank1#finish) in
             max self#next#finish bt
 
-        method process start write addr size =
+        method private process start write addr size =
             let mask = mach.addr_mask in
             let last = (addr + size - 1) land mask in
             let result = start in
