@@ -15,8 +15,8 @@ class FIFO(subsystem.Subsystem):
             depth:      The depth of the FIFO in items.
             min_depth:  Minimum depth in items.
         """
+        depth = max(depth, min_depth)
         subsystem.Subsystem.__init__(self, index, word_size, depth, mem)
-        assert(depth >= min_depth)
         self.min_depth = min_depth
         self.read_ptr = 0
         self.write_ptr = 0
