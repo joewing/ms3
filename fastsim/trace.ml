@@ -1,15 +1,27 @@
-open Str
-
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 
 type access = char * int * int
 
-let parse_hex s = int_of_string @@ "0x" ^ s;;
+let read_hex ch =
+    let rec helper value =
+        let c = input_char ch in
+        if c >= '0' && c <= '9' then
+            helper @@ value * 16 + (int_of_char c) - (int_of_char '0')
+        else if c >= 'a' && c <= 'f' then
+            helper @@ value * 16 + (int_of_char c) - (int_of_char 'a') + 10
+        else value
+    in helper 0
+;;
+
+let read_access ch =
+    let t = input_char ch in
+    let addr = read_hex ch in
+    let size = read_hex ch in
+    (t, addr, size)
+;;
 
 class trace =
     object (self)
-
-        val re = regexp "\\([RWMIPCKX]\\)\\([0-9a-fA-F]+\\):\\([0-9a-fA-F]+\\)"
 
         val mutable index : int = 0
         val mutable file_name : string = "trace"
@@ -28,17 +40,8 @@ class trace =
                 let inc = open_in full_path in
                 let rec process_file () =
                     try
-                        let line = input_line inc in
-                        let rec process_line pos () =
-                            try
-                                let _ = search_forward re line pos in
-                                let access = matched_group 1 line
-                                and addr = parse_hex @@ matched_group 2 line
-                                and size = parse_hex @@ matched_group 3 line in
-                                let result = (access.[0], addr, size) in
-                                SCons (result, process_line @@ match_end ())
-                            with Not_found -> process_file ()
-                        in process_line 0 ()
+                        let result = read_access inc in
+                        SCons (result, process_file)
                     with End_of_file -> SNil
                 in process_file ()
             with Not_found -> failwith @@ "could not open " ^ full_path

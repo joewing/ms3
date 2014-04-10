@@ -1,6 +1,6 @@
 
 sim:
-	ocamlbuild -cflag -g -lib str fastsim.native
+	ocamlbuild -use-ocamlfind -pkgs camlzip -cflag -g -lib str fastsim.native
 	cp fastsim.native fastsim
 
 clean:

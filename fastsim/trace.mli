@@ -6,7 +6,6 @@ class trace :
     object
         val mutable file_name : string
         val mutable index : int
-        val re : Str.regexp
         method id : int
         method run : string -> (char * int * int) stream
         method set : string -> string -> unit
