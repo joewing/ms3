@@ -34,7 +34,7 @@ class spm =
 
         method private process_miss start write addr size =
             pending <- mach.time + start;
-            send_request self#next start write addr size
+            self#next#send_request start write addr size
 
         method process start write addr size =
             let result = max start (pending - mach.time) in

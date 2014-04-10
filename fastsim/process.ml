@@ -56,14 +56,14 @@ let process_peek proc addr size =
 ;;
 
 let process_modify proc addr size =
-    let start = send_request proc.mem 0 false addr size in
-    send_request proc.mem start true addr size
+    let start = proc.mem#send_request 0 false addr size in
+    proc.mem#send_request start true addr size
 ;;
 
 let process_access proc t addr size =
     match t with
-    | 'R' -> send_request proc.mem 0 false addr size
-    | 'W' -> send_request proc.mem 0 true addr size
+    | 'R' -> proc.mem#send_request 0 false addr size
+    | 'W' -> proc.mem#send_request 0 true addr size
     | 'M' -> process_modify proc addr size
     | 'I' -> addr
     | 'P' -> process_produce proc addr

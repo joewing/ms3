@@ -27,12 +27,6 @@ class dram =
 
         method private bank_size = page_size * page_count
 
-        method private bank_count =
-            let bank_size = self#bank_size in
-            (mach.addr_mask + bank_size) / bank_size
-
-        method private multiplier = mach.frequency /. frequency
-
         method set name value =
             match name with
             | "frequency" -> frequency <- float_of_string value
@@ -52,24 +46,22 @@ class dram =
 
         method reset m main =
             super#reset m main;
-            banks <- Array.init self#bank_count (fun _ ->
+            let bank_size = self#bank_size in
+            let bank_count = (mach.addr_mask + bank_size) / bank_size in
+            banks <- Array.init bank_count (fun _ ->
                 { page = -1; dirty = false; time = 0.0 }
             )
 
         method process start write addr size =
-            let mult = self#multiplier in
+            let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in
-            let result = self#do_process start write addr in
-            (mult *. result) |> ceil |> int_of_float
-
-        method private do_process start write addr =
 
             (* Look up the bank. *)
             let bank_index = addr / self#bank_size in
             let bank = banks.(bank_index) in
 
             (* Make sure the bank is ready for another request. *)
-            let mtime = (float_of_int mach.time) /. self#multiplier in
+            let mtime = (float_of_int mach.time) /. mult in
             let cycles = max start (bank.time -. mtime) in
 
             (* Determine how many cycles to use for the burst. *)
@@ -102,6 +94,7 @@ class dram =
                 else write;
 
             (* Return the result. *)
-            cycles
+            (mult *. cycles) |> ceil |> int_of_float
+
 
     end

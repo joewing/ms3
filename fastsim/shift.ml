@@ -31,10 +31,10 @@ class shift =
 
         method process start write addr size =
             let addr = self#rotate addr offset in
-            send_request self#bank start write addr size
+            self#bank#send_request start write addr size
 
         method forward index start write addr size =
             let addr = self#rotate addr (-offset) in
-            send_request self#next start write addr size
+            self#next#send_request start write addr size
 
     end

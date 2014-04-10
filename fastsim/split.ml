@@ -59,14 +59,14 @@ class split =
                     let temp_size =
                         if last < offset then size
                         else offset - addr in
-                    send_request (self#bank0) start write addr temp_size
+                    self#bank0#send_request start write addr temp_size
                 else start
             in
             if last >= offset then
                 let temp_addr, temp_size = 
                     if addr >= offset then (addr - offset, size)
                     else (0, last - offset + 1) in
-                send_request (self#bank1) start write temp_addr temp_size
+                self#bank1#send_request start write temp_addr temp_size
             else start
 
         method forward index start write addr size =
@@ -75,6 +75,6 @@ class split =
                 | 0 -> addr
                 | 1 -> (addr + offset) land mach.addr_mask
                 | _ -> failwith "invalid"
-            in send_request self#next start write addr size
+            in self#next#send_request start write addr size
 
     end

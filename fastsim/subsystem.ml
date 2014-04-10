@@ -33,7 +33,7 @@ class subsystem =
 
         method process start write addr size =
             let addr = addr + offset in
-            let result = send_request self#next start write addr size in
+            let result = self#next#send_request start write addr size in
             score <- score + result;
             result
 

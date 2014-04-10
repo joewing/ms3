@@ -139,7 +139,7 @@ class cache =
                 end
             else
                 let addr, size = line.tag, line_size in
-                let t = send_request self#next start true addr size in
+                let t = self#next#send_request start true addr size in
                 access_time + t
 
         method private process_miss start write addr size =
@@ -152,7 +152,7 @@ class cache =
                 let t =
                     if line.dirty then
                         let addr, size = line.tag, line_size in
-                        send_request self#next t true addr size
+                        self#next#send_request t true addr size
                     else t
                 in
                 line.tag <- tag;
@@ -173,11 +173,11 @@ class cache =
 
                 (* Read the new entry. *)
                 if (not write) || size < line_size then
-                    send_request self#next t false tag line_size
+                    self#next#send_request t false tag line_size
                 else t
 
             else
-                let t = send_request self#next start true addr size in
+                let t = self#next#send_request start true addr size in
                 t + access_time
 
         method process start write addr size =
