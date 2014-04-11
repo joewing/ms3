@@ -95,7 +95,7 @@ def get_initial_memory(db, m, dist, directory):
         # Load statistics from the database.
         state = db.load(m)
         use_prefetch = state['use_prefetch']
-        dist.load(state)
+        dist.load(state, m)
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))

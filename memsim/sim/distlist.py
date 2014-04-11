@@ -34,12 +34,19 @@ class DistributionList(object):
             self.subsystem_dists[index] = MemoryDistribution(self.rand)
         return self.subsystem_dists[index]
 
-    def load(self, state):
+    def load(self, state, m):
         for index in state.get('subsystems', []):
             if index not in self.subsystem_dists:
                 self.subsystem_dists[index] = MemoryDistribution(self.rand)
             dist = self.subsystem_dists[index]
             dist.load(state, index)
+            for b in m.benchmarks:
+                if b.index == index:
+                    if dist.is_empty():
+                        b.max_addr = 0
+                    else:
+                        b.max_addr = dist.get_max_address()
+                    break
 
     def save(self, state):
         for index, dist in self.subsystem_dists.items():

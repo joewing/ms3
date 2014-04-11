@@ -18,7 +18,7 @@ class Benchmark(object):
         self.word_size = word_size
         self.offset = 0
         self.directory = ''
-        self.max_addr = 0
+        self.max_addr = -1
 
     def read(self, addr):
         """Generate a read."""
@@ -57,7 +57,7 @@ class Benchmark(object):
 
     def get_size(self, directory):
         """Get the address range of the benchmark in bytes."""
-        if self.max_addr == 0:
+        if self.max_addr < 0:
             self.reset(0, directory)
             for t, addr, size in self.run():
                 if t == AccessType.READ or t == AccessType.WRITE:

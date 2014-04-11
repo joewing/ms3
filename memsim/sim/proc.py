@@ -24,6 +24,7 @@ class Process(object):
         self.produce_waiting = -1
         self.peek_waiting = None
         self.delay = False
+        self.size = -1
 
     def has_delay(self):
         """Determine if prefetching would be beneficial."""
@@ -31,11 +32,12 @@ class Process(object):
 
     def total_size(self, directory):
         """Get the total size of the memory subsystem in bytes."""
-        size = self.mem.total_size()
-        if size == 0:
-            size = self.benchmark.get_size(directory)
-            self.mem.set_depth(size / self.mem.get_word_size())
-        return size
+        if self.size < 0:
+            self.size = self.mem.total_size()
+            if self.size < 0:
+                self.size = self.benchmark.get_size(directory)
+                self.mem.set_depth(self.size / self.mem.get_word_size())
+        return self.size
 
     def reset(self, machine, mem, offset):
         """Reset this process for the next simulation.

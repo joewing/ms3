@@ -25,7 +25,8 @@ class Subsystem(base.Memory):
     def __str__(self):
         result = '(subsystem '
         result += '(id ' + str(self.index) + ')'
-        result += '(depth ' + str(self.depth) + ')'
+        if self.depth >= 0:
+            result += '(depth ' + str(self.depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
         result += '(memory ' + self.get_next().get_name() + ')'
         result += ')'
@@ -95,7 +96,7 @@ class Subsystem(base.Memory):
 def _create_subsystem(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
-    depth = parser.get_argument(lexer, args, 'depth', 0)
+    depth = parser.get_argument(lexer, args, 'depth', -1)
     mem = parser.get_argument(lexer, args, 'memory')
     return Subsystem(word_size=word_size, index=index, depth=depth, mem=mem)
 base.constructors['subsystem'] = _create_subsystem
