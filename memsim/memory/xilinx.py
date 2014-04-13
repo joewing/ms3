@@ -47,7 +47,7 @@ def run_xilinx(machine, mem, keep=False):
         main = ram.RAM(word_size=next_word_size, latency=0)
         mem.set_next(main)
         ml = memlist.MemoryList(main)
-        ml.add_memory(subsystem.Subsystem(0, mem.get_word_size(), mem))
+        ml.add_memory(subsystem.Subsystem(0, mem.get_word_size(), -1, mem))
     ml.set_main(main)
     name = machine.part + str(ml)
 
