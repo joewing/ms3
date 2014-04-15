@@ -30,6 +30,12 @@ class fifo =
 
         method is_empty = used = 0
 
+        method process start write addr size =
+            if depth = 1 then
+                start + 1
+            else
+                super#process start write addr size
+
         method produce =
             if used = depth then
                 -1
@@ -38,7 +44,7 @@ class fifo =
                 begin
                     write_ptr <- (write_ptr + 1) mod depth;
                     used <- used + 1;
-                    super#process 0 true addr word_size
+                    self#process 0 true addr word_size
                 end
 
         method consume =
@@ -49,7 +55,7 @@ class fifo =
                 begin
                     read_ptr <- (read_ptr + 1) mod depth;
                     used <- used - 1;
-                    super#process 0 false addr word_size
+                    self#process 0 false addr word_size
                 end
 
         method peek offset =
@@ -58,6 +64,6 @@ class fifo =
             else
                 let temp = (read_ptr - offset) mod depth in
                 let addr = temp * word_size in
-                super#process 0 false addr word_size
+                self#process 0 false addr word_size
 
     end

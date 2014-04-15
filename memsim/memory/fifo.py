@@ -78,6 +78,13 @@ class FIFO(subsystem.Subsystem):
         assert(self.total_size() <= max_size)
         return True
 
+    def process(self, start, write, addr, size):
+        if self.depth == 1:
+            # Single cycle access for 1-deep FIFOs.
+            return start + 1
+        else:
+            return subsystem.Subsystem.process(self, start, write, addr, size)
+
     def produce(self):
         """Put a value on the FIFO.
 
