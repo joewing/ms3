@@ -62,7 +62,7 @@ class Benchmark(object):
             for t, addr, size in self.run():
                 if t == AccessType.READ or t == AccessType.WRITE:
                     self.max_addr = max(self.max_addr, addr + size - 1)
-        return self.max_addr
+        return max(self.max_addr, 0)
 
     @abstractmethod
     def run(self):

@@ -71,6 +71,14 @@ class MemoryList(object):
         for m in self.all_fifos():
             yield m
 
+    def active_memories(self):
+        for m in self.all_fifos():
+            if m.depth > 1:
+                yield m
+        for m in self.all_memories():
+            if m.depth > 0:
+                yield m
+
     def all_fifos(self):
         return [f for f in self.fifos if f is not None]
 

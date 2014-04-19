@@ -36,7 +36,7 @@ class Process(object):
             self.size = self.mem.total_size()
             if self.size < 0:
                 self.size = self.benchmark.get_size(directory)
-                self.mem.set_depth(self.size / self.mem.get_word_size())
+                self.mem.set_depth(self.size // self.mem.get_word_size())
         return self.size
 
     def reset(self, machine, mem, offset):

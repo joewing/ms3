@@ -9,7 +9,8 @@ from memsim.sim import evaluate
 from memsim.memory import cache, ram
 
 
-BRAM_WIDTH = 72
+#BRAM_WIDTH = 72
+BRAM_WIDTH = 36
 BRAM_DEPTH = 512
 
 parser = optparse.OptionParser()

@@ -120,7 +120,7 @@ class VHDLGenerator(object):
         self.result = ''
 
         # Generate subsystems.
-        for m in ml.all_memories():
+        for m in ml.active_memories():
             self.enter()
             m.generate(self, None)
             self.leave()
@@ -189,7 +189,7 @@ class VHDLGenerator(object):
         main = ml.main_memory
         word_size = main.get_word_size()
         word_width = word_size * 8
-        port_count = len(list(ml.all_memories()))
+        port_count = len(list(ml.active_memories()))
         port_spec = 'std_logic_vector(' + str(port_count - 1) + ' downto 0)'
         bus_width = word_width * port_count
         bus_spec = 'std_logic_vector(' + str(bus_width - 1) + ' downto 0)'
@@ -216,7 +216,7 @@ class VHDLGenerator(object):
         addr_ports = []
         din_ports = []
         mask_ports = []
-        for i, mem in enumerate(ml.all_memories()):
+        for i, mem in enumerate(ml.active_memories()):
             name = self._get_interface_name(mem)
             vec = '_vec(' + str(i) + ')'
             addr_ports.insert(0, name + '_addr')
@@ -268,7 +268,7 @@ class VHDLGenerator(object):
         self.leave()
 
     def _emit_upstream_ports(self, ml):
-        for m in ml.all_memories():
+        for m in ml.active_memories():
             if isinstance(m, FIFO):
                 name = "fifo" + str(m.index)
             else:
@@ -290,16 +290,22 @@ class VHDLGenerator(object):
             self.append(name + '_ready' + ' : out std_logic;')
 
     def _connect_upstream_ports(self, ml):
-        for m in ml.all_memories():
+        offset = 0
+        word_size = ml.main_memory.get_word_size()
+        addr_width = self.get_addr_width(word_size)
+        for m in ml.active_memories():
             if isinstance(m, FIFO):
                 sname = "fifo" + str(m.index)
             else:
                 sname = "subsystem" + str(m.index)
             name = m.get_id()
-            self.append(name + '_addr <= ' + sname + '_addr;')
+            self.append(name + '_addr <= std_logic_vector(unsigned(' +
+                        sname + '_addr) + to_unsigned(' + str(offset) +
+                        ', ' + str(addr_width) + '));')
             self.append(name + '_din <= ' + sname + '_in;')
             self.append(sname + '_out <= ' + name + '_dout;')
             self.append(name + '_re <= ' + sname + '_re;')
             self.append(name + '_we <= ' + sname + '_we;')
             self.append(name + '_mask <= ' + sname + '_mask;')
             self.append(sname + '_ready <= ' + name + '_ready;')
+            offset += m.total_size() // word_size
