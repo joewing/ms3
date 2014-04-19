@@ -290,17 +290,19 @@ class VHDLGenerator(object):
             self.append(name + '_ready' + ' : out std_logic;')
 
     def _connect_upstream_ports(self, ml):
-        offset = 0
-        word_size = ml.main_memory.get_word_size()
-        addr_width = self.get_addr_width(word_size)
+        byte_offset = 0
+        main_word_size = ml.main_memory.get_word_size()
         for m in ml.active_memories():
+            word_size = m.get_word_size()
+            addr_width = self.get_addr_width(word_size)
             if isinstance(m, FIFO):
                 sname = "fifo" + str(m.index)
             else:
                 sname = "subsystem" + str(m.index)
             name = m.get_id()
+            word_offset = byte_offset // word_size
             self.append(name + '_addr <= std_logic_vector(unsigned(' +
-                        sname + '_addr) + to_unsigned(' + str(offset) +
+                        sname + '_addr) + to_unsigned(' + str(word_offset) +
                         ', ' + str(addr_width) + '));')
             self.append(name + '_din <= ' + sname + '_in;')
             self.append(sname + '_out <= ' + name + '_dout;')
@@ -308,4 +310,4 @@ class VHDLGenerator(object):
             self.append(name + '_we <= ' + sname + '_we;')
             self.append(name + '_mask <= ' + sname + '_mask;')
             self.append(sname + '_ready <= ' + name + '_ready;')
-            offset += m.total_size() // word_size
+            byte_offset += m.total_size()

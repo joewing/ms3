@@ -72,9 +72,6 @@ class MemoryList(object):
             yield m
 
     def active_memories(self):
-        for m in self.all_fifos():
-            if m.depth > 1:
-                yield m
         for m in self.all_memories():
             if m.depth > 0:
                 yield m
