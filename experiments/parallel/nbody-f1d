@@ -1,9 +1,8 @@
 (machine
-    (word_size  4)
-    (addr_bits  32)
+    (addr_bits  29)
     (target     fpga)
     (part       xc6slx45)
-    (frequency  50000000)
+    (frequency  100000000)
     (max_cost   32)
 )
 (memory
@@ -21,15 +20,15 @@
         (ddr true)
     )
   ))
-  (subsystem (id 1)(memory (main)))
-  (subsystem (id 2)(memory (main)))
-  (subsystem (id 3)(memory (main)))
-  (subsystem (id 4)(memory (main)))
-  (subsystem (id 5)(memory (main)))
-  (subsystem (id 6)(memory (main)))
-  (subsystem (id 7)(memory (main)))
-  (subsystem (id 8)(memory (main)))
-  (subsystem (id 9)(memory (main)))
+  (subsystem (id 1)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 2)(word_size 4)(depth 70000)(memory (main)))
+  (subsystem (id 3)(word_size 4)(depth 70000)(memory (main)))
+  (subsystem (id 4)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 5)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 6)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 7)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 8)(word_size 4)(depth 0)(memory (main)))
+  (subsystem (id 9)(word_size 4)(depth 0)(memory (main)))
   (fifo (id 12)(depth 256)(word_size 28)(memory (main))) ; 8 -> 2
   (fifo (id 4)(depth 256)(word_size 28)(memory (main))) ; 3 -> 4
   (fifo (id 5)(depth 256)(word_size 28)(memory (main))) ; 4 -> 6
