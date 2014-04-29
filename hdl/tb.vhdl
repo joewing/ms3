@@ -124,13 +124,13 @@ begin
             port0_we        => ram_we,
             port0_mask      => ram_mask,
             port0_ready     => ram_ready,
-            addr0           => mem_addr(ADDR_WIDTH - 1 downto 0),
-            din0            => mem_din,
-            dout0           => mem_dout,
-            re0             => mem_re,
-            we0             => mem_we,
-            mask0           => mem_mask,
-            ready0          => mem_ready
+            subsystem0_addr => mem_addr(ADDR_WIDTH - 1 downto 0),
+            subsystem0_in   => mem_din,
+            subsystem0_out  => mem_dout,
+            subsystem0_re   => mem_re,
+            subsystem0_we   => mem_we,
+            subsystem0_mask => mem_mask,
+            subsystem0_ready=> mem_ready
         );
 
     process
