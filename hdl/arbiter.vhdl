@@ -85,6 +85,13 @@ begin
                             <= mask(mask_top downto mask_bottom);
                     end if;
                 end loop;
+            else
+                for i in 0 to PORT_COUNT - 1 loop
+                    if active = i then
+                        re_buffer(i) <= '0';
+                        we_buffer(i) <= '0';
+                    end if;
+                end loop;
             end if;
         end if;
     end process;
@@ -99,9 +106,9 @@ begin
                 active <= PORT_COUNT;
                 for i in 0 to PORT_COUNT - 1 loop
                     if re(i) = '1' or we(i) = '1' then
-                        active  <= i;
+                        active <= i;
                     elsif re_buffer(i) = '1' or we_buffer(i) = '1' then
-                        active  <= i;
+                        active <= i;
                     end if;
                 end loop;
             end if;
