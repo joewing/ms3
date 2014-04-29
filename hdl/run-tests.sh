@@ -15,6 +15,7 @@ function run()
     echo "(memory"                          >> input.model
     echo "(main (memory $MAIN_MEM))"        >> input.model
     echo "(subsystem (id 0)(word_size 4)"   >> input.model
+    echo "(depth 65536)"                    >> input.model
     echo "(memory"                          >> input.model
     cat input.mem                           >> input.model
     echo ")))"                              >> input.model
