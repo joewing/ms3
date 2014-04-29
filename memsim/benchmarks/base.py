@@ -61,7 +61,7 @@ class Benchmark(object):
             self.reset(0, directory)
             for t, addr, size in self.run():
                 if t == AccessType.READ or t == AccessType.WRITE:
-                    self.max_addr = max(self.max_addr, addr + size - 1)
+                    self.max_addr = max(self.max_addr, addr + size)
         return max(self.max_addr, 0)
 
     @abstractmethod
