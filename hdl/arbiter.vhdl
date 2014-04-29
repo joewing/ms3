@@ -116,20 +116,30 @@ begin
     end process;
 
     -- Set the output.
-    process(active, min, mready, re_buffer, we_buffer)
+    process(clk)
         variable word_top       : natural;
         variable word_bottom    : natural;
     begin
-        for i in 0 to PORT_COUNT - 1 loop
-            word_bottom := i * WORD_WIDTH;
-            word_top    := word_bottom + WORD_WIDTH - 1;
-            dout(word_top downto word_bottom) <= min;
-            if active = i then
-                ready(i) <= '0';
+        if rising_edge(clk) then
+            if rst = '1' then
+                ready <= (others => '1');
             else
-                ready(i) <= not (re_buffer(i) or we_buffer(i));
+                for i in 0 to PORT_COUNT - 1 loop
+                    word_bottom := i * WORD_WIDTH;
+                    word_top    := word_bottom + WORD_WIDTH - 1;
+                    if re_buffer(i) = '1' or we_buffer(i) = '1' then
+                        ready(i) <= '0';
+                    elsif re(i) = '1' or we(i) = '1' then
+                        ready(i) <= '0';
+                    elsif active = i then
+                        ready(i) <= mready;
+                        dout(word_top downto word_bottom) <= min;
+                    else
+                        ready(i) <= '1';
+                    end if;
+                end loop;
             end if;
-        end loop;
+        end if;
     end process;
 
     -- Drive the memory port.
