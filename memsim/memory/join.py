@@ -22,7 +22,7 @@ class Join(base.Memory):
         return True
 
     def generate(self, gen, source):
-        name = gen.get_name(source, self)
+        name = self.get_id()
         gen.declare_signals(name, self.get_word_size())
         return name
 
