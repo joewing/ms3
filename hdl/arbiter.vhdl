@@ -62,7 +62,7 @@ begin
             if rst = '1' then
                 re_buffer <= (others => '0');
                 we_buffer <= (others => '0');
-            elsif mready = '1' then
+            else
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
                     addr_top    := addr_bottom + ADDR_WIDTH - 1;
@@ -70,6 +70,13 @@ begin
                     word_top    := word_bottom + WORD_WIDTH - 1;
                     mask_bottom := i * MASK_WIDTH;
                     mask_top    := mask_bottom + MASK_WIDTH - 1;
+                    if active = i then
+                        re_buffer(i) <= re(i);
+                        we_buffer(i) <= we(i);
+                    else
+                        re_buffer(i) <= re(i) or re_buffer(i);
+                        we_buffer(i) <= we(i) or we_buffer(i);
+                    end if;
                     if re(i) = '1' or we(i) = '1' then
                         addr_buffer(addr_top downto addr_bottom)
                             <= addr(addr_top downto addr_bottom);
@@ -80,15 +87,6 @@ begin
                     end if;
                 end loop;
             end if;
-            for i in 0 to PORT_COUNT - 1 loop
-                if active = i then
-                    re_buffer(i) <= re(i);
-                    we_buffer(i) <= we(i);
-                else
-                    re_buffer(i) <= re(i) or re_buffer(i);
-                    we_buffer(i) <= we(i) or we_buffer(i);
-                end if;
-            end loop;
         end if;
     end process;
 

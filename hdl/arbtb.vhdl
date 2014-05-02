@@ -286,7 +286,6 @@ begin
         cycle(clk);
         assert mem1_ready = '0'
             report "ready too soon" severity failure;
-
         mem2_addr <= x"00000001";
         mem2_re <= '1';
         cycle(clk);
@@ -297,12 +296,36 @@ begin
         while mem2_ready = '0' loop
             cycle(clk);
         end loop;
-
         assert mem1_ready = '1'
             report "not ready" severity failure;
         assert mem1_dout = x"22222222"
             report "read failed" severity failure;
         assert mem2_dout = x"11111111"
+            report "read failed" severity failure;
+
+        -- Read followed by read in the other order.
+        mem2_addr <= x"00000002";
+        mem2_re <= '1';
+        cycle(clk);
+        mem2_re <= '0';
+        cycle(clk);
+        assert mem2_ready = '0'
+            report "ready too soon" severity failure;
+        mem1_addr <= x"00000001";
+        mem1_re <= '1';
+        cycle(clk);
+        mem1_re <= '0';
+        cycle(clk);
+        assert mem1_ready = '0'
+            report "ready too soon" severity failure;
+        while mem1_ready = '0' loop
+            cycle(clk);
+        end loop;
+        assert mem2_ready = '1'
+            report "not ready" severity failure;
+        assert mem2_dout = x"22222222"
+            report "read failed" severity failure;
+        assert mem1_dout = x"11111111"
             report "read failed" severity failure;
 
         wait_ready(clk, mem1_ready);
