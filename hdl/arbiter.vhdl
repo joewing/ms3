@@ -39,7 +39,6 @@ architecture rtl of arbiter is
     constant TOTAL_MASK_WIDTH   : natural := PORT_COUNT * MASK_WIDTH;
 
     signal active       : natural;  -- Active port (PORT_COUNT for none).
-    signal pending      : std_logic;
 
     signal addr_buffer  : std_logic_vector(TOTAL_ADDR_WIDTH - 1 downto 0);
     signal data_buffer  : std_logic_vector(TOTAL_WORD_WIDTH - 1 downto 0);
@@ -63,9 +62,7 @@ begin
             if rst = '1' then
                 re_buffer <= (others => '0');
                 we_buffer <= (others => '0');
-                pending <= '0';
-            elsif mready = '1' and pending = '0' then
-                next_pending := '0';
+            elsif mready = '1' then
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
                     addr_top    := addr_bottom + ADDR_WIDTH - 1;
@@ -73,17 +70,6 @@ begin
                     word_top    := word_bottom + WORD_WIDTH - 1;
                     mask_bottom := i * MASK_WIDTH;
                     mask_top    := mask_bottom + MASK_WIDTH - 1;
-                    if active = i then
-                        re_buffer(i) <= re(i);
-                        we_buffer(i) <= we(i);
-                    else
-                        re_buffer(i) <= re(i) or re_buffer(i);
-                        we_buffer(i) <= we(i) or we_buffer(i);
-                        next_pending := next_pending or re(i);
-                        next_pending := next_pending or we(i);
-                        next_pending := next_pending or re_buffer(i);
-                        next_pending := next_pending or we_buffer(i);
-                    end if;
                     if re(i) = '1' or we(i) = '1' then
                         addr_buffer(addr_top downto addr_bottom)
                             <= addr(addr_top downto addr_bottom);
@@ -93,10 +79,16 @@ begin
                             <= mask(mask_top downto mask_bottom);
                     end if;
                 end loop;
-                pending <= next_pending;
-            elsif mready = '1' then
-                pending <= '0';
             end if;
+            for i in 0 to PORT_COUNT - 1 loop
+                if active = i then
+                    re_buffer(i) <= re(i);
+                    we_buffer(i) <= we(i);
+                else
+                    re_buffer(i) <= re(i) or re_buffer(i);
+                    we_buffer(i) <= we(i) or we_buffer(i);
+                end if;
+            end loop;
         end if;
     end process;
 
@@ -109,7 +101,9 @@ begin
             elsif mready = '1' then
                 active <= PORT_COUNT;
                 for i in 0 to PORT_COUNT - 1 loop
-                    if re_buffer(i) = '1' or we_buffer(i) = '1' then
+                    if re(i) = '1' or we(i) = '1' then
+                        active <= i;
+                    elsif re_buffer(i) = '1' or we_buffer(i) = '1' then
                         active <= i;
                     end if;
                 end loop;
