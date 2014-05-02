@@ -242,23 +242,67 @@ begin
         mem1_re <= '0';
         mem2_re <= '0';
         cycle(clk);
-        while mem1_ready = '0' and mem2_ready = '0' loop
-            cycle(clk);
-        end loop;
-        if mem1_ready = '1' then
-            assert mem1_dout = x"22222222"
-                report "read failed" severity failure;
-        end if;
-        if mem2_ready = '1' then
-            assert mem2_dout = x"33333333"
-                report "read failed" severity failure;
-        end if;
-        while mem1_ready = '0' and mem2_ready = '0' loop
+        while mem1_ready = '0' or mem2_ready = '0' loop
+            if mem1_ready = '1' then
+                assert mem1_dout = x"22222222"
+                    report "read failed" severity failure;
+            end if;
+            if mem2_ready = '1' then
+                assert mem2_dout = x"33333333"
+                    report "read failed" severity failure;
+            end if;
             cycle(clk);
         end loop;
         assert mem1_dout = x"22222222"
             report "read failed" severity failure;
         assert mem2_dout = x"33333333"
+            report "read failed" severity failure;
+
+        -- Read and write.
+        mem1_addr <= x"00000000";
+        mem2_addr <= x"00000001";
+        mem2_din  <= x"11111111";
+        update2(clk, mem1_re, mem2_we,
+                mem1_ready, mem2_ready);
+        assert mem1_dout = x"FFFFFFFF"
+            report "read failed" severity failure;
+
+        mem2_addr <= x"00000001";
+        mem2_re <= '1';
+        cycle(clk);
+        mem2_re <= '0';
+        cycle(clk);
+        while mem2_ready = '0' loop
+            cycle(clk);
+        end loop;
+        assert mem2_dout = x"11111111"
+            report "read failed" severity failure;
+
+        -- Read followed by read.
+        mem1_addr <= x"00000002";
+        mem1_re <= '1';
+        cycle(clk);
+        mem1_re <= '0';
+        cycle(clk);
+        assert mem1_ready = '0'
+            report "ready too soon" severity failure;
+
+        mem2_addr <= x"00000001";
+        mem2_re <= '1';
+        cycle(clk);
+        mem2_re <= '0';
+        cycle(clk);
+        assert mem2_ready = '0'
+            report "ready too soon" severity failure;
+        while mem2_ready = '0' loop
+            cycle(clk);
+        end loop;
+
+        assert mem1_ready = '1'
+            report "not ready" severity failure;
+        assert mem1_dout = x"22222222"
+            report "read failed" severity failure;
+        assert mem2_dout = x"11111111"
             report "read failed" severity failure;
 
         wait_ready(clk, mem1_ready);
