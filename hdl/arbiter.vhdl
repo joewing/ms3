@@ -39,7 +39,6 @@ architecture rtl of arbiter is
     constant TOTAL_MASK_WIDTH   : natural := PORT_COUNT * MASK_WIDTH;
 
     signal active       : natural;  -- Active port (PORT_COUNT for none).
-    signal phase        : natural;  -- First port to check.
     signal pending      : std_logic;
 
     signal addr_buffer  : std_logic_vector(TOTAL_ADDR_WIDTH - 1 downto 0);
@@ -92,23 +91,8 @@ begin
         end if;
     end process;
 
-    -- Update the next port to check.
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            if rst = '1' then
-                phase <= 0;
-            elsif phase = PORT_COUNT - 1 then
-                phase <= 0;
-            else
-                phase <= phase + 1;
-            end if;
-        end if;
-    end process;
-
     -- Determine which port should be connected.
     process(clk)
-        variable temp : natural;
     begin
         if rising_edge(clk) then
             if rst = '1' then
@@ -116,19 +100,14 @@ begin
                 pending <= '0';
             elsif mready = '1' and pending = '0' then
                 active <= PORT_COUNT;
-                for offset in 0 to PORT_COUNT - 1 loop
-                    for i in 0 to PORT_COUNT - 1 loop
-                        temp := (i + offset) mod PORT_COUNT;
-                        if offset = phase then
-                            if re(temp) = '1' or re_buffer(temp) = '1' then
-                                active <= temp;
-                                pending <= '1';
-                            elsif we(temp) = '1' or we_buffer(temp) = '1' then
-                                active <= temp;
-                                pending <= '1';
-                            end if;
-                        end if;
-                    end loop;
+                for i in 0 to PORT_COUNT - 1 loop
+                    if re(i) = '1' or re_buffer(i) = '1' then
+                        active <= i;
+                        pending <= '1';
+                    elsif we(i) = '1' or we_buffer(i) = '1' then
+                        active <= i;
+                        pending <= '1';
+                    end if;
                 end loop;
             else
                 pending <= '0';
