@@ -293,7 +293,15 @@ begin
         cycle(clk);
         assert mem2_ready = '0'
             report "ready too soon" severity failure;
-        while mem2_ready = '0' loop
+        while mem1_ready = '0' and mem2_ready = '0' loop
+            if mem1_ready = '1' then
+                assert mem1_dout = x"22222222"
+                    report "read failed" severity failure;
+            end if;
+            if mem2_ready = '1' then
+                assert mem2_dout = x"11111111"
+                    report "read failed" severity failure;
+            end if;
             cycle(clk);
         end loop;
         assert mem1_ready = '1'
@@ -318,7 +326,15 @@ begin
         cycle(clk);
         assert mem1_ready = '0'
             report "ready too soon" severity failure;
-        while mem1_ready = '0' loop
+        while mem1_ready = '0' or mem2_ready = '0' loop
+            if mem1_ready = '1' then
+                assert mem1_dout = x"11111111"
+                    report "read failed" severity failure;
+            end if;
+            if mem2_ready = '1' then
+                assert mem2_dout = x"22222222"
+                    report "read failed" severity failure;
+            end if;
             cycle(clk);
         end loop;
         assert mem2_ready = '1'
