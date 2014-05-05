@@ -42,26 +42,13 @@ begin
       if rising_edge(clk) then
          if rst = '1' then
             counter <= to_unsigned(1, LATENCY);
-            do_read <= '0';
-            do_write <= '0';
-         elsif re = '1' then
+         elsif re = '1' or we = '1' then
             counter <= "1" & to_unsigned(0, LATENCY - 1);
-            do_read <= '1';
-            do_write <= '0';
-         elsif we = '1' then
-            counter <= "1" & to_unsigned(0, LATENCY - 1);
-            do_write <= '1';
-            do_read <= '0';
-            value <= din;
          elsif counter(0) = '0'  then
             counter <= shift_right(counter, 1);
-            do_read <= '0';
-            do_write <= '0';
          end if;
          if SIZE > 0 then
-            if do_read = '1' then
-               value <= data(nat_addr);
-            elsif do_write = '1' then
+            if we = '1' then
                for b in 0 to (WORD_WIDTH / 8) - 1 loop
                   if mask(b) = '1' then
                      data(nat_addr)(b * 8 + 7 downto b * 8) <=
@@ -75,25 +62,20 @@ begin
       end if;
    end process;
 
-   process(clk)
-   begin
-      if rising_edge(clk) then
-         if rst = '1' then
-            nat_addr <= 0;
-         elsif re = '1' or we = '1' then
-            if ADDR_WIDTH > 31 then
-               nat_addr <= to_integer(unsigned(addr(30 downto 0)));
-            else
-               nat_addr <= to_integer(unsigned(addr));
-            end if;
-         end if;
-      end if;
+
+    process(addr)
+    begin
+        if ADDR_WIDTH > 31 then
+            nat_addr <= to_integer(unsigned(addr(30 downto 0)));
+        else
+            nat_addr <= to_integer(unsigned(addr));
+        end if;
    end process;
 
    ready <= counter(0);
 
    doutn : if SIZE > 0 generate
-      dout  <= value when counter(0) = '1' else (others => 'Z');
+      dout  <= data(nat_addr) when counter(0) = '1' else (others => 'Z');
    end generate;
    dout0 : if SIZE = 0 generate
       dout <= (others => 'Z');
