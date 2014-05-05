@@ -72,8 +72,8 @@ begin
                     mask_bottom := i * MASK_WIDTH;
                     mask_top    := mask_bottom + MASK_WIDTH - 1;
                     if active = i then
-                        re_buffer(i) <= re(i);
-                        we_buffer(i) <= we(i);
+                        re_buffer(i) <= '0';
+                        we_buffer(i) <= '0';
                     else
                         re_buffer(i) <= re(i) or re_buffer(i);
                         we_buffer(i) <= we(i) or we_buffer(i);
@@ -127,15 +127,13 @@ begin
                 for i in 0 to PORT_COUNT - 1 loop
                     word_bottom := i * WORD_WIDTH;
                     word_top    := word_bottom + WORD_WIDTH - 1;
-                    if re_buffer(i) = '1' or we_buffer(i) = '1' then
+                    if re(i) = '1' or we(i) = '1' then
                         ready(i) <= '0';
-                    elsif re(i) = '1' or we(i) = '1' then
+                    elsif re_buffer(i) = '1' or we_buffer(i) = '1' then
                         ready(i) <= '0';
                     elsif active = i then
                         ready(i) <= mready;
                         dout(word_top downto word_bottom) <= min;
-                    else
-                        ready(i) <= '1';
                     end if;
                 end loop;
             end if;
