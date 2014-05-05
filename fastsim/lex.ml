@@ -17,6 +17,16 @@ let tokenize file_name =
     let rec process line s =
         let has_str = String.length s > 0 in
         let pos = (file_name, line) in
+        let handle_eol () =
+            let line = line + 1 in
+            if not has_str then process line ""
+            else Literal (s, pos) :: process line ""
+        in
+        let rec skip () =
+            match input_char chan with
+            | '\n' -> handle_eol ()
+            | _ -> skip ()
+        in
         try
             match input_char chan with
             | '(' when not has_str ->
@@ -26,13 +36,11 @@ let tokenize file_name =
             | ')' when not has_str -> Close pos :: process line ""
             | ')' when has_str ->
                     Literal (s, pos) :: Close pos :: process line ""
+            | ';' -> skip ()
             | ' ' | '\t' | '\r' ->
                     if not has_str then process line ""
                     else Literal (s, pos) :: process line ""
-            | '\n' ->
-                    let line = line + 1 in
-                    if not has_str then process line ""
-                    else Literal (s, pos) :: process line ""
+            | '\n' -> handle_eol ()
             | ch -> process line (s ^ String.make 1 ch)
         with End_of_file ->
             if has_str then [Literal (s, pos)] else []
