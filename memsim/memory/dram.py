@@ -76,6 +76,7 @@ class DRAM(main.MainMemory):
 
     def process(self, start, write, addr, size):
         assert(size > 0)
+        self.writes += 1 if write else 0
 
         # Convert machine time to DRAM time.
         delta = float(start) / self.multiplier

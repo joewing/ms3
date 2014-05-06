@@ -25,6 +25,7 @@ class RAM(main.MainMemory):
 
     def process(self, start, write, addr, size):
         assert(size > 0)
+        self.writes += 1 if write else 0
         offset = addr % self.word_size
         count = (size + self.word_size + offset - 1) // self.word_size
         if self.burst == 0:

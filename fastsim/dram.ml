@@ -53,6 +53,7 @@ class dram =
             )
 
         method private process start write addr size =
+            writes <- writes + (if write then 1 else 0);
             let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in
 

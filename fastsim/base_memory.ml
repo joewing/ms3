@@ -13,6 +13,8 @@ class virtual base_memory =
 
         method virtual word_size : int
 
+        method virtual writes : int
+
         method private virtual process : int -> bool -> int -> int -> int
 
         method forward (index : int) (start : int) (write : bool)
@@ -62,6 +64,8 @@ class virtual container =
 
         method set_parent p = self#next#set_parent p
 
+        method writes = self#next#writes
+
         method word_size = self#next#word_size
 
         method reset m main =
@@ -91,6 +95,8 @@ class join =
             | None -> failwith "no parent"
 
         method word_size = self#parent#word_size
+
+        method writes = self#parent#writes
 
         method process start write addr size =
             self#parent#forward index start write addr size

@@ -152,7 +152,10 @@ let get_scores sim =
         let name = "fifo" ^ (string_of_int m#id) in
         (name, m#score)
     ) sim.model.fifos in
-    subsystem_scores @ fifo_scores
+    let totals = [
+        ("total", sim.model.mach.time);
+        ("writes", sim.model.main#writes)
+    ] in subsystem_scores @ fifo_scores @ totals
 ;;
 
 let check_done sim =
@@ -176,5 +179,5 @@ let run_simulator sim =
         let t = process_finish p in
         sim.model.mach.time <- max sim.model.mach.time t
     ) sim.processes;
-    ("total", sim.model.mach.time) :: (get_scores sim)
+    get_scores sim
 ;;

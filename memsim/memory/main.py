@@ -7,9 +7,13 @@ class MainMemory(base.Memory):
 
     def __init__(self):
         base.Memory.__init__(self)
+        self.writes = 0
 
     def get_name(self):
         return '(main)'
+
+    def get_write_count(self):
+        return self.writes
 
     def can_remove(self):
         return False
@@ -27,6 +31,10 @@ class MainMemory(base.Memory):
         name = gen.get_name(source, self)
         gen.declare_signals(name, self.get_word_size())
         return name
+
+    def reset(self, machine):
+        base.Memory.reset(self, machine)
+        self.writes = 0
 
     def process(self, start, write, addr, size):
         assert(False)
