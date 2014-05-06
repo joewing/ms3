@@ -188,13 +188,17 @@ class VHDLGenerator(object):
     def _emit_downstream_signals(self, ml):
         main = ml.main_memory
         word_size = main.get_word_size()
-        word_width = word_size * 8
         port_count = len(list(ml.active_memories()))
+        addr_width = self.get_addr_width(word_size)
+        for i, mem in enumerate(ml.active_memories()):
+            spec = 'std_logic_vector(' + str(addr_width - 1) + ' downto 0)'
+            self.append('signal gaddr' + str(i) + ' : ' + spec + ';')
+        word_width = word_size * 8
+        bus_addr_width = addr_width * port_count
         port_spec = 'std_logic_vector(' + str(port_count - 1) + ' downto 0)'
         bus_width = word_width * port_count
         bus_spec = 'std_logic_vector(' + str(bus_width - 1) + ' downto 0)'
-        addr_width = self.get_addr_width(word_size) * port_count
-        addr_spec = 'std_logic_vector(' + str(addr_width - 1) + ' downto 0)'
+        addr_spec = 'std_logic_vector(' + str(bus_addr_width - 1) + ' downto 0)'
         mask_width = word_size * port_count
         mask_spec = 'std_logic_vector(' + str(mask_width - 1) + ' downto 0)'
         pname = 'port0'
@@ -210,26 +214,32 @@ class VHDLGenerator(object):
 
         main = ml.main_memory
         word_size = main.get_word_size()
+        addr_width = self.get_addr_width(word_size)
         word_width = word_size * 8
 
         pname = 'port0'
         addr_ports = []
         din_ports = []
         mask_ports = []
+        word_offset = 0
         for i, mem in enumerate(ml.active_memories()):
             name = self._get_interface_name(mem)
-            vec = '_vec(' + str(i) + ')'
-            addr_ports.insert(0, name + '_addr')
+            addr_ports.insert(0, 'gaddr' + str(i))
             din_ports.insert(0, name + '_din')
             mask_ports.insert(0, name + '_mask')
+            self.append('gaddr' + str(i) + ' <= std_logic_vector(unsigned(' +
+                        name + '_addr) + to_unsigned(' + str(word_offset) +
+                        ', ' + str(addr_width) + '));')
             dout_bottom = i * word_width
             dout_top = dout_bottom + word_width - 1
             dout_range = str(dout_top) + ' downto ' + str(dout_bottom)
             self.append(name + '_dout <= ' + pname +
                         '_dout_vec(' + dout_range + ');')
+            vec = '_vec(' + str(i) + ')'
             self.append(name + '_ready <= ' + pname + '_ready' + vec + ';')
             self.append(pname + '_re' + vec + ' <= ' + name + '_re' + ';')
             self.append(pname + '_we' + vec + ' <= ' + name + '_we' + ';')
+            word_offset += (mem.total_size() + word_size - 1) // word_size
 
         self.append(pname + '_addr_vec <= ' + '&'.join(addr_ports) + ';')
         self.append(pname + '_din_vec <= ' + '&'.join(din_ports) + ';')
@@ -290,7 +300,6 @@ class VHDLGenerator(object):
             self.append(name + '_ready' + ' : out std_logic;')
 
     def _connect_upstream_ports(self, ml):
-        byte_offset = 0
         main_word_size = ml.main_memory.get_word_size()
         for m in ml.active_memories():
             word_size = m.get_word_size()
@@ -300,14 +309,10 @@ class VHDLGenerator(object):
             else:
                 sname = "subsystem" + str(m.index)
             name = m.get_id()
-            word_offset = byte_offset // word_size
-            self.append(name + '_addr <= std_logic_vector(unsigned(' +
-                        sname + '_addr) + to_unsigned(' + str(word_offset) +
-                        ', ' + str(addr_width) + '));')
+            self.append(name + '_addr <= ' + sname + '_addr;')
             self.append(name + '_din <= ' + sname + '_in;')
             self.append(sname + '_out <= ' + name + '_dout;')
             self.append(name + '_re <= ' + sname + '_re;')
             self.append(name + '_we <= ' + sname + '_we;')
             self.append(name + '_mask <= ' + sname + '_mask;')
             self.append(sname + '_ready <= ' + name + '_ready;')
-            byte_offset += m.total_size()
