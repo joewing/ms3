@@ -31,7 +31,7 @@ class TestMemsim(unittest.TestCase):
         self.assertEqual(str(result[0]), mem_str)
         self.assertEqual(result[1], 10)
         self.assertEqual(result[2], True)
-        dist.load.assert_called_once_with({'use_prefetch': True})
+        dist.load.assert_called_once_with({'use_prefetch': True}, mock_model)
         mock_db.get_best.assert_called_once_with(mock_model)
         mock_db.load.assert_called_once_with(mock_model)
 

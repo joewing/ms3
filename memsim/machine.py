@@ -7,6 +7,11 @@ class TargetType(object):
     FPGA = 2
 
 
+class GoalType(object):
+    ACCESS_TIME = 0
+    WRITES = 1
+
+
 def parse_target(s):
     if s == 'simple':
         return TargetType.SIMPLE
@@ -29,6 +34,24 @@ def show_target(t):
         return '<{}>'.format(t)
 
 
+def parse_goal(s):
+    if s == 'access_time':
+        return GoalType.ACCESS_TIME
+    elif s == 'writes':
+        return GoalType.WRITES
+    else:
+        assert(False)
+
+
+def show_goal(t):
+    if t == GoalType.ACCESS_TIME:
+        return 'acccess_time'
+    elif t == GoalType.WRITES:
+        return 'writes'
+    else:
+        return '<{}>'.format(t)
+
+
 class MachineType(object):
 
     def __init__(self,
@@ -38,8 +61,10 @@ class MachineType(object):
                  max_path_length=128,
                  max_cost=10000,
                  technology=0.045,
+                 goal=GoalType.ACCESS_TIME,
                  part='xc7v585t'):
         self.target = target
+        self.goal = goal
         self.part = part
         self.frequency = frequency
         self.technology = technology
@@ -51,15 +76,17 @@ class MachineType(object):
         self.ports = []
 
     def __str__(self):
-        result = "(target " + show_target(self.target) + ")"
+        result = '(target ' + show_target(self.target) + ')'
         if self.target == TargetType.FPGA:
-            result += "(part " + str(self.part) + ")"
+            result += '(part ' + str(self.part) + ')'
         elif self.target == TargetType.ASIC:
-            result += "(technology " + str(self.technology) + ")"
-        result += "(frequency " + str(self.frequency) + ")"
-        result += "(addr_bits " + str(self.addr_bits) + ")"
-        result += "(max_path " + str(self.max_path_length) + ")"
-        result += "(max_cost " + str(self.max_cost) + ")"
+            result += '(technology ' + str(self.technology) + ')'
+        if self.goal != GoalType.ACCESS_TIME:
+            result += '(' + show_goal(self.goal) + ')'
+        result += '(frequency ' + str(self.frequency) + ')'
+        result += '(addr_bits ' + str(self.addr_bits) + ')'
+        result += '(max_path ' + str(self.max_path_length) + ')'
+        result += '(max_cost ' + str(self.max_cost) + ')'
         return result
 
     def reset(self):
@@ -117,10 +144,15 @@ def parse_machine(lexer):
     max_path = parser.get_argument(lexer, args, 'max_path', 128)
     max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
     tstr = parser.get_argument(lexer, args, 'target', 'simple')
+    gstr = parser.get_argument(lexer, args, 'goal', 'access_time')
     target = parse_target(tstr)
     if target is None:
-        lex.ParseError(lexer, "invalid target: " + tstr)
+        lex.ParseError(lexer, 'invalid target: ' + tstr)
+    goal = parse_goal(gstr)
+    if goal is None:
+        lex.ParseError(lexer, 'invalid goal: ' + gstr)
     return MachineType(target=target,
+                       goal=goal,
                        frequency=frequency,
                        addr_bits=addr_bits,
                        max_path_length=max_path,

@@ -5,6 +5,7 @@ import re
 import sys
 
 from memsim import priorityqueue, util
+from memsim.machine import GoalType
 from memsim.model import Model
 from .proc import Process
 
@@ -109,6 +110,7 @@ class ProcessList(object):
 
         # Run the simulation.
         total = -1
+        writes = -1
         expr = re.compile(r'([a-z]+)([0-9]*) ([0-9]+)')
         mod = Model()
         mod.memory = ml
@@ -133,11 +135,19 @@ class ProcessList(object):
                     mem.score = result
                 elif name == 'total':
                     total = result
+                elif name == 'writes':
+                    writes = result
                 else:
                     print(name)
                     assert(False)
         assert(total > 0)
-        return total
+        assert(writes > 0)
+        if self.machine.goal == GoalType.ACCESS_TIME:
+            return total
+        elif self.machine.goal == GoalType.WRITES:
+            return writes
+        else:
+            assert(False)
 
     def run(self, ml, use_fastsim):
         """Run a simulation.
@@ -174,4 +184,9 @@ class ProcessList(object):
             if t > self.machine.time:
                 self.machine.time = t
 
-        return self.machine.time
+        if self.machine.goal == GoalType.ACCESS_TIME:
+            return self.machine.time
+        elif self.machine.goal == GoalType.WRITES:
+            return ml.main_memory.get_write_count()
+        else:
+            assert(False)
