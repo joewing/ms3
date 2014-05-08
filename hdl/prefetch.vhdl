@@ -6,7 +6,7 @@ entity prefetch is
    generic (
       ADDR_WIDTH  : natural := 32;
       WORD_WIDTH  : natural := 32;
-      STRIDE      : natural := 1
+      STRIDE      : integer := 1
    );
    port (
       clk      : in  std_logic;
@@ -88,7 +88,7 @@ begin
    begin
       if rising_edge(clk) then
          if state = STATE_IDLE and (re = '1' or we = '1')  then
-            prefetch_addr  <= std_logic_vector(unsigned(addr) + STRIDE);
+            prefetch_addr  <= std_logic_vector(signed(addr) + STRIDE);
          end if;
       end if;
    end process;
