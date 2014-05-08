@@ -112,6 +112,13 @@ def run_xilinx(machine, mem, keep=False):
         if m is not None:
             result.bram_count = max(1, int(m.group(1)))
 
+        # Delete the project directory only if successful.
+        os.chdir(old_dir)
+        if keep:
+            print("XST working directory:", dname)
+        else:
+            shutil.rmtree(dname)
+
         # Save and return the result.
         db.add_fpga_result(name, result.frequency, result.bram_count)
         return result
@@ -120,13 +127,6 @@ def run_xilinx(machine, mem, keep=False):
         print('ERROR: XST run failed:', e)
         print('ERROR: Memory:', mem)
         raise
-
-    finally:
-        os.chdir(old_dir)
-        if keep:
-            print("XST working directory:", dname)
-        else:
-            shutil.rmtree(dname)
 
 
 def get_frequency(machine, mem):
