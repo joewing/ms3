@@ -246,7 +246,7 @@ class SQLDatabase(base.BaseDatabase):
     def add_result(self, mod, mem, value, cost):
         """Add a result for the specified model."""
 
-        assert(value > 0)
+        assert(value >= 0)
 
         if self.best is None:
             self.best = str(mem), value, cost
