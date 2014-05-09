@@ -141,7 +141,7 @@ class ProcessList(object):
                     print(name)
                     assert(False)
         assert(total > 0)
-        assert(writes > 0)
+        assert(writes >= 0)
         if self.machine.goal == GoalType.ACCESS_TIME:
             return total
         elif self.machine.goal == GoalType.WRITES:
