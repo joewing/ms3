@@ -38,11 +38,11 @@ def show_state(db, experiments):
         if key in names:
             print(mname)
             best_name, best_value, best_cost = db.get_best(mname)
-            print('  Hash:', db.get_hash(mname))
-            print('  Iter:', evals)
-            print('  Best:', print_print_ml(best_name))
-            print('  Time:', best_value)
-            print('  Cost:', best_cost)
+            print('  Hash: ', db.get_hash(mname))
+            print('  Iter: ', evals)
+            print('  Best: ', print_print_ml(best_name))
+            print('  Value:', best_value)
+            print('  Cost: ', best_cost)
             print()
 
 
