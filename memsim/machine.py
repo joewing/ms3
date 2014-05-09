@@ -82,7 +82,7 @@ class MachineType(object):
         elif self.target == TargetType.ASIC:
             result += '(technology ' + str(self.technology) + ')'
         if self.goal != GoalType.ACCESS_TIME:
-            result += '(' + show_goal(self.goal) + ')'
+            result += '(goal ' + show_goal(self.goal) + ')'
         result += '(frequency ' + str(self.frequency) + ')'
         result += '(addr_bits ' + str(self.addr_bits) + ')'
         result += '(max_path ' + str(self.max_path_length) + ')'
