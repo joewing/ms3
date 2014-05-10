@@ -23,11 +23,14 @@ function run()
     pypy ../memgen.py input.model > mem.vhdl 2> /dev/null
     ghdl -a mem.vhdl tb.vhdl
     ghdl -e tb
+    set +e
     ghdl -r tb --ieee-asserts=disable --stop-time=5ms
     if [[ $? -ne 0 ]] ; then
-        echo "Run failed"
+        echo "Run failed; generating waveform"
+        ghdl -r tb --ieee-asserts=disable --stop-time=5ms --wave=dump.ghw
         exit -1
     fi
+    set -e
     rm input.mem input.model mem.vhdl
 }
 
