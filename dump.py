@@ -1,7 +1,9 @@
 from __future__ import print_function
+from StringIO import StringIO
 import optparse
 
 from memsim import database, lex, model
+from memsim.memory import memlist
 
 
 parser = optparse.OptionParser()
@@ -51,11 +53,10 @@ def dump_spec(db, experiments):
     for mname, _, _ in db.get_status():
         key = db.get_hash(mname)
         if key in names:
-            best_name, _, _ = db.get_best(mname)
-            print(mname)
-            print('(memory')
-            print(best_name)
-            print(')')
+            bname, _, _ = db.get_best(mname)
+            m = model.parse_model(lex.Lexer(StringIO(mname)))
+            m.memory =  memlist.parse_memory_list(lex.Lexer(StringIO(bname)))
+            print(m)
 
 
 def show_pending(db, experiments):
