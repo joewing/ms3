@@ -13,8 +13,8 @@ architecture tb of adaptertb1 is
 
     constant IN_ADDR_WIDTH  : integer := 32;
     constant IN_WORD_WIDTH  : integer := 32;
-    constant OUT_ADDR_WIDTH : integer := 33;
-    constant OUT_WORD_WIDTH : integer := 16;
+    constant OUT_ADDR_WIDTH : integer := 34;
+    constant OUT_WORD_WIDTH : integer := 8;
 
     signal mem_addr     : std_logic_vector(IN_ADDR_WIDTH - 1 downto 0);
     signal mem_din      : std_logic_vector(IN_WORD_WIDTH - 1 downto 0);
@@ -67,7 +67,7 @@ begin
             ADDR_WIDTH  => OUT_ADDR_WIDTH,
             WORD_WIDTH  => OUT_WORD_WIDTH,
             SIZE        => 65536,
-            LATENCY     => 8,
+            LATENCY     => 4,
             BURST       => 0
         )
         port map (
@@ -121,6 +121,7 @@ begin
         mem_din  <= (others => 'X');
         cycle(clk);
         rst <= '0';
+        cycle(clk);
 
         assert mem_ready = '1' report "not ready" severity failure;
 

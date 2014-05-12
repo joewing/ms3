@@ -36,13 +36,13 @@ architecture rtl of adapter is
     constant IN_MASK_BITS   : natural := IN_WORD_WIDTH / 8;
     constant OUT_MASK_BITS  : natural := OUT_WORD_WIDTH / 8;
     constant STATE_COUNT    : natural := IN_WORD_WIDTH / OUT_WORD_WIDTH;
-    constant LAST_STATE     : integer := STATE_COUNT - 1;
+    constant WORD_COUNT     : integer := STATE_COUNT - 1;
     constant STATE_BITS     : integer := IN_WORD_WIDTH - OUT_WORD_WIDTH;
 
     signal state        : natural;
-    signal next_state   : natural;
-    signal start        : std_logic;
     signal current      : natural;
+    signal pending      : std_logic;
+    signal start        : std_logic;
     signal do_read      : std_logic;
     signal do_write     : std_logic;
     signal in_buf       : std_logic_vector(IN_WORD_WIDTH - 1 downto 0);
@@ -65,26 +65,45 @@ begin
     narrow : if IN_WORD_WIDTH > OUT_WORD_WIDTH generate
 
         -- We need to turn each access into multiple accesses.
-        next_state <= state + 1;
         process(clk)
         begin
             if rising_edge(clk) then
                 if rst = '1' then
-                    state       <= LAST_STATE;
+                    state       <= WORD_COUNT;
                     do_read     <= '0';
                     do_write    <= '0';
+                    pending     <= '0';
                 elsif re = '1' or we = '1' then
                     in_mask     <= mask;
                     do_read     <= re;
                     do_write    <= we;
                     state       <= 0;
-                elsif (do_read = '1' or do_write = '1') and mready = '1' then
-                    if state = LAST_STATE - 1 then
-                        do_read <= '0';
-                        do_write <= '0';
+                    pending     <= '1';
+                elsif start = '1' then
+                    if state = WORD_COUNT - 1 then
+                        do_read     <= '0';
+                        do_write    <= '0';
                     end if;
-                    state <= next_state;
+                    state <= state + 1;
+                    pending <= '1';
+                else
+                    pending <= '0';
                 end if;
+            end if;
+        end process;
+
+        -- Determine when to start the next access.
+        start <= (do_read or do_write) and mready and not pending;
+
+        -- Determine the current word.
+        process(state, mready, re, we)
+        begin
+            if re = '1' or we = '1' then
+                current <= 0;
+            elsif mready = '1' then
+                current <= state + 1;
+            else
+                current <= state;
             end if;
         end process;
 
@@ -103,10 +122,10 @@ begin
                 if we = '1' then
                     in_buf <= din;
                 elsif do_read = '1' and mready = '1' then
-                    for i in 0 to LAST_STATE loop
+                    for i in 0 to WORD_COUNT loop
                         bottom  := i * OUT_WORD_WIDTH;
                         top     := bottom + OUT_WORD_WIDTH - 1;
-                        if next_state - 1 = i then
+                        if current = i then
                             in_buf(top downto bottom) <= min;
                         end if;
                     end loop;
@@ -115,40 +134,28 @@ begin
         end process;
 
         -- Assign dout.
-        -- High bits are assigned directly from min.
+        -- Low bits are assigned directly from min.
         -- The rest are assigned from in_buf.
-        dout(IN_WORD_WIDTH - 1 downto IN_WORD_WIDTH - OUT_WORD_WIDTH) <= min;
-        dout(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0)
-            <= in_buf(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0);
-
-        -- Determine which part of the word we are accessing.
-        process(state, next_state, mready)
-        begin
-            if state = LAST_STATE and mready = '1' then
-                current <= 0;
-            elsif mready = '1' then
-                current <= next_state;
-            else
-                current <= state;
-            end if;
-        end process;
+        dout(OUT_WORD_WIDTH - 1 downto 0) <= min;
+        dout(IN_WORD_WIDTH - 1 downto OUT_WORD_WIDTH)
+            <= in_buf(IN_WORD_WIDTH - 1 downto OUT_WORD_WIDTH);
 
         -- Assign mout and mmask.
         -- This is assigned based on state.  In the first state, we
         -- assign directly from the low bits of the input, otherwise,
         -- we assign from the buffer.
-        process(in_buf, in_mask, current, din, mask)
+        process(in_buf, in_mask, current, din, mask, we)
             variable word_top       : natural;
             variable word_bottom    : natural;
             variable mask_top       : natural;
             variable mask_bottom    : natural;
         begin
-            for i in 1 to LAST_STATE loop
+            for i in 1 to WORD_COUNT loop
                 word_bottom     := i * OUT_WORD_WIDTH;
                 word_top        := word_bottom + OUT_WORD_WIDTH - 1;
                 mask_bottom     := i * OUT_MASK_BITS;
                 mask_top        := mask_bottom + OUT_MASK_BITS - 1;
-                if i = current then
+                if current = i then
                     mout <= in_buf(word_top downto word_bottom);
                     mmask <= in_mask(mask_top downto mask_bottom);
                 end if;
@@ -160,26 +167,17 @@ begin
         end process;
 
         -- Assign maddr.
-        process(state, next_state, addr, mready)
+        process(current, addr, mready)
             constant bottom : natural := OUT_ADDR_WIDTH - IN_ADDR_WIDTH;
             constant top    : natural := bottom + IN_ADDR_WIDTH - 1;
         begin
             maddr(top downto bottom) <= addr(IN_ADDR_WIDTH - 1 downto 0);
-            if mready = '1' then
-                if state = LAST_STATE then
-                    maddr(bottom - 1 downto 0) <= (others => '0');
-                else
-                    maddr(bottom - 1 downto 0)
-                        <= std_logic_vector(to_unsigned(next_state, bottom));
-                end if;
-            else
-                maddr(bottom - 1 downto 0)
-                    <= std_logic_vector(to_unsigned(state, bottom));
-            end if;
+            maddr(bottom - 1 downto 0)
+                <= std_logic_vector(to_unsigned(current, bottom));
         end process;
 
         -- Assign ready.
-        ready <= mready when state = LAST_STATE else '0';
+        ready <= mready and not (do_read or do_write);
 
     end generate;
 
