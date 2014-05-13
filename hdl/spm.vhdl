@@ -82,7 +82,7 @@ begin
             busy     <= '0';
             was_hit  <= '0';
          else
-            raddr    <= to_integer(unsigned(addr));
+            raddr    <= to_integer(unsigned(addr(SIZE_BITS - 1 downto 0)));
             rin      <= din;
             rmask    <= mask;
             rre      <= is_hit and re;

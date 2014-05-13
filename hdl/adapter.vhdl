@@ -125,7 +125,7 @@ begin
                     for i in 0 to WORD_COUNT loop
                         bottom  := i * OUT_WORD_WIDTH;
                         top     := bottom + OUT_WORD_WIDTH - 1;
-                        if current = i then
+                        if state = i then
                             in_buf(top downto bottom) <= min;
                         end if;
                     end loop;
@@ -136,9 +136,9 @@ begin
         -- Assign dout.
         -- Low bits are assigned directly from min.
         -- The rest are assigned from in_buf.
-        dout(OUT_WORD_WIDTH - 1 downto 0) <= min;
-        dout(IN_WORD_WIDTH - 1 downto OUT_WORD_WIDTH)
-            <= in_buf(IN_WORD_WIDTH - 1 downto OUT_WORD_WIDTH);
+        dout(IN_WORD_WIDTH - 1 downto IN_WORD_WIDTH - OUT_WORD_WIDTH) <= min;
+        dout(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0)
+            <= in_buf(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0);
 
         -- Assign mout and mmask.
         -- This is assigned based on state.  In the first state, we

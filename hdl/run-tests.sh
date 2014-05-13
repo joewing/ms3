@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAIN_MEM="(ram (latency 10)(burst 0))"
+MAIN_MEM="(ram (word_size 4)(latency 10)(burst 0))"
 
 set -e
 

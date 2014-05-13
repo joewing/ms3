@@ -56,6 +56,7 @@ begin
                         end if;
                     end loop;
                 end if;
+                value <= data(nat_addr);
             else
                 value <= (others => '0');
             end if;
@@ -74,7 +75,7 @@ begin
     ready <= counter(0);
 
     doutn : if SIZE > 0 generate
-        dout <= data(nat_addr) when counter(0) = '1' else (others => 'Z');
+        dout <= value when counter(0) = '1' else (others => 'Z');
     end generate;
     dout0 : if SIZE = 0 generate
         dout <= (others => 'Z');
