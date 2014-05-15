@@ -175,14 +175,16 @@ class Split(container.Container):
             return self.mem
         return self
 
-    def get_path_length(self):
-        b0 = self.bank0.get_path_length()
-        b1 = self.bank1.get_path_length()
-        return self.machine.addr_bits + max(b0, b1)
+    def get_path_length(self, incoming):
+        start = incoming + self.machine.addr_bits
+        b0 = self.bank0.get_path_length(start)
+        b1 = self.bank1.get_path_length(start)
+        return max(start, b0, b1)
 
-    def get_forward_path_length(self):
-        tl = container.Container.get_path_length(self)
-        return tl + self.machine.addr_bits
+    def get_forward_path_length(self, incoming):
+        incoming += self.machine.addr_bits
+        nl = container.Container.get_path_length(self, incoming)
+        return max(incoming, nl)
 
     def done(self):
         t1 = self.bank0.done()

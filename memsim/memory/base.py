@@ -128,9 +128,9 @@ class Memory(object):
             result += self.get_next().get_total_cost()
         return result
 
-    def get_path_length(self):
+    def get_path_length(self, incoming):
         """Get the total path length before the next register."""
-        return 0
+        return incoming
 
     def simplify(self):
         """Return a simplified memory subsystem."""

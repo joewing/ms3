@@ -28,6 +28,11 @@ class Prefetch(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
+    def get_path_length(self, incoming):
+        incoming += self.machine.addr_bits
+        nl = container.Container.get_path_length(self, incoming)
+        return max(incoming, nl)
+
     def generate(self, gen, source):
         name = gen.get_name(source, self)
         word_size = self.get_word_size()

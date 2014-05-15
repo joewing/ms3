@@ -23,13 +23,13 @@ class Container(base.Memory):
     def done(self):
         return self.mem.done()
 
-    def get_path_length(self):
+    def get_path_length(self, incoming):
         word_size = self.get_word_size()
         next_word_size = self.mem.get_word_size()
-        length = self.mem.get_path_length()
         if next_word_size != word_size:
-            length += self.machine.addr_bits
-        return length
+            incoming += 8
+        nl = self.mem.get_path_length(incoming)
+        return max(incoming, nl)
 
     def process(self, start, write, addr, size):
         return self.mem.process(start, write, addr, size)

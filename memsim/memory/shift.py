@@ -26,8 +26,9 @@ class Shift(transform.Transform):
         result += ')'
         return result
 
-    def generate(self, gen):
-        return self.generate_transform('shift', self.shift, -self.shift, gen)
+    def generate(self, gen, source):
+        return self.generate_transform('shift', self.shift, -self.shift,
+                                       gen, source)
 
     def reset(self, machine):
         transform.Transform.reset(self, machine)

@@ -162,6 +162,10 @@ class Cache(container.Container):
     def get_word_size(self):
         return self.line_size
 
+    def get_path_length(self, incoming):
+        nl = container.Container.get_path_length(self, 16)
+        return max(incoming + 16, nl)
+
     def update_latency(self):
         if self.machine.target == machine.TargetType.ASIC:
             self.access_time = cacti.get_access_time(self.machine, self)

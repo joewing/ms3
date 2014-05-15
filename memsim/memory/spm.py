@@ -147,9 +147,10 @@ class SPM(container.Container):
     def pop_transform(self, rand):
         rand.pop_limit()
 
-    def get_path_length(self):
-        tl = container.Container.get_path_length(self)
-        return tl + self.machine.addr_bits
+    def get_path_length(self, incoming):
+        incoming += self.machine.addr_bits
+        nl = container.Container.get_path_length(self, incoming)
+        return max(incoming, nl)
 
     def done(self):
         t = container.Container.done(self)

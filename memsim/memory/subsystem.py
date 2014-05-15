@@ -69,13 +69,12 @@ class Subsystem(base.Memory):
     def set_next(self, n):
         self.mem = n
 
-    def get_path_length(self):
+    def get_path_length(self, incoming):
         word_size = self.word_size
         next_word_size = self.mem.get_word_size()
-        length = self.mem.get_path_length()
         if word_size != next_word_size:
-            length += self.machine.addr_bits
-        return length
+            incoming += 8
+        return self.mem.get_path_length(incoming)
 
     def reset(self, machine):
         base.Memory.reset(self, machine)

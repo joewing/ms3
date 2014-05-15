@@ -105,14 +105,16 @@ class Transform(container.Container):
         """Get the path length through the transform."""
         assert(False)
 
-    def get_path_length(self):
-        tl = self.get_transform_path_length()
-        return tl + self.bank.get_path_length()
+    def get_path_length(self, incoming):
+        incoming += self.get_transform_path_length()
+        nl = self.bank.get_path_length(incoming)
+        return max(incoming, nl)
 
-    def get_forward_path_length(self):
+    def get_forward_path_length(self, incoming):
         """Get the path length leaving the transform."""
-        tl = container.Container.get_path_length(self)
-        return tl + self.get_transform_path_length()
+        incoming += self.get_transform_path_length()
+        nl = container.Container.get_path_length(self, incoming)
+        return max(incoming, nl)
 
     def is_empty(self):
         return False

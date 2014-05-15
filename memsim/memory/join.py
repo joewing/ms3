@@ -26,8 +26,9 @@ class Join(base.Memory):
         gen.declare_signals(name, self.get_word_size())
         return name
 
-    def get_path_length(self):
-        return self.parent.get_forward_path_length()
+    def get_path_length(self, incoming):
+        nl = self.parent.get_forward_path_length(incoming)
+        return max(incoming, nl)
 
     def process(self, start, write, addr, size):
         return self.parent.forward(self.index, start, write, addr, size)

@@ -99,7 +99,7 @@ class MemoryList(object):
         return sum([m.get_total_cost() for m in self.all_memories()])
 
     def get_max_path_length(self):
-        return max([m.get_path_length() for m in self.all_memories()])
+        return max([m.get_path_length(0) for m in self.all_memories()])
 
     def reset(self, machine):
         for m in self.all_memories():
