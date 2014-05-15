@@ -186,6 +186,8 @@ class VHDLGenerator(object):
         self.append(pname + "_ready : in std_logic;")
 
     def _emit_downstream_signals(self, ml):
+        if len(list(ml.active_memories())) == 0:
+            return
         main = ml.main_memory
         word_size = main.get_word_size()
         port_count = len(list(ml.active_memories()))
@@ -211,6 +213,9 @@ class VHDLGenerator(object):
         self.append('signal ' + pname + '_ready_vec : ' + port_spec + ';')
 
     def _connect_downstream_ports(self, ml):
+
+        if len(list(ml.active_memories())) == 0:
+            return
 
         main = ml.main_memory
         word_size = main.get_word_size()
