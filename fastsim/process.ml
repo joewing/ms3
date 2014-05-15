@@ -10,9 +10,7 @@ type process = {
     directory : string;
     mem : base_memory;
     mutable accesses : access stream;
-    mutable consume_waiting : int;
-    mutable produce_waiting : int;
-    mutable peek_waiting : int * int
+    mutable pending_access : access;
 }
 
 type producer = process -> int -> int
@@ -32,33 +30,55 @@ let create_process produce consume peek run directory mem =
         directory = directory;
         mem = mem;
         accesses = SNil;
-        consume_waiting = -1;
-        produce_waiting = -1;
-        peek_waiting = (-1, -1);
+        pending_access = (' ', 0, 0);
     }
 ;;
 
 let process_produce proc addr =
     let result = proc.produce proc addr in
-    proc.produce_waiting <- if result < 0 then addr else -1;
+    proc.pending_access <-
+        if result < 0 then ('P', addr, 0)
+        else (' ', 0, 0);
     result
 ;;
 
 let process_consume proc addr =
     let result = proc.consume proc addr in
-    proc.consume_waiting <- if result < 0 then addr else -1;
+    proc.pending_access <-
+        if result < 0 then ('C', addr, 0)
+        else (' ', 0, 0);
     result
 ;;
 
 let process_peek proc addr size =
     let result = proc.peek proc addr size in
-    proc.peek_waiting <- if result < 0 then (addr, size) else (-1, -1);
+    proc.pending_access <-
+        if result < 0 then ('K', addr, size)
+        else (' ', 0, 0);
     result
 ;;
 
 let process_modify proc addr size =
     let start = proc.mem#send_request 0 false addr size in
     proc.mem#send_request start true addr size
+;;
+
+let process_input proc addr size =
+    let result = proc.consume proc addr in
+    let result = if result < 0 then proc.consume proc size else result in
+    proc.pending_access <-
+        if result < 0 then ('A', addr, size)
+        else (' ', 0, 0);
+    result
+;;
+
+let process_output proc addr size =
+    let result = proc.produce proc addr in
+    let result = if result < 0 then proc.produce proc size else result in
+    proc.pending_access <-
+        if result < 0 then ('O', addr, size)
+        else (' ', 0, 0);
+    result
 ;;
 
 let process_access proc t addr size =
@@ -70,26 +90,26 @@ let process_access proc t addr size =
     | 'P' -> process_produce proc addr
     | 'C' -> process_consume proc addr
     | 'K' -> process_peek proc addr size
+    | 'A' -> process_input proc addr size
+    | 'O' -> process_output proc addr size
     | 'X' -> -1
     | _ -> failwith @@ "invalid access: " ^ (String.make 1 t)
 ;;
 
 let process_reset proc = proc.accesses <- proc.run proc.directory;;
 
+let process_next proc =
+    match proc.accesses with
+    | SCons ((t, addr, size), next) ->
+            proc.accesses <- next ();
+            process_access proc t addr size
+    | SNil -> -1
+;;
+
 let process_step proc =
-    if proc.consume_waiting >= 0 then
-        process_consume proc proc.consume_waiting
-    else if proc.produce_waiting >= 0 then
-        process_produce proc proc.produce_waiting
-    else if (fst proc.peek_waiting) >= 0 then
-        let addr, size = proc.peek_waiting in
-        process_peek proc addr size
-    else
-        match proc.accesses with
-        | SCons ((t, addr, size), next) ->
-                proc.accesses <- next ();
-                process_access proc t addr size
-        | SNil -> -1
+    match proc.pending_access with
+    | (' ', _, _) -> process_next proc
+    | (t, addr, size) -> process_access proc t addr size
 ;;
 
 let process_finish proc = proc.mem#finish;;
