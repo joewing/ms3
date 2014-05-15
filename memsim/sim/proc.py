@@ -20,9 +20,7 @@ class Process(object):
         self.directory = directory
         self.mem = None
         self.machine = None
-        self.consume_waiting = -1
-        self.produce_waiting = -1
-        self.peek_waiting = None
+        self.pending_access = None
         self.delay = False
         self.size = -1
 
@@ -49,9 +47,7 @@ class Process(object):
         """
         self.machine = machine
         self.mem = mem
-        self.consume_waiting = -1
-        self.produce_waiting = -1
-        self.peek_waiting = None
+        self.pending_access = None
         self.benchmark.reset(offset, self.directory)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)
@@ -63,33 +59,8 @@ class Process(object):
         """
         return self.mem.done()
 
-    def step(self):
-        """Execute the next event.
-
-        This returns the amount of time used (a delta).
-        This will return -1 if the process is blocked.
-        """
-
-        # Check if we're waiting on a FIFO.
-        if self.consume_waiting >= 0:
-            temp = self.pl.consume(self, self.consume_waiting)
-            if temp >= 0:
-                self.consume_waiting = -1
-            return temp
-        if self.produce_waiting >= 0:
-            temp = self.pl.produce(self, self.produce_waiting)
-            if temp >= 0:
-                self.produce_waiting = -1
-            return temp
-        if self.peek_waiting is not None:
-            addr, size = self.peek_waiting
-            temp = self.pl.peek(self, addr, size)
-            if temp >= 0:
-                self.peek_waiting = None
-            return temp
-
-        # Perform the access.
-        at, addr, size = next(self.generator)
+    def _process(self, access):
+        at, addr, size = access
         if at == AccessType.READ:
             return send_request(self.mem, 0, False, addr, size)
         elif at == AccessType.WRITE:
@@ -104,19 +75,35 @@ class Process(object):
             self.delay = True
             temp = self.pl.produce(self, addr)
             if temp < 0:
-                self.produce_waiting = addr
+                self.pending_access = access
             return temp
         elif at == AccessType.CONSUME:
             self.delay = True
             temp = self.pl.consume(self, addr)
             if temp < 0:
-                self.consume_waiting = addr
+                self.pending_access = access
             return temp
         elif at == AccessType.PEEK:
             self.delay = True
             temp = self.pl.peek(self, addr, size)
             if temp < 0:
-                self.peek_waiting = addr, size
+                self.pending_access = access
+            return temp
+        elif at == AccessType.INPUT:
+            self.delay = True
+            temp = self.pl.consume(self, addr)
+            if temp < 0:
+                temp = self.pl.consume(self, size)
+            if temp < 0:
+                self.pending_access = access
+            return temp
+        elif at == AccessType.OUTPUT:
+            self.delay = True
+            temp = self.pl.produce(self, addr)
+            if temp < 0:
+                temp = self.pl.produce(self, size)
+            if temp < 0:
+                self.pending_access = access
             return temp
         elif at == AccessType.END:
             self.machine.end(addr)
@@ -124,3 +111,19 @@ class Process(object):
         else:
             assert(False)
             return 0
+
+    def step(self):
+        """Execute the next event.
+
+        This returns the amount of time used (a delta).
+        This will return -1 if the process is blocked.
+        """
+
+        if self.pending_access is not None:
+            # Process a pending process.
+            access = self.pending_access
+            self.pending_access = None
+            return self._process(access)
+        else:
+            # Process the next access.
+            return self._process(next(self.generator))

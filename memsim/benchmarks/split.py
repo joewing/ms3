@@ -22,9 +22,9 @@ class Split(base.Benchmark):
 
     def run(self):
         while True:
-            yield AccessType.INPUT, self.in_port, 0
+            yield AccessType.CONSUME, self.in_port, 0
             yield AccessType.OUTPUT, self.out0, self.out1
-            yield AccessType.INPUT, self.in_port, 0
+            yield AccessType.CONSUME, self.in_port, 0
             yield AccessType.OUTPUT, self.out1, self.out0
 
 
