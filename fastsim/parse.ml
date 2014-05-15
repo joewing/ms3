@@ -175,15 +175,26 @@ let match_memory_list token_list =
     | None -> parse_error token_list "invalid main memory"
 ;;
 
+let set_benchmark benchmark name = function
+    | [Literal (value, _)] -> benchmark#set name value
+    | t -> parse_error t "invalid benchmark argument"
+;;
+
+let match_benchmark = function
+    | Literal ("trace", _) :: token_list ->
+        let benchmark = new Trace_benchmark.trace_benchmark in
+        let token_list = match_arguments (set_benchmark benchmark) token_list in
+        (benchmark, token_list)
+    | Literal ("split", _) :: token_list ->
+        let benchmark = new Split_benchmark.split_benchmark in
+        let token_list = match_arguments (set_benchmark benchmark) token_list in
+        (benchmark, token_list)
+    | t -> parse_error t "invalid benchmark"
+;;
+
 let rec match_benchmark_list = function
     | Open _ :: token_list ->
-            let token_list = match_literal "trace" token_list in
-            let benchmark = new Trace.trace in
-            let set_benchmark name = function
-                | [Literal (value, _)] -> benchmark#set name value
-                | t -> parse_error t "invalid trace argument"
-            in
-            let token_list = match_arguments set_benchmark token_list in
+            let (benchmark, token_list) = match_benchmark token_list in
             let token_list = match_close token_list in
             let (next, token_list) = match_benchmark_list token_list in
             (benchmark :: next, token_list)

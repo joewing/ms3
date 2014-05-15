@@ -18,7 +18,7 @@ let read_access ch =
     (t, addr, size)
 ;;
 
-class trace =
+class trace_benchmark =
     object (self)
         inherit benchmark as super
 
