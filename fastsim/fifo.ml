@@ -1,3 +1,4 @@
+open Machine
 open Subsystem
 
 class fifo =
@@ -8,6 +9,7 @@ class fifo =
         val mutable read_ptr : int = 0
         val mutable write_ptr : int = 0
         val mutable used : int = 0
+        val mutable min_time : int = 0
 
         method total_size = depth * word_size
 
@@ -24,7 +26,8 @@ class fifo =
             super#reset m main;
             read_ptr <- 0;
             write_ptr <- 0;
-            used <- 0
+            used <- 0;
+            min_time <- 0
 
         method is_full = used = depth
 
@@ -33,14 +36,23 @@ class fifo =
         method process start write addr size =
             if depth = 1 then
                 let result = start + 1 in
-                score <- score + result;
-                result
+                begin
+                    score <- score + result;
+                    min_time <- mach.time + result;
+                    result
+                end
             else
-                super#process start write addr size
+                let result = super#process start write addr size in
+                begin
+                    min_time <- mach.time + result;
+                    result
+                end
 
         method produce =
             if used = depth then
                 -1
+            else if mach.time < min_time then
+                min_time - mach.time
             else
                 let addr = write_ptr * word_size in
                 begin
@@ -52,6 +64,8 @@ class fifo =
         method consume =
             if used == 0 then
                 -1
+            else if mach.time < min_time then
+                min_time - mach.time
             else
                 let addr = read_ptr * word_size in
                 begin

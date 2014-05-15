@@ -21,6 +21,7 @@ class FIFO(subsystem.Subsystem):
         self.read_ptr = 0
         self.write_ptr = 0
         self.used = 0
+        self.min_time = 0
 
     def __str__(self):
         result = '(fifo '
@@ -41,6 +42,7 @@ class FIFO(subsystem.Subsystem):
         self.read_ptr = 0
         self.write_ptr = 0
         self.used = 0
+        self.min_time = 0
 
     def is_full(self):
         return self.used == self.depth
@@ -81,9 +83,13 @@ class FIFO(subsystem.Subsystem):
     def process(self, start, write, addr, size):
         if self.depth == 1:
             # Single cycle access for 1-deep FIFOs.
+            result = start + 1
+            self.min_time = self.machine.time + result
             return start + 1
         else:
-            return subsystem.Subsystem.process(self, start, write, addr, size)
+            result = subsystem.Subsystem.process(self, start, write, addr, size)
+            self.min_time = self.machine.time + result
+            return result
 
     def produce(self):
         """Put a value on the FIFO.
@@ -92,6 +98,8 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used == self.depth:
             return -1
+        elif self.machine.time < self.min_time:
+            return self.min_time - self.machine.time
         else:
             addr = self.write_ptr * self.word_size
             self.write_ptr = (self.write_ptr + 1) % self.depth
@@ -105,6 +113,8 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used == 0:
             return -1
+        elif self.machine.time < self.min_time:
+            return self.min_time - self.machine.time
         else:
             addr = self.read_ptr * self.word_size
             self.read_ptr = (self.read_ptr + 1) % self.depth

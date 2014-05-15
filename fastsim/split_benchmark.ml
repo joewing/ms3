@@ -4,9 +4,9 @@ class split_benchmark =
     object (self)
         inherit benchmark as super
 
-        val mutable in_port : int = 0
-        val mutable out0 : int = 0
-        val mutable out1 : int = 0
+        val mutable in_port : int = -1
+        val mutable out0 : int = -1
+        val mutable out1 : int = -1
 
         method set name value =
             match name with
@@ -23,7 +23,7 @@ class split_benchmark =
             let rec process lst () =
                 match lst with
                 | temp :: rest  -> SCons (temp, process rest)
-                | _             -> process access_list ()
+                | []            -> process access_list ()
             in process access_list ()
 
     end

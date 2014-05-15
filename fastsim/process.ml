@@ -10,7 +10,7 @@ type process = {
     directory : string;
     mem : base_memory;
     mutable accesses : access stream;
-    mutable pending_access : access;
+    mutable pending_access : access option;
 }
 
 type producer = process -> int -> int
@@ -30,31 +30,31 @@ let create_process produce consume peek run directory mem =
         directory = directory;
         mem = mem;
         accesses = SNil;
-        pending_access = (' ', 0, 0);
+        pending_access = None;
     }
 ;;
 
 let process_produce proc addr =
     let result = proc.produce proc addr in
     proc.pending_access <-
-        if result < 0 then ('P', addr, 0)
-        else (' ', 0, 0);
+        if result < 0 then Some ('P', addr, 0)
+        else None;
     result
 ;;
 
 let process_consume proc addr =
     let result = proc.consume proc addr in
     proc.pending_access <-
-        if result < 0 then ('C', addr, 0)
-        else (' ', 0, 0);
+        if result < 0 then Some ('C', addr, 0)
+        else None;
     result
 ;;
 
 let process_peek proc addr size =
     let result = proc.peek proc addr size in
     proc.pending_access <-
-        if result < 0 then ('K', addr, size)
-        else (' ', 0, 0);
+        if result < 0 then Some ('K', addr, size)
+        else None;
     result
 ;;
 
@@ -67,8 +67,8 @@ let process_input proc addr size =
     let result = proc.consume proc addr in
     let result = if result < 0 then proc.consume proc size else result in
     proc.pending_access <-
-        if result < 0 then ('A', addr, size)
-        else (' ', 0, 0);
+        if result < 0 then Some ('A', addr, size)
+        else None;
     result
 ;;
 
@@ -76,8 +76,8 @@ let process_output proc addr size =
     let result = proc.produce proc addr in
     let result = if result < 0 then proc.produce proc size else result in
     proc.pending_access <-
-        if result < 0 then ('O', addr, size)
-        else (' ', 0, 0);
+        if result < 0 then Some ('O', addr, size)
+        else None;
     result
 ;;
 
@@ -108,8 +108,8 @@ let process_next proc =
 
 let process_step proc =
     match proc.pending_access with
-    | (' ', _, _) -> process_next proc
-    | (t, addr, size) -> process_access proc t addr size
+    | Some (t, addr, size)  -> process_access proc t addr size
+    | None                  -> process_next proc
 ;;
 
 let process_finish proc = proc.mem#finish;;
