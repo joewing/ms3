@@ -32,7 +32,9 @@ class fifo =
 
         method process start write addr size =
             if depth = 1 then
-                start + 1
+                let result = start + 1 in
+                score <- score + result;
+                result
             else
                 super#process start write addr size
 
