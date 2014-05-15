@@ -214,7 +214,13 @@ class VHDLGenerator(object):
 
     def _connect_downstream_ports(self, ml):
 
+        pname = 'port0'
         if len(list(ml.active_memories())) == 0:
+            self.append(pname + "_addr <= (others => 'Z');")
+            self.append(pname + "_dout <= (others => 'Z');")
+            self.append(pname + "_re <= '0';")
+            self.append(pname + "_we <= '0';")
+            self.append(pname + "_mask <= (others => 'Z');")
             return
 
         main = ml.main_memory
@@ -222,7 +228,6 @@ class VHDLGenerator(object):
         addr_width = self.get_addr_width(word_size)
         word_width = word_size * 8
 
-        pname = 'port0'
         addr_ports = []
         din_ports = []
         mask_ports = []
