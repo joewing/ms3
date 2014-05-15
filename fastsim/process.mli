@@ -6,7 +6,7 @@ type consumer = process -> int -> int
 
 type peeker = process -> int -> int -> int
 
-type runner = string -> Trace.access Trace.stream
+type runner = string -> Benchmark.access Benchmark.stream
 
 val create_process : producer -> consumer -> peeker -> runner ->
                      string -> Base_memory.base_memory -> process

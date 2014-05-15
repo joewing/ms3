@@ -1,6 +1,4 @@
-type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
-
-type access = char * int * int
+open Benchmark
 
 let read_hex ch =
     let rec helper value =
@@ -22,17 +20,14 @@ let read_access ch =
 
 class trace =
     object (self)
+        inherit benchmark as super
 
-        val mutable index : int = 0
         val mutable file_name : string = "trace"
-
-        method id = index
 
         method set name value =
             match name with
-            | "id" -> index <- int_of_string value
             | "name" -> file_name <- value ^ ".trace"
-            | _ -> failwith @@ "invalid trace parameter: " ^ name
+            | _ -> super#set name value
 
         method run directory =
             let full_path = directory ^ "/" ^ file_name in
