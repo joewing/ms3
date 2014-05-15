@@ -1,9 +1,9 @@
 (machine
-    (addr_bits  29)
+    (addr_bits  26)
     (target     fpga)
     (part       xc6slx45)
     (frequency  100000000)
-    (max_cost   32)
+    (max_cost   87)
 )
 (memory
   (main (memory
@@ -20,35 +20,66 @@
         (ddr true)
     )
   ))
-  (subsystem (id 1)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 2)(word_size 4)(depth 70000)(memory (main)))
-  (subsystem (id 3)(word_size 4)(depth 70000)(memory (main)))
-  (subsystem (id 4)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 5)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 6)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 7)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 8)(word_size 4)(depth 0)(memory (main)))
-  (subsystem (id 9)(word_size 4)(depth 0)(memory (main)))
-  (fifo (id 12)(depth 256)(word_size 28)(memory (main))) ; 8 -> 2
-  (fifo (id 4)(depth 256)(word_size 28)(memory (main))) ; 3 -> 4
-  (fifo (id 5)(depth 256)(word_size 28)(memory (main))) ; 4 -> 6
-  (fifo (id 7)(depth 256)(word_size 16)(memory (main))) ; 6 -> 5
-  (fifo (id 3)(depth 256)(word_size 28)(memory (main))) ; 2 -> 3
-  (fifo (id 8)(depth 256)(word_size 28)(memory (main))) ; 4 -> 7
-  (fifo (id 10)(depth 256)(word_size 28)(memory (main))) ; 7 -> 8
-  (fifo (id 1)(depth 256)(word_size 28)(memory (main))) ; 1 -> 2
-  (fifo (id 9)(depth 256)(word_size 16)(memory (main))) ; 5 -> 7
-  (fifo (id 11)(depth 256)(word_size 28)(memory (main))) ; 8 -> 9
-  (fifo (id 6)(depth 256)(word_size 16)(memory (main))) ; 3 -> 6
+    (subsystem (id 1)(depth 0)(word_size 4)(memory (main)))
+    (subsystem (id 2)(depth 70000)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 3)(depth 70000)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 4)(depth 0)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 5)(depth 0)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 6)(depth 0)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 7)(depth 0)(word_size 4)(memory (main)))
+    (fifo (id 1)(depth 1)(word_size 28)
+        ; 1 -> 2
+        (memory (main))
+    )
+    (fifo (id 3)(depth 1)(word_size 28)
+        ; 2 -> 3
+        (memory (main))
+    )
+    (fifo (id 4)(depth 1)(word_size 28)
+        ; 3 -> 5
+        (memory (main))
+    )
+    (fifo (id 5)(depth 1)(word_size 16)
+        ; 3 -> 5
+        (memory (main))
+    )
+    (fifo (id 6)(depth 1)(word_size 16)
+        ; 5 -> 4
+        (memory (main))
+    )
+    (fifo (id 7)(depth 1)(word_size 28)
+        ; 3 -> 6
+        (memory (main))
+    )
+    (fifo (id 8)(depth 1)(word_size 16)
+        ; 4 -> 6
+        (memory (main))
+    )
+    (fifo (id 9)(depth 1)(word_size 28)
+        ; 6 -> 2
+        (memory (main))
+    )
+    (fifo (id 10)(depth 1)(word_size 28)
+        ; 6 -> 7
+        (memory (main))
+    )
 )
 (benchmarks
-  (trace (id 1)(name Source1))
-  (trace (id 2)(name Buffer2))
-  (trace (id 3)(name Streamer3))
-  (trace (id 4)(name kernel24))
-  (trace (id 5)(name Accumulate5))
-  (trace (id 6)(name Force6))
-  (trace (id 7)(name Update7))
-  (trace (id 8)(name kernel28))
-  (trace (id 9)(name Print9))
+    (trace (id 1)(name Source1))
+    (trace (id 2)(name Buffer2))
+    (trace (id 3)(name Streamer3))
+    (trace (id 4)(name Accumulate4))
+    (trace (id 5)(name Force5))
+    (trace (id 6)(name Update6))
+    (trace (id 7)(name Print7))
 )
