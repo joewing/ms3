@@ -38,6 +38,9 @@
     (subsystem (id 6)(depth 0)(word_size 4)
         (memory (main))
     )
+    (subsystem (id 7)(depth 0)(word_size 4)
+        (memory (main))
+    )
     (fifo (id 1)(depth 1)(word_size 4)
         ; 1 -> 2
         (memory (main))
@@ -47,7 +50,7 @@
         (memory (main))
     )
     (fifo (id 3)(depth 1)(word_size 4)
-        ; 2 -> 4
+        ; 3 -> 4
         (memory (main))
     )
     (fifo (id 4)(depth 1)(word_size 4)
@@ -55,19 +58,25 @@
         (memory (main))
     )
     (fifo (id 5)(depth 1)(word_size 4)
-        ; 4 -> 5
+        ; 4 -> 6
         (memory (main))
     )
     (fifo (id 6)(depth 1)(word_size 4)
         ; 5 -> 6
         (memory (main))
     )
+    (fifo (id 7)(depth 1)(word_size 4)
+        ; 6 -> 7
+        (memory (main))
+    )
 )
 (benchmarks
     (trace (id 1)(name kernel11))
-    (trace (id 2)(name kernel52))
-    (trace (id 3)(name kernel33))
-    (trace (id 4)(name kernel34))
-    (trace (id 5)(name kernel65))
-    (trace (id 6)(name kernel46))
+    (trace (id 2)(name kernel22))
+;    (trace (id 3)(name kernel63))
+    (split (id 3)(in 2)(out0 3)(out1 4))
+    (trace (id 4)(name kernel44))
+    (trace (id 5)(name kernel45))
+    (trace (id 6)(name kernel76))
+    (trace (id 7)(name kernel57))
 )
