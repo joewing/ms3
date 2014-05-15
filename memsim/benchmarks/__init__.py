@@ -26,3 +26,6 @@ assert qsort
 
 from memsim.benchmarks import trace
 assert trace
+
+from memsim.benchmarks import split
+assert split
