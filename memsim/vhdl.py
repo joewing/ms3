@@ -1,5 +1,3 @@
-from memsim.memory.fifo import FIFO
-
 
 class VHDLGenerator(object):
     """Class used to generate VHDL code."""
@@ -196,11 +194,11 @@ class VHDLGenerator(object):
             spec = 'std_logic_vector(' + str(addr_width - 1) + ' downto 0)'
             self.append('signal gaddr' + str(i) + ' : ' + spec + ';')
         word_width = word_size * 8
-        bus_addr_width = addr_width * port_count
+        ba_width = addr_width * port_count
         port_spec = 'std_logic_vector(' + str(port_count - 1) + ' downto 0)'
         bus_width = word_width * port_count
         bus_spec = 'std_logic_vector(' + str(bus_width - 1) + ' downto 0)'
-        addr_spec = 'std_logic_vector(' + str(bus_addr_width - 1) + ' downto 0)'
+        addr_spec = 'std_logic_vector(' + str(ba_width - 1) + ' downto 0)'
         mask_width = word_size * port_count
         mask_spec = 'std_logic_vector(' + str(mask_width - 1) + ' downto 0)'
         pname = 'port0'
@@ -216,11 +214,11 @@ class VHDLGenerator(object):
 
         pname = 'port0'
         if len(list(ml.active_memories())) == 0:
-            self.append(pname + "_addr <= (others => 'Z');")
-            self.append(pname + "_dout <= (others => 'Z');")
+            self.append(pname + "_addr <= (others => 'X');")
+            self.append(pname + "_dout <= (others => 'X');")
             self.append(pname + "_re <= '0';")
             self.append(pname + "_we <= '0';")
-            self.append(pname + "_mask <= (others => 'Z');")
+            self.append(pname + "_mask <= (others => 'X');")
             return
 
         main = ml.main_memory
@@ -288,11 +286,8 @@ class VHDLGenerator(object):
         self.leave()
 
     def _emit_upstream_ports(self, ml):
-        for m in ml.active_memories():
-            if isinstance(m, FIFO):
-                name = "fifo" + str(m.index)
-            else:
-                name = "subsystem" + str(m.index)
+        for m in ml.active_subsystems():
+            name = "subsystem" + str(m.index)
             word_size = m.get_word_size()
             word_width = word_size * 8
             addr_width = self.get_addr_width(word_size)
@@ -301,23 +296,33 @@ class VHDLGenerator(object):
             word_str = prefix + str(word_width - 1) + suffix
             addr_str = prefix + str(addr_width - 1) + suffix
             mask_str = prefix + str((word_width // 8) - 1) + suffix
-            self.append(name + '_addr' + ' : in ' + addr_str)
-            self.append(name + '_in' + ' : in ' + word_str)
-            self.append(name + '_out' + ' : out ' + word_str)
-            self.append(name + '_re' + ' : in std_logic;')
-            self.append(name + '_we' + ' : in std_logic;')
-            self.append(name + '_mask' + ' : in ' + mask_str)
-            self.append(name + '_ready' + ' : out std_logic;')
+            self.append(name + '_addr : in ' + addr_str)
+            self.append(name + '_in : in ' + word_str)
+            self.append(name + '_out : out ' + word_str)
+            self.append(name + '_re : in std_logic;')
+            self.append(name + '_we : in std_logic;')
+            self.append(name + '_mask : in ' + mask_str)
+            self.append(name + '_ready : out std_logic;')
+        for m in ml.active_fifos():
+            name = "fifo" + str(m.index)
+            word_size = m.get_word_size()
+            word_width = word_size * 8
+            addr_width = self.get_addr_width(word_size)
+            prefix = 'std_logic_vector('
+            suffix = ' downto 0);'
+            word_str = prefix + str(word_width - 1) + suffix
+            self.append(name + '_din : in ' + word_str)
+            self.append(name + '_dout : out ' + word_str)
+            self.append(name + '_re : in std_logic;')
+            self.append(name + '_we : in std_logic;')
+            self.append(name + '_avail : out std_logic;')
+            self.append(name + '_full : out std_logic;')
 
     def _connect_upstream_ports(self, ml):
-        main_word_size = ml.main_memory.get_word_size()
-        for m in ml.active_memories():
+        for m in ml.active_subsystems():
             word_size = m.get_word_size()
             addr_width = self.get_addr_width(word_size)
-            if isinstance(m, FIFO):
-                sname = "fifo" + str(m.index)
-            else:
-                sname = "subsystem" + str(m.index)
+            sname = "subsystem" + str(m.index)
             name = m.get_id()
             self.append(name + '_addr <= ' + sname + '_addr;')
             self.append(name + '_din <= ' + sname + '_in;')
@@ -326,3 +331,48 @@ class VHDLGenerator(object):
             self.append(name + '_we <= ' + sname + '_we;')
             self.append(name + '_mask <= ' + sname + '_mask;')
             self.append(sname + '_ready <= ' + name + '_ready;')
+        for m in ml.active_fifos():
+            word_size = m.get_word_size()
+            depth = m.depth
+            addr_width = self.get_addr_width(word_size)
+            word_width = word_size * 8
+            sname = "fifo" + str(m.index)
+            name = m.get_id()
+            self.append(sname + ' : entity work.fifo')
+            self.enter()
+            self.append('generic map(')
+            self.enter()
+            self.append('WIDTH => ' + str(word_width) + ',')
+            self.append('ADDR_WIDTH => ' + str(addr_width) + ',')
+            self.append('DEPTH => ' + str(depth))
+            self.leave()
+            self.append(')')
+            self.append('port map (')
+            self.enter()
+            self.append('clk => clk,')
+            self.append('rst => rst,')
+            self.append('din => ' + sname + '_din,')
+            self.append('dout => ' + sname + '_dout,')
+            self.append('re => ' + sname + '_re,')
+            self.append('we => ' + sname + '_we,')
+            self.append('avail => ' + sname + '_avail,')
+            self.append('full => ' + sname + '_full,')
+            if depth > 1:
+                self.append('mem_addr => ' + name + '_addr,')
+                self.append('mem_in => ' + name + '_dout,')
+                self.append('mem_out => ' + name + '_din,')
+                self.append('mem_mask => ' + name + '_mask,')
+                self.append('mem_re => ' + name + '_re,')
+                self.append('mem_we => ' + name + '_we,')
+                self.append('mem_ready => ' + name + '_ready')
+            else:
+                self.append('mem_addr => open,')
+                self.append('mem_in => open,')
+                self.append('mem_out => open,')
+                self.append('mem_mask => open,')
+                self.append('mem_re => open,')
+                self.append('mem_we => open,')
+                self.append('mem_ready => open')
+            self.leave()
+            self.append(');')
+            self.leave()
