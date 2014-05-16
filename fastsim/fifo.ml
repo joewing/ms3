@@ -33,7 +33,9 @@ class fifo =
 
         method is_empty = used = 0
 
-        method process start write addr size =
+        method finish = max super#finish (min_time - mach.time)
+
+        method private process start write addr size =
             if depth = 1 then
                 let result = start + 1 in
                 begin
@@ -45,6 +47,7 @@ class fifo =
                 let result = super#process start write addr size in
                 begin
                     min_time <- mach.time + result;
+                    score <- score + result;
                     result
                 end
 
@@ -77,6 +80,8 @@ class fifo =
         method peek offset =
             if used <= offset then
                 -1
+            else if mach.time < min_time then
+                min_time - mach.time
             else
                 let temp = (read_ptr - offset) mod depth in
                 let addr = temp * word_size in

@@ -106,18 +106,15 @@ def get_initial_memory(db, m, dist, directory):
     # empty memory subsystem to collect statistics.
 
     # Create a memory subsystem to collect statistics.
-    main = m.memory.main_memory
-    ml = memory.MemoryList(main)
+    ml = m.memory.clone()
     pl = sim.ProcessList(m.machine, directory)
-    for fifo in [f.clone() for f in m.memory.all_fifos()]:
+    for fifo in ml.all_fifos():
         fd = dist.get_fifo_distribution(fifo)
-        fifo.set_next(stats.Stats(fd, main))
-        ml.add_memory(fifo)
+        fifo.set_next(stats.Stats(fd, fifo.get_next()))
     for b in m.benchmarks:
-        mem = m.memory.get_subsystem(b.index).clone()
+        mem = ml.get_subsystem(b.index)
         sd = dist.get_subsystem_distribution(mem)
-        mem.set_next(stats.Stats(sd, main))
-        ml.add_memory(mem)
+        mem.set_next(stats.Stats(sd, mem.get_next()))
         pl.add_benchmark(b)
 
     if main_context.verbose:

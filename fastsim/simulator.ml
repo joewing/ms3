@@ -36,8 +36,8 @@ let create_simulator directory model =
         model = model;
         directory = directory;
         processes = [];
-        consumers = Hashtbl.create fifo_count;
-        producers = Hashtbl.create fifo_count;
+        consumers = Hashtbl.create subsystem_count;
+        producers = Hashtbl.create subsystem_count;
         heap = Pq.create (subsystem_count + fifo_count);
         subsystem_map = subsystem_map;
         fifo_map = fifo_map;
@@ -73,11 +73,12 @@ let produce sim proc (index : int) =
     let rc = fifo#produce in
     begin
         if rc < 0 then
-            Hashtbl.add sim.producers index proc
+            Hashtbl.replace sim.producers index proc
         else
             try
                 let c = Hashtbl.find sim.consumers index in
-                Pq.push sim.heap sim.model.mach.time c;
+                let t = sim.model.mach.time in
+                Pq.push sim.heap t c;
                 Hashtbl.remove sim.consumers index
             with Not_found -> ()
     end; rc
@@ -89,7 +90,7 @@ let consume sim proc (index : int) =
     let rc = fifo#consume in
     begin
         if rc < 0 then
-            Hashtbl.add sim.consumers index proc
+            Hashtbl.replace sim.consumers index proc
         else
             try
                 let p = Hashtbl.find sim.producers index in
@@ -104,7 +105,7 @@ let peek sim proc (index : int) (offset : int) =
     let rc = fifo#peek offset in
     begin
         if rc < 0 then
-            Hashtbl.add sim.consumers index proc
+            Hashtbl.replace sim.consumers index proc
         else
             try
                 let p = Hashtbl.find sim.producers index in

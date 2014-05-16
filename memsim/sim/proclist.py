@@ -180,9 +180,7 @@ class ProcessList(object):
 
         # Take into account any leftover time.
         for p in self.processes:
-            t = p.done()
-            if t > self.machine.time:
-                self.machine.time = t
+            self.machine.time = max(p.done(), self.machine.time)
 
         if self.machine.goal == GoalType.ACCESS_TIME:
             return self.machine.time

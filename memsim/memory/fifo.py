@@ -80,12 +80,16 @@ class FIFO(subsystem.Subsystem):
         assert(self.total_size() <= max_size)
         return True
 
+    def done(self):
+        t = subsystem.Subsystem.done(self)
+        return max(t, self.min_time - self.machine.time)
+
     def process(self, start, write, addr, size):
         if self.depth == 1:
             # Single cycle access for 1-deep FIFOs.
             result = start + 1
             self.min_time = self.machine.time + result
-            return start + 1
+            return result
         else:
             result = subsystem.Subsystem.process(self, start, write, addr, size)
             self.min_time = self.machine.time + result
@@ -129,6 +133,8 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used <= offset:
             return -1
+        elif self.macine.time < self.min_time:
+            return self.min_time - self.machine.time
         else:
             temp = (self.read_ptr - offset) % self.depth
             addr = temp * self.word_size

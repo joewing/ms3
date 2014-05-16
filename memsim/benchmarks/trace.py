@@ -50,8 +50,14 @@ class Trace(base.Benchmark):
                     yield AccessType.CONSUME, addr, size
                 elif at == 'K':
                     yield AccessType.PEEK, addr, size
+                elif at == 'A':
+                    yield AccessType.INPUT, addr, size
+                elif at == 'O':
+                    yield AccessType.OUTPUT, addr, size
                 elif at == 'X':
                     yield AccessType.END, addr, size
+                else:
+                    assert(False)
 
 
 def _create_trace(lexer, args):

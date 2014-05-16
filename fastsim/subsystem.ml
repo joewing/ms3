@@ -1,4 +1,5 @@
 open Base_memory
+open Machine
 
 class subsystem =
     object (self)

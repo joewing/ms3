@@ -7,6 +7,8 @@ let read_hex ch =
             helper @@ value * 16 + (int_of_char c) - (int_of_char '0')
         else if c >= 'a' && c <= 'f' then
             helper @@ value * 16 + (int_of_char c) - (int_of_char 'a') + 10
+        else if c >= 'A' && c <= 'F' then
+            helper @@ value * 16 + (int_of_char c) - (int_of_char 'a') + 10
         else value
     in helper 0
 ;;
