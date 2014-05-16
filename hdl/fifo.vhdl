@@ -95,7 +95,8 @@ begin
                             read_ptr <= (read_ptr + 1) mod DEPTH;
                             count <= count - 1;
                             read_outstanding <= '1';
-                        elsif count /= DEPTH and write_pending = '1' then
+                        elsif count /= DEPTH and write_pending = '1'
+                            and read_outstanding = '0' then
                             mem_we <= '1';
                             started <= '1';
                             mem_addr <= std_logic_vector(
@@ -109,12 +110,14 @@ begin
                         mem_out <= din;
                         write_pending <= '1';
                     end if;
-                    if re = '1' and read_pending = '0' then
+                    if re = '1' and read_pending = '1' then
                         read_pending <= '0';
                     end if;
                 end if;
             end if;
         end process;
+        full <= write_pending;
+        avail <= read_pending;
         mem_mask <= (others => '1');
     end generate;
 
