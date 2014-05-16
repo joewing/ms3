@@ -56,10 +56,13 @@ begin
                 end if;
             end if;
         end process;
+        full <= '0' when count = 0 else '1';
+        avail <= '0' when count = 0 else '1';
         mem_re <= '0';
         mem_we <= '0';
         mem_addr <= (others => 'X');
         mem_out <= (others => 'X');
+        mem_mask <= (others => 'X');
     end generate;
 
     gen_fifo : if DEPTH > 1 generate
@@ -112,8 +115,7 @@ begin
                 end if;
             end if;
         end process;
+        mem_mask <= (others => '1');
     end generate;
-
-    mem_mask <= (others => '1');
 
 end rtl;
