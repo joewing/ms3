@@ -29,6 +29,18 @@ class Split(container.Container):
         result += ')'
         return result
 
+    def get_parameter_count(self):
+        count = container.Container.get_parameter_count(self)
+        count += self.bank0.get_parameter_count()
+        count += self.bank1.get_parameter_count()
+        return count + 1
+
+    def get_size(self):
+        size = container.Container.get_size(self)
+        size += self.bank0.get_size()
+        size += self.bank1.get_size()
+        return size + 1
+
     def get_word_size(self):
         return self.mem.get_word_size()
 

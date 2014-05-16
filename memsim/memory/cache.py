@@ -99,6 +99,10 @@ class Cache(container.Container):
         result += ')'
         return result
 
+    def get_parameter_count(self):
+        count = container.Container.get_parameter_count(self)
+        return count + 5
+
     def generate(self, gen, source):
         name = source.get_id() + self.get_id()
         word_size = self.get_word_size()

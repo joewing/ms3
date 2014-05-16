@@ -2,6 +2,7 @@ from memsim import parser
 from memsim.access import AccessType
 from memsim.benchmarks import base
 
+
 class Split(base.Benchmark):
     """Benchmark to split a stream."""
 

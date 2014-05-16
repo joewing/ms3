@@ -197,25 +197,28 @@ class MemoryOptimizer(Optimizer):
             max_size -= b.get_size(self.directory)
         while True:
 
-            # Select an action to perform.  We make multiple
-            # attempts to use the selected action.
-            action = self.rand.randint(0, 7)
+            # Select a memory to modify.
+            # Note that we do not attempt to modify a memory subsystem
+            # unless it is actually used, which we determine using
+            # Distribution.is_empty.
+            current = last.clone()
+            while True:
+                mem = current.choice(self.rand)
+                dist = self.dist.get_distribution(mem)
+                if not dist.is_empty():
+                    break
+            count = mem.count()
+            parameter_count = mem.get_parameter_count()
+            mem_size = mem.get_size()
+
+            # Select an action to perform.
+            # We make multiple attempts for the selected action
+            # and memory subsystem before trying something new.
+            action = self.rand.randint(0, 1 + parameter_count + mem_size)
             for i in xrange(100):
 
-                # Select a memory to modify.
-                # Note that we do not attempt to modify a memory subsystem
-                # unless it is actually used, which we determine using
-                # Distribution.is_empty.
-                current = last.clone()
-                while True:
-                    mem = current.choice(self.rand)
-                    dist = self.dist.get_distribution(mem)
-                    if not dist.is_empty():
-                        break
-                count = mem.count()
-
                 # Modify the memory.
-                if action == 0:  # Insert 1/8
+                if action == 0:  # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
@@ -223,7 +226,7 @@ class MemoryOptimizer(Optimizer):
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
-                elif action <= 3 and count > 1:  # Remove 3/8
+                elif action <= mem_size:  # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
@@ -231,7 +234,7 @@ class MemoryOptimizer(Optimizer):
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
                             return current
-                else:   # Permute  4/8
+                else:   # Permute
                     index = self.rand.randint(0, count - 1)
                     if self.permute(dist, mem, index, max_cost, max_size):
                         if current.get_max_path_length() <= max_path:

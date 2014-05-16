@@ -34,6 +34,10 @@ class FIFO(subsystem.Subsystem):
         result += ')'
         return result
 
+    def get_parameter_count(self):
+        count = subsystem.Subsystem.get_parameter_count(self)
+        return count + 1
+
     def total_size(self):
         return self.depth * self.word_size
 
@@ -98,7 +102,8 @@ class FIFO(subsystem.Subsystem):
             self.min_time = self.machine.time + result
             return result
         else:
-            result = subsystem.Subsystem.process(self, start, write, addr, size)
+            result = subsystem.Subsystem.process(self, start, write,
+                                                 addr, size)
             self.min_time = self.machine.time + result
             return result
 

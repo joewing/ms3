@@ -34,6 +34,14 @@ class Memory(object):
         """Get the name of this memory subsystem."""
         return str(self)
 
+    def get_parameter_count(self):
+        """Get the number of parameters."""
+        return 0
+
+    def get_size(self):
+        """Get the size of this memory subsystem."""
+        return 1
+
     @abstractmethod
     def can_remove(self):
         """Determine if this memory component can be removed."""

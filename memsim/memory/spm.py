@@ -45,6 +45,10 @@ class SPM(container.Container):
         result += ')'
         return result
 
+    def get_parameter_count(self):
+        count = container.Container.get_parameter_count(self)
+        return count + 2
+
     def get_word_size(self):
         return self.word_size
 

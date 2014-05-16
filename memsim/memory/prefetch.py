@@ -25,6 +25,10 @@ class Prefetch(container.Container):
         result += ")"
         return result
 
+    def get_parameter_count(self):
+        count = container.Container.get_parameter_count(self)
+        return count + 1
+
     def get_word_size(self):
         return self.mem.get_word_size()
 

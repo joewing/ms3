@@ -8,6 +8,12 @@ class Container(base.Memory):
         base.Memory.__init__(self)
         self.mem = mem
 
+    def get_parameter_count(self):
+        return self.mem.get_parameter_count()
+
+    def get_size(self):
+        return 1 + self.mem.get_size()
+
     def can_remove(self):
         return all(map(lambda b: isinstance(b, join.Join), self.get_banks()))
 

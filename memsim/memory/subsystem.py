@@ -32,6 +32,9 @@ class Subsystem(base.Memory):
         result += ')'
         return result
 
+    def get_parameter_count(self):
+        return self.mem.get_parameter_count()
+
     def get_word_size(self):
         return self.word_size
 

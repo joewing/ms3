@@ -55,7 +55,7 @@ def dump_spec(db, experiments):
         if key in names:
             bname, _, _ = db.get_best(mname)
             m = model.parse_model(lex.Lexer(StringIO(mname)))
-            m.memory =  memlist.parse_memory_list(lex.Lexer(StringIO(bname)))
+            m.memory = memlist.parse_memory_list(lex.Lexer(StringIO(bname)))
             print(m)
 
 

@@ -88,6 +88,10 @@ class Transform(container.Container):
         gen.leave()
         return name
 
+    def get_parameter_count(self):
+        count = container.Container.get_parameter_count(self)
+        return count + 1
+
     def get_banks(self):
         return [self.bank]
 
