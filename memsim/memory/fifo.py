@@ -80,6 +80,13 @@ class FIFO(subsystem.Subsystem):
         assert(self.total_size() <= max_size)
         return True
 
+    def simplify(self):
+        if self.depth == 1:
+            self.mem = self.get_main()
+        else:
+            self.mem = self.mem.simplify()
+        return self
+
     def done(self):
         t = subsystem.Subsystem.done(self)
         return max(t, self.min_time - self.machine.time)
