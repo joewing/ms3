@@ -33,6 +33,8 @@ class fifo =
 
         method is_empty = used = 0
 
+        method pending = max 0 (min_time - mach.time)
+
         method finish = max super#finish (min_time - mach.time)
 
         method private process start write addr size =
@@ -54,37 +56,34 @@ class fifo =
         method produce =
             if used = depth then
                 -1
-            else if mach.time < min_time then
-                min_time - mach.time
             else
+                let start = max 0 (min_time - mach.time) in
                 let addr = write_ptr * word_size in
                 begin
                     write_ptr <- (write_ptr + 1) mod depth;
                     used <- used + 1;
-                    self#process 0 true addr word_size
+                    self#process start true addr word_size
                 end
 
         method consume =
             if used == 0 then
                 -1
-            else if mach.time < min_time then
-                min_time - mach.time
             else
+                let start = max 0 (min_time - mach.time) in
                 let addr = read_ptr * word_size in
                 begin
                     read_ptr <- (read_ptr + 1) mod depth;
                     used <- used - 1;
-                    self#process 0 false addr word_size
+                    self#process start false addr word_size
                 end
 
         method peek offset =
             if used <= offset then
                 -1
-            else if mach.time < min_time then
-                min_time - mach.time
             else
+                let start = max 0 (min_time - mach.time) in
                 let temp = (read_ptr - offset) mod depth in
                 let addr = temp * word_size in
-                self#process 0 false addr word_size
+                self#process start false addr word_size
 
     end

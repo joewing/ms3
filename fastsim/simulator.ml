@@ -77,7 +77,8 @@ let produce sim proc (index : int) =
         else
             try
                 let c = Hashtbl.find sim.consumers index in
-                let t = sim.model.mach.time in
+                let pending = fifo#pending in
+                let t = sim.model.mach.time + pending in
                 Pq.push sim.heap t c;
                 Hashtbl.remove sim.consumers index
             with Not_found -> ()
@@ -94,7 +95,9 @@ let consume sim proc (index : int) =
         else
             try
                 let p = Hashtbl.find sim.producers index in
-                Pq.push sim.heap sim.model.mach.time p;
+                let pending = fifo#pending in
+                let t = sim.model.mach.time + pending in
+                Pq.push sim.heap t p;
                 Hashtbl.remove sim.producers index
             with Not_found -> ()
     end; rc
@@ -109,7 +112,9 @@ let peek sim proc (index : int) (offset : int) =
         else
             try
                 let p = Hashtbl.find sim.producers index in
-                Pq.push sim.heap sim.model.mach.time p;
+                let pending = fifo#pending in
+                let t = sim.model.mach.time + pending in
+                Pq.push sim.heap t p;
                 Hashtbl.remove sim.producers index
             with Not_found -> ()
     end; rc

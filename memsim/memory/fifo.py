@@ -54,6 +54,9 @@ class FIFO(subsystem.Subsystem):
     def is_empty(self):
         return self.used == 0
 
+    def get_pending(self):
+        return max(0, self.min_time - self.machine.time)
+
     def generate(self, gen, source):
         name = gen.get_name(source, self)
         word_size = self.get_word_size()
@@ -114,13 +117,12 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used == self.depth:
             return -1
-        elif self.machine.time < self.min_time:
-            return self.min_time - self.machine.time
         else:
+            start = max(0, self.min_time - self.machine.time)
             addr = self.write_ptr * self.word_size
             self.write_ptr = (self.write_ptr + 1) % self.depth
             self.used += 1
-            return self.process(0, True, addr, self.word_size)
+            return self.process(start, True, addr, self.word_size)
 
     def consume(self):
         """Remove a value from the FIFO.
@@ -129,13 +131,12 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used == 0:
             return -1
-        elif self.machine.time < self.min_time:
-            return self.min_time - self.machine.time
         else:
+            start = max(0, self.min_time - self.machine.time)
             addr = self.read_ptr * self.word_size
             self.read_ptr = (self.read_ptr + 1) % self.depth
             self.used -= 1
-            return self.process(0, False, addr, self.word_size)
+            return self.process(start, False, addr, self.word_size)
 
     def peek(self, offset):
         """Peek at a value on the FIFO.
@@ -145,12 +146,11 @@ class FIFO(subsystem.Subsystem):
         """
         if self.used <= offset:
             return -1
-        elif self.macine.time < self.min_time:
-            return self.min_time - self.machine.time
         else:
+            start = max(0, self.min_time - self.machine.time)
             temp = (self.read_ptr - offset) % self.depth
             addr = temp * self.word_size
-            return self.process(0, False, addr, self.word_size)
+            return self.process(start, False, addr, self.word_size)
 
 
 def _create_fifo(lexer, args):

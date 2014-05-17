@@ -45,11 +45,13 @@ class ProcessList(object):
 
         Returns the access cycle count or -1 if full.
         """
-        rc = self.ml.get_fifo(index).produce()
+        fifo = self.ml.get_fifo(index)
+        rc = fifo.produce()
         if rc < 0:
             self.producers[index] = p
         elif index in self.consumers:
-            self.heap.push(self.machine.time, self.consumers[index])
+            t = self.machine.time + fifo.get_pending()
+            self.heap.push(t, self.consumers[index])
             del self.consumers[index]
         return rc
 
@@ -58,11 +60,13 @@ class ProcessList(object):
 
         Returns the access cycle count or -1 if empty.
         """
-        rc = self.ml.get_fifo(index).consume()
+        fifo = self.ml.get_fifo(index)
+        rc = fifo.consume()
         if rc < 0:
             self.consumers[index] = p
         elif index in self.producers:
-            self.heap.push(self.machine.time, self.producers[index])
+            t = self.machine.time + fifo.get_pending()
+            self.heap.push(t, self.producers[index])
             del self.producers[index]
         return rc
 
@@ -71,11 +75,13 @@ class ProcessList(object):
 
         Returns the access cycle count or -1 if not available.
         """
-        rc = self.ml.get_fifo(index).peek(offset)
+        fifo = self.ml.get_fifo(index)
+        rc = fifo.peek(offset)
         if rc < 0:
             self.consumers[index] = p
         elif index in self.producers:
-            self.heap.push(self.machine.time, self.producers[index])
+            t = self.machine.time + fifo.get_pending()
+            self.heap.push(t, self.producers[index])
             del self.producers[index]
         return rc
 
