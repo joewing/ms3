@@ -6,6 +6,7 @@ class fifo =
         inherit subsystem as super
 
         val mutable min_depth : int = 1
+        val mutable bram : bool = false
         val mutable read_ptr : int = 0
         val mutable write_ptr : int = 0
         val mutable used : int = 0
@@ -17,6 +18,8 @@ class fifo =
             match name with
             | "depth" ->
                 depth <- max (int_of_string value) min_depth
+            | "bram" ->
+                bram <- value = "true"
             | "min_depth" ->
                 min_depth <- int_of_string value;
                 depth <- max depth min_depth
@@ -38,7 +41,7 @@ class fifo =
         method finish = max super#finish (min_time - mach.time)
 
         method private process start write addr size =
-            if depth = 1 then
+            if bram || depth = 1 then
                 let result = start + 1 in
                 begin
                     score <- score + result;
