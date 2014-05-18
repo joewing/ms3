@@ -6,6 +6,7 @@ entity fifo is
     generic (
         WIDTH       : natural := 8;
         ADDR_WIDTH  : natural := 32;
+        BRAM        : boolean := false; -- Set if implemented in BRAM.
         DEPTH       : natural := 1      -- Must be a power of 2.
     );
     port (
@@ -36,6 +37,8 @@ architecture rtl of fifo is
     signal read_pending     : std_logic;
     signal write_pending    : std_logic;
     signal read_outstanding : std_logic;
+    signal do_read          : std_logic;
+    signal do_write         : std_logic;
 
 begin
 
@@ -65,7 +68,35 @@ begin
         mem_mask <= (others => 'X');
     end generate;
 
-    gen_fifo : if DEPTH > 1 generate
+    gen_bram_fifo : if DEPTH > 1 and BRAM generate
+        do_write <= we when count /= DEPTH else '0';
+        do_read <= re when count /= 0 else '0';
+        process(clk)
+        begin
+            if rising_edge(clk) then
+                if rst = '1' then
+                    write_ptr <= 0;
+                    read_ptr <= 0;
+                    count <= 0;
+                else
+                    if do_write = '1' and do_read = '1' then
+                        write_ptr <= (write_ptr + 1) mod DEPTH;
+                        read_ptr <= (read_ptr + 1) mod DEPTH;
+                    elsif do_write = '1' then
+                        write_ptr <= (write_ptr + 1) mod DEPTH;
+                        count <= count + 1;
+                    elsif do_read = '1' then
+                        read_ptr <= (read_ptr + 1) mod DEPTH;
+                        count <= count - 1;
+                    end if;
+                end if;
+            end if;
+        end process;
+        full <= '1' when count = DEPTH else '0';
+        avail <= '0' when count = 0 else '1';
+    end generate;
+
+    gen_fifo : if DEPTH > 1 and not BRAM generate
         process(clk)
         begin
             if rising_edge(clk) then
