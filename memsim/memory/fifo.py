@@ -136,7 +136,7 @@ class FIFO(subsystem.Subsystem):
         return True
 
     def simplify(self):
-        if self.depth == 1:
+        if self.bram or self.depth == 1:
             self.mem = self.get_main()
         else:
             self.mem = self.mem.simplify()
