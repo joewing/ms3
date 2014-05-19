@@ -42,3 +42,9 @@ assert xor
 
 from memsim.memory import trace
 assert trace
+
+from memsim.memory import subsystem
+assert subsystem
+
+from memsim.memory import fifo
+assert fifo
