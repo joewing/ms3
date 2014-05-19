@@ -42,6 +42,12 @@ def run_xilinx(machine, mem, keep=False):
         word_size = mem.get_main().get_word_size()
         main = ram.RAM(word_size=word_size, latency=0)
         ml = mem
+    elif hasattr(mem, 'is_fifo'):
+        word_size = mem.get_word_size()
+        main = ram.RAM(word_size=word_size, latency=0)
+        mem.set_next(main)
+        ml = memlist.MemoryList(main)
+        ml.add_memory(mem)
     else:
         next_word_size = mem.get_next().get_word_size()
         main = ram.RAM(word_size=next_word_size, latency=0)
@@ -81,6 +87,7 @@ def run_xilinx(machine, mem, keep=False):
             f.write('vhdl work ' + old_dir + '/hdl/cache.vhdl\n')
             f.write('vhdl work ' + old_dir + '/hdl/combine.vhdl\n')
             f.write('vhdl work ' + old_dir + '/hdl/eor.vhdl\n')
+            f.write('vhdl work ' + old_dir + '/hdl/fifo.vhdl\n')
             f.write('vhdl work ' + old_dir + '/hdl/offset.vhdl\n')
             f.write('vhdl work ' + old_dir + '/hdl/prefetch.vhdl\n')
             f.write('vhdl work ' + old_dir + '/hdl/shift.vhdl\n')

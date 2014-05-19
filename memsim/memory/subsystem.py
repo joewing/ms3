@@ -32,6 +32,9 @@ class Subsystem(base.Memory):
         result += ')'
         return result
 
+    def is_fifo(self):
+        return False
+
     def get_parameter_count(self):
         return self.mem.get_parameter_count()
 

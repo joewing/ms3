@@ -1,7 +1,72 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+entity bram_fifo is
+    generic (
+        WIDTH       : natural := 8;
+        DEPTH       : natural := 1      -- Must be a power of 2.
+    );
+    port (
+        clk         : in  std_logic;
+        rst         : in  std_logic;
+        din         : in  std_logic_vector(WIDTH - 1 downto 0);
+        dout        : out std_logic_vector(WIDTH - 1 downto 0);
+        re          : in  std_logic;
+        we          : in  std_logic;
+        avail       : out std_logic;
+        full        : out std_logic
+    );
+end bram_fifo;
 
+architecture rtl of bram_fifo is
+
+    subtype item_type is std_logic_vector(WIDTH - 1 downto 0);
+    type item_array is array(0 to DEPTH - 1) of item_type;
+
+    signal data             : item_array;
+    signal read_ptr         : natural;
+    signal write_ptr        : natural;
+    signal count            : natural;
+    signal do_read          : std_logic;
+    signal do_write         : std_logic;
+
+begin
+
+    do_write <= we when count /= DEPTH else '0';
+    do_read <= re when count /= 0 else '0';
+    full <= '1' when count = DEPTH else '0';
+    avail <= '0' when count = 0 else '1';
+
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst = '1' then
+                write_ptr <= 0;
+                read_ptr <= 0;
+                count <= 0;
+            else
+                if do_write = '1' and do_read = '1' then
+                    data(write_ptr) <= din;
+                    write_ptr <= (write_ptr + 1) mod DEPTH;
+                    read_ptr <= (read_ptr + 1) mod DEPTH;
+                elsif do_write = '1' then
+                    data(write_ptr) <= din;
+                    write_ptr <= (write_ptr + 1) mod DEPTH;
+                    count <= count + 1;
+                elsif do_read = '1' then
+                    read_ptr <= (read_ptr + 1) mod DEPTH;
+                    count <= count - 1;
+                end if;
+                dout <= data(read_ptr);
+            end if;
+        end if;
+    end process;
+
+end rtl;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 entity fifo is
     generic (
         WIDTH       : natural := 8;
@@ -37,8 +102,6 @@ architecture rtl of fifo is
     signal read_pending     : std_logic;
     signal write_pending    : std_logic;
     signal read_outstanding : std_logic;
-    signal do_read          : std_logic;
-    signal do_write         : std_logic;
 
 begin
 
@@ -69,31 +132,21 @@ begin
     end generate;
 
     gen_bram_fifo : if DEPTH > 1 and BRAM generate
-        do_write <= we when count /= DEPTH else '0';
-        do_read <= re when count /= 0 else '0';
-        process(clk)
-        begin
-            if rising_edge(clk) then
-                if rst = '1' then
-                    write_ptr <= 0;
-                    read_ptr <= 0;
-                    count <= 0;
-                else
-                    if do_write = '1' and do_read = '1' then
-                        write_ptr <= (write_ptr + 1) mod DEPTH;
-                        read_ptr <= (read_ptr + 1) mod DEPTH;
-                    elsif do_write = '1' then
-                        write_ptr <= (write_ptr + 1) mod DEPTH;
-                        count <= count + 1;
-                    elsif do_read = '1' then
-                        read_ptr <= (read_ptr + 1) mod DEPTH;
-                        count <= count - 1;
-                    end if;
-                end if;
-            end if;
-        end process;
-        full <= '1' when count = DEPTH else '0';
-        avail <= '0' when count = 0 else '1';
+        bf : entity work.bram_fifo
+            generic map (
+                WIDTH => WIDTH,
+                DEPTH => DEPTH
+            )
+            port map (
+                clk => clk,
+                rst => rst,
+                din => din,
+                dout => dout,
+                re => re,
+                we => we,
+                avail => avail,
+                full => full
+            );
     end generate;
 
     gen_fifo : if DEPTH > 1 and not BRAM generate

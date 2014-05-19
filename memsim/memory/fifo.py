@@ -1,5 +1,5 @@
 from memsim import parser
-from memsim.memory import subsystem, base
+from memsim.memory import subsystem, base, xilinx
 from memsim.machine import TargetType
 
 
@@ -39,12 +39,22 @@ class FIFO(subsystem.Subsystem):
         result += ')'
         return result
 
+    def is_fifo(self):
+        return True
+
     def get_parameter_count(self):
         count = subsystem.Subsystem.get_parameter_count(self)
         return count + 1
 
     def total_size(self):
         return self.depth * self.word_size
+
+    def get_cost(self):
+        target = self.machine.target
+        if self.bram and self.depth > 1 and target == TargetType.FPGA:
+            return xilinx.get_bram_count(self.machine, self)
+        else:
+            return subsystem.Subsystem.get_cost(self)
 
     def reset(self, machine):
         subsystem.Subsystem.reset(self, machine)
@@ -205,7 +215,7 @@ def _create_fifo(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
     depth = parser.get_argument(lexer, args, 'depth', 1)
-    bram = parser.get_argument(lexer, args, 'bram', False)
+    bram = parser.get_argument(lexer, args, 'bram', True)
     min_depth = parser.get_argument(lexer, args, 'min_depth', 1)
     mem = parser.get_argument(lexer, args, 'memory')
     return FIFO(index=index, mem=mem, depth=depth, min_depth=min_depth,

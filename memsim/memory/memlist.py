@@ -3,8 +3,6 @@ import copy
 from memsim import lex
 from memsim.memory.base import parse_memory
 from memsim.memory.main import MainMemory
-from memsim.memory.fifo import FIFO
-from memsim.memory.subsystem import Subsystem
 
 
 def _get_weight(m):
@@ -44,12 +42,10 @@ class MemoryList(object):
 
     def update(self, mem):
         index = mem.index
-        if isinstance(mem, FIFO):
+        if mem.is_fifo():
             self.fifos[index] = mem
-        elif isinstance(mem, Subsystem):
-            self.subsystems[index] = mem
         else:
-            assert(False)
+            self.subsystems[index] = mem
 
     def get_main(self):
         return self.main_memory
@@ -75,7 +71,7 @@ class MemoryList(object):
         for m in self.active_subsystems():
             yield m
         for m in self.active_fifos():
-            if m.depth > 1:
+            if m.depth > 1 and not m.bram:
                 yield m
 
     def active_fifos(self):
@@ -99,12 +95,10 @@ class MemoryList(object):
     def add_memory(self, mem):
         mem = mem.set_main(self.main_memory)
         index = mem.index
-        if isinstance(mem, FIFO):
+        if mem.is_fifo():
             self._insert(self.fifos, index, mem)
-        elif isinstance(mem, Subsystem):
-            self._insert(self.subsystems, index, mem)
         else:
-            assert(False)
+            self._insert(self.subsystems, index, mem)
 
     def get_cost(self):
         return sum([m.get_total_cost() for m in self.all_memories()])
@@ -135,7 +129,7 @@ def parse_memory_list(lexer):
         mem = parse_memory(lexer)
         if isinstance(mem, MainMemory):
             main = mem
-        elif isinstance(mem, FIFO) or isinstance(mem, Subsystem):
+        elif hasattr(mem, 'is_fifo'):
             memories.append(mem)
         else:
             raise lex.ParseError(lexer, 'invalid top-level memory')
