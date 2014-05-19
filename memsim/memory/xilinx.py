@@ -47,6 +47,7 @@ def run_xilinx(machine, mem, keep=False):
         main = ram.RAM(word_size=word_size, latency=0)
         mem.set_next(main)
         ml = memlist.MemoryList(main)
+        mem.index = 1
         ml.add_memory(mem)
     else:
         next_word_size = mem.get_next().get_word_size()
