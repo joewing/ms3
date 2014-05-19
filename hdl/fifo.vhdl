@@ -27,15 +27,16 @@ architecture rtl of bram_fifo is
     signal read_ptr         : natural;
     signal write_ptr        : natural;
     signal count            : natural;
+    signal read_ready       : std_logic;
     signal do_read          : std_logic;
     signal do_write         : std_logic;
 
 begin
 
+    do_read <= (re or not read_ready) when count /= 0 else '0';
     do_write <= we when count /= DEPTH else '0';
-    do_read <= re when count /= 0 else '0';
     full <= '1' when count = DEPTH else '0';
-    avail <= '0' when count = 0 else '1';
+    avail <= read_ready;
 
     process(clk)
     begin
@@ -44,6 +45,7 @@ begin
                 write_ptr <= 0;
                 read_ptr <= 0;
                 count <= 0;
+                read_ready <= '0';
             else
                 if do_write = '1' and do_read = '1' then
                     data(write_ptr) <= din;
@@ -58,6 +60,7 @@ begin
                     count <= count - 1;
                 end if;
                 dout <= data(read_ptr);
+                read_ready <= do_read or (read_ready and not re);
             end if;
         end if;
     end process;
