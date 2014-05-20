@@ -1,0 +1,57 @@
+(machine
+    (addr_bits  26)
+    (target     fpga)
+    (part       xc6slx45)
+    (frequency  100000000)
+    (max_cost   87)
+)
+(memory
+  (main (memory
+    (dram
+        (frequency 100000000)
+        (cas_cycles 3)
+        (rcd_cycles 3)
+        (rp_cycles 3)
+        (page_size 1024)
+        (page_count 8192)
+        (width 2)
+        (burst_size 8)
+        (open_page true)
+        (ddr true)
+    )
+  ))
+    (subsystem (id 1)(depth 624)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 3)(depth 0)(word_size 4)
+        (memory (main))
+    )
+    (subsystem (id 4)(depth 2048)(word_size 4)
+        (memory (main))
+    )
+    (fifo (id 1)(depth 1)(word_size 4)
+        ; 2 -> 1
+        (memory (main))
+    )
+    (fifo (id 2)(depth 1)(word_size 4)
+        ; 1 -> 3
+        (memory (main))
+    )
+    (fifo (id 3)(depth 1)(word_size 4)
+        ; 3 -> 4
+        (memory (main))
+    )
+    (fifo (id 4)(depth 1)(word_size 4)
+        ; 3 -> 4
+        (memory (main))
+    )
+    (fifo (id 5)(depth 1)(word_size 1)
+        ; 4 -> 5
+        (memory (main))
+    )
+)
+(benchmarks
+    (trace (id 1)(name kernel41))
+    (trace (id 3)(name kernel13))
+    (trace (id 4)(name kernel24))
+)
