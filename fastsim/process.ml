@@ -1,6 +1,5 @@
 open Base_memory
 open Benchmark
-open Trace
 
 type process = {
     produce : process -> int -> int;
