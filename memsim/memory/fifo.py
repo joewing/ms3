@@ -142,7 +142,7 @@ class FIFO(subsystem.Subsystem):
                 if self.get_cost() <= max_cost:
                     return True
                 self.depth //= 2
-            elif action == 2 and self.total_size() // 2 >= self.min_depth:
+            elif action == 2 and self.depth // 2 >= self.min_depth:
                 self.depth //= 2
                 if self.get_cost() <= max_cost:
                     return True
