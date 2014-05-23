@@ -54,18 +54,16 @@ begin
    process(clk)
    begin
       if rising_edge(clk) then
-         if rst = '0' then
-            if rwe = '1' then
-               for b in 0 to WORD_BYTES - 1 loop
-                  if rmask(b) = '1' then
-                     data(b)(raddr) <= rin(b * 8 + 7 downto b * 8);
-                  end if;
-               end loop;
-            elsif rre = '1' then
-               for b in 0 to WORD_BYTES - 1 loop
-                  value(b * 8 + 7 downto b * 8) <= data(b)(raddr);
-               end loop;
-            end if;
+         if rwe = '1' then
+            for b in 0 to WORD_BYTES - 1 loop
+               if rmask(b) = '1' then
+                  data(b)(raddr) <= rin(b * 8 + 7 downto b * 8);
+               end if;
+            end loop;
+         elsif rre = '1' then
+            for b in 0 to WORD_BYTES - 1 loop
+               value(b * 8 + 7 downto b * 8) <= data(b)(raddr);
+            end loop;
          end if;
       end if;
    end process;
