@@ -1,7 +1,5 @@
-
-from memsim import parser
-from memsim.memory import base
-from memsim.memory import container
+from memsim import parser, machine
+from memsim.memory import base, container, xilinx
 
 
 def random_prefetch(machine, nxt, rand, cost):
@@ -36,6 +34,11 @@ class Prefetch(container.Container):
         incoming += self.machine.addr_bits
         nl = container.Container.get_path_length(self, incoming)
         return max(incoming, nl)
+
+    def get_cost(self):
+        temp = Prefetch(self.get_next(), self.get_word_size())
+        temp.reset(self.machine)
+        return container.Container.get_cost(temp)
 
     def generate(self, gen, source):
         name = gen.get_name(source, self)
@@ -76,9 +79,14 @@ class Prefetch(container.Container):
         gen.leave()
         return name
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
+        stride = self.stride
         self.stride = self.get_word_size() * rand.randint(-8, 8)
-        return True
+        if self.get_cost() > max_cost:
+            self.stride = stride
+            return False
+        else:
+            return True
 
     def set_next(self, n):
         container.Container.set_next(self, n)

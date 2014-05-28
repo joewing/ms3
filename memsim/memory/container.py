@@ -1,4 +1,5 @@
-from memsim.memory import base, join
+from memsim import machine
+from memsim.memory import base, join, xilinx
 
 
 class Container(base.Memory):
@@ -13,6 +14,12 @@ class Container(base.Memory):
 
     def get_size(self):
         return 1 + self.mem.get_size()
+
+    def get_cost(self):
+        if self.machine.target == machine.TargetType.FPGA:
+            return xilinx.get_cost(self.machine, self)
+        else:
+            return base.Memory.get_cost(self)
 
     def can_remove(self):
         return all(map(lambda b: isinstance(b, join.Join), self.get_banks()))

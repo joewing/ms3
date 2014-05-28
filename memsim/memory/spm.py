@@ -1,4 +1,4 @@
-from memsim import machine, parser, util
+from memsim import machine, parser, util, cost
 from memsim.memory import base, cacti, container, xilinx
 
 
@@ -102,19 +102,22 @@ class SPM(container.Container):
 
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
-            return self.size * self.word_size
+            return cost.Cost(self.size * self.word_size)
         elif self.machine.target == machine.TargetType.ASIC:
-            return cacti.get_area(self.machine, self)
+            return cost.Cost(cacti.get_area(self.machine, self))
         elif self.machine.target == machine.TargetType.FPGA:
-            return xilinx.get_bram_count(self.machine, self)
+            return xilinx.get_cost(self.machine, self)
         else:
             assert(False)
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         result = True
         temp = rand.randint(0, 3)
         if temp == 0 and self.size > self.word_size:
             self.size //= 2
+            if self.get_cost() > max_cost:
+                self.size *= 2
+                result = False
         elif temp == 1:
             self.size *= 2
             if self.get_cost() > max_cost:
@@ -122,6 +125,9 @@ class SPM(container.Container):
                 result = False
         elif temp == 2 and self.word_size > 1:
             self.word_size //= 2
+            if self.get_cost() > max_cost:
+                self.size *= 2
+                result = False
         elif temp == 3 and self.size > self.word_size:
             self.word_size *= 2
             if self.get_cost() > max_cost:

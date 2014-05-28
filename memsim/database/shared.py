@@ -65,11 +65,14 @@ class SharedDatabase(base.BaseDatabase):
             self.fpga_cache[name_hash] = result
         return result
 
-    def add_fpga_result(self, name, frequency, bram_count):
+    def add_fpga_result(self, name, frequency, bram_count,
+                        lut_count, reg_count):
         name_hash = self.get_hash(name)
-        self.fpga_cache[name_hash] = (frequency, bram_count)
+        self.fpga_cache[name_hash] = (frequency, bram_count,
+                                      lut_count, reg_count)
         return self._execute('add_fpga_result', False,
-                             name, frequency, bram_count)
+                             name, frequency, bram_count,
+                             lut_count, reg_count)
 
     def get_cacti_result(self, name):
         name_hash = self.get_hash(name)

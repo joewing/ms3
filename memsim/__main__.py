@@ -72,12 +72,12 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
         print('Threads: {}    Database requests: {} / {}'
               .format(thread_count, request_count, send_count))
-        print('  {:<20}{:<12}{:<12}{:<12}{}'
+        print('  {:<20}{:<12}{:<20}{:<12}{}'
               .format('name', 'value', 'cost', 'evaluation', 'status'))
         for ident in data:
             marker = '> ' if key == ident else '  '
             name, value, cost, ev, stat = data[ident]
-            print('{:<2}{:<20}{:<12}{:<12}{:<12}{}'
+            print('{:<2}{:<20}{:<12}{:<20}{:<12}{}'
                   .format(marker, name, value, cost, ev, stat))
         print()
 

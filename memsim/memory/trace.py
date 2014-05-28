@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 from memsim import parser
@@ -12,6 +11,9 @@ class Trace(container.Container):
 
     def __str__(self):
         return '(trace (memory ' + str(self.mem.get_name()) + '))'
+
+    def get_cost(self):
+        return self.machine.get_zero_cost()
 
     def generate(self, gen, source):
         return self.get_next().generate(gen, source)

@@ -93,19 +93,19 @@ class MemoryOptimizer(Optimizer):
         result.reset(self.model.machine)
         return result
 
-    def permute(self, dist, mem, index, max_cost, max_size):
+    def permute(self, dist, mem, index, max_cost):
         """Permute a specific memory component.
             Returns True if successful.
         """
         assert(index >= 0)
         if index == 0:
             mc = max_cost + mem.get_cost()
-            return mem.permute(dist, mc, max_size)
+            return mem.permute(dist, mc)
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
-            result = self.permute(dist, n, index - 1, max_cost, max_size)
+            result = self.permute(dist, n, index - 1, max_cost)
             mem.pop_transform(dist)
             return result
         t = nc + 1
@@ -114,8 +114,7 @@ class MemoryOptimizer(Optimizer):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
-                result = self.permute(dist, banks[i], index - t,
-                                      max_cost, max_size)
+                result = self.permute(dist, banks[i], index - t, max_cost)
                 mem.pop_transform(dist)
                 return result
             t += c
@@ -186,15 +185,14 @@ class MemoryOptimizer(Optimizer):
 
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
-        max_cost = self.model.machine.max_cost - last.get_cost()
-        max_size = 1 << self.model.machine.addr_bits
+        max_cost = self.model.machine.get_max_cost() - last.get_cost()
         for f in last.all_fifos():
-            max_size -= f.total_size()
-            max_size -= f.get_word_size()
+            max_cost.size -= f.total_size()
+            max_cost.size -= f.get_word_size()
         for b in self.model.benchmarks:
             m = last.get_subsystem(b.index)
-            max_size -= m.get_word_size()
-            max_size -= b.get_size(self.directory)
+            max_cost.size -= m.get_word_size()
+            max_cost.size -= b.get_size(self.directory)
         while True:
 
             # Select a memory to modify.
@@ -236,7 +234,7 @@ class MemoryOptimizer(Optimizer):
                             return current
                 else:   # Permute
                     index = self.rand.randint(0, count - 1)
-                    if self.permute(dist, mem, index, max_cost, max_size):
+                    if self.permute(dist, mem, index, max_cost):
                         if current.get_max_path_length() <= max_path:
                             return current
 

@@ -4,23 +4,31 @@ import tempfile
 import shutil
 import re
 
-from memsim import database
-from memsim import vhdl
+from memsim import database, vhdl, cost
 from memsim.memory import ram, memlist, subsystem
 
 
-freq_regex = re.compile("Maximum Frequency: +([0-9\.]+)")
-bram_regex = re.compile("Block RAM/FIFO: +([0-9]+)")
+freq_regex = re.compile(r'Maximum Frequency: +([0-9\.]+)')
+bram_regex = re.compile(r'Block RAM/FIFO: +([0-9]+)')
+reg_regex = re.compile(r'Number of Slice Registers: +([0-9]+)')
+lut_regex = re.compile(r'Number of Slice LUTs: +([0-9]+)')
 
 
 class XilinxResult(object):
 
-    def __init__(self, frequency=1.0, bram_count=1 << 31):
+    def __init__(self,
+                 frequency=1.0,
+                 bram_count=1 << 31,
+                 lut_count=1 << 31,
+                 register_count=1 << 31):
         self.frequency = frequency
         self.bram_count = bram_count
+        self.lut_count = lut_count
+        self.register_count = register_count
 
     def get_pair(self):
-        return (self.frequency, self.bram_count)
+        return (self.frequency, self.bram_count,
+                self.lut_count, self.register_count)
 
     def __eq__(self, other):
         return self.get_pair() == other.get_pair()
@@ -62,7 +70,7 @@ def run_xilinx(machine, mem, keep=False):
     db = database.get_instance()
     temp = db.get_fpga_result(name)
     if temp:
-        return XilinxResult(temp[0], temp[1])
+        return XilinxResult(temp[0], temp[1], temp[2], temp[3])
 
     # Create a directory for this run.
     old_dir = os.getcwd()
@@ -114,11 +122,21 @@ def run_xilinx(machine, mem, keep=False):
             buf = f.read()
         m = freq_regex.search(buf)
         if m is None:
-            raise Exception("Could not determine frequency")
+            raise Exception('Could not determine frequency')
         result.frequency = float(m.group(1)) * 1000000.0
         m = bram_regex.search(buf)
         if m is not None:
-            result.bram_count = max(1, int(m.group(1)))
+            result.bram_count = int(m.group(1))
+        else:
+            result.bram_count = 0
+        m = reg_regex.search(buf)
+        if m is None:
+            raise Exception('Could not determine slice registers')
+        result.register_count = int(m.group(1))
+        m = lut_regex.search(buf)
+        if m is None:
+            raise Exception('Could not determine slice LUTs')
+        result.lut_count = int(m.group(1))
 
         # Delete the project directory only if successful.
         os.chdir(old_dir)
@@ -128,7 +146,8 @@ def run_xilinx(machine, mem, keep=False):
             shutil.rmtree(dname)
 
         # Save and return the result.
-        db.add_fpga_result(name, result.frequency, result.bram_count)
+        db.add_fpga_result(name, result.frequency, result.bram_count,
+                           result.lut_count, result.register_count)
         return result
 
     except Exception as e:
@@ -142,10 +161,16 @@ def get_frequency(machine, mem):
     return run_xilinx(machine, mem).frequency
 
 
-def get_bram_count(machine, mem):
-    """Get the number of BRAMs for this memory component."""
+def get_cost(machine, mem):
+    """Get the cost of this memory component."""
     result = run_xilinx(machine, mem)
     if result.frequency >= machine.frequency:
-        return result.bram_count
+        size = 0
+        if hasattr(mem, 'is_fifo'):
+            size = mem.total_size()
+        return cost.Cost(cost=result.bram_count,
+                         size=size,
+                         luts=result.lut_count,
+                         regs=result.register_count)
     else:
-        return 1 << 31
+        return cost.Cost(cost=1 << 31)

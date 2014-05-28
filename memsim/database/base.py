@@ -47,7 +47,8 @@ class BaseDatabase(object):
         return None
 
     @abstractmethod
-    def add_fpga_result(self, key, frequency, bram_count):
+    def add_fpga_result(self, key, frequency, bram_count,
+                        lut_count, reg_count):
         """Save FPGA timing data."""
         return True
 

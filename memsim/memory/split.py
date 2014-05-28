@@ -7,6 +7,7 @@ def random_split(machine, nxt, rand, cost):
     bank0 = join.Join(0)
     bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
+    result.reset(machine)
     return result if result.get_cost() <= cost else None
 
 
@@ -142,6 +143,12 @@ class Split(container.Container):
         gen.leave()
         return name
 
+    def get_cost(self):
+        temp = Split(join.Join(0), join.Join(1), self.get_next(),
+                     self.get_word_size())
+        temp.reset(self.machine)
+        return container.Container.get_cost(temp)
+
     def get_next(self):
         return self.mem
 
@@ -158,24 +165,39 @@ class Split(container.Container):
         else:
             self.bank1 = b
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         action = rand.randint(0, 3)
         if action == 0:
             # Decrement the offset.
+            offset = self.offset
             self.offset -= 1
             if self.offset < rand.get_min_address():
                 self.offset = rand.get_max_address()
+            if self.get_cost() > max_cost:
+                self.offset = offset
+                return False
         elif action == 1:
             # Increment the offset.
+            offset = self.offset
             self.offset += 1
             if self.offset > rand.get_max_address():
                 self.offset = rand.get_min_address()
+            if self.get_cost() > max_cost:
+                self.offset = offset
+                return False
         elif action == 2:
             # Generate a new offset from the prior.
+            offset = self.offset
             self.offset = rand.random_address(self.get_word_size())
+            if self.get_cost() > max_cost:
+                self.offset = offset
+                return False
         else:
             # Swap banks.
             self.bank0, self.bank1 = self.bank1, self.bank0
+            if self.get_cost() > max_cost:
+                self.bank0, self.bank1 = self.bank1, self.bank0
+                return False
         return True
 
     def simplify(self):

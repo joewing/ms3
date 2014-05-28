@@ -1,4 +1,4 @@
-from memsim import lex, machine, parser, util
+from memsim import lex, machine, parser, util, cost
 from memsim.memory import base, cacti, container, xilinx
 
 
@@ -195,13 +195,13 @@ class Cache(container.Container):
                 width += 1
             width *= self.associativity
             depth = self.line_count // self.associativity
-            return width * depth
+            return cost.Cost(width * depth)
         if self.machine.target == machine.TargetType.ASIC:
-            return cacti.get_area(self.machine, self)
+            return cost.Cost(cacti.get_area(self.machine, self))
         elif self.machine.target == machine.TargetType.FPGA:
-            return xilinx.get_bram_count(self.machine, self)
+            return xilinx.get_cost(self.machine, self)
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         param_count = 8
         param = rand.randint(0, param_count - 1)
         line_size = self.line_size

@@ -270,8 +270,6 @@ begin
     begin
         if rising_edge(clk) and rst = '0' then
             if ram_re = '1' then
-                assert mem_ready = '0'
-                    report "read when not ready" severity failure;
                 assert mem_we = '0'
                     report "read and write" severity failure;
             elsif ram_we = '1' then

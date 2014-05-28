@@ -1,7 +1,5 @@
 from memsim import parser
-from memsim.memory import base
-from memsim.memory import join
-from memsim.memory import transform
+from memsim.memory import base, join, transform
 
 
 def random_offset(machine, nxt, rand, cost):
@@ -10,7 +8,9 @@ def random_offset(machine, nxt, rand, cost):
         offset = rand.randint(-word_size, word_size)
     else:
         offset = -rand.random_address(word_size)
-    return Offset(join.Join(), nxt, offset)
+    result = Offset(join.Join(), nxt, offset)
+    result.reset(machine)
+    return result if result.get_cost() <= cost else None
 
 
 class Offset(transform.Transform):
@@ -31,6 +31,11 @@ class Offset(transform.Transform):
         value = self.offset
         return self.generate_transform("offset", value, -value, gen, source)
 
+    def get_cost(self):
+        temp = Offset(join.Join(), self.get_next(), self.get_word_size())
+        temp.reset(self.machine)
+        return transform.Transform.get_cost(temp)
+
     def is_empty(self):
         return self.offset == 0
 
@@ -38,13 +43,18 @@ class Offset(transform.Transform):
         assert(isinstance(other, Offset))
         self.offset += other.offset
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         word_size = self.get_word_size()
+        offset = self.offset
         if rand.randbool():
             self.offset = rand.randint(-word_size, word_size)
         else:
             self.offset = -rand.random_address(word_size)
-        return True
+        if self.get_cost() > max_cost:
+            self.offset = offset
+            return False
+        else:
+            return True
 
     def push_transform(self, index, rand):
         if index == 0:

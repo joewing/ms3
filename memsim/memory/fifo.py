@@ -52,7 +52,7 @@ class FIFO(subsystem.Subsystem):
     def get_cost(self):
         target = self.machine.target
         if self.bram and self.depth > 1 and target == TargetType.FPGA:
-            return xilinx.get_bram_count(self.machine, self)
+            return xilinx.get_cost(self.machine, self)
         else:
             return subsystem.Subsystem.get_cost(self)
 
@@ -127,8 +127,7 @@ class FIFO(subsystem.Subsystem):
         gen.leave()
         return name
 
-    def permute(self, rand, max_cost, max_size):
-        max_size += self.total_size()
+    def permute(self, rand, max_cost):
         action_count = 3
         action = rand.randint(0, action_count - 1)
         for i in xrange(action_count):
@@ -137,7 +136,7 @@ class FIFO(subsystem.Subsystem):
                 if self.get_cost() <= max_cost:
                     return True
                 self.bram = not self.bram
-            elif action == 1 and self.total_size() * 2 <= max_size:
+            elif action == 1:
                 self.depth *= 2
                 if self.get_cost() <= max_cost:
                     return True
@@ -149,7 +148,7 @@ class FIFO(subsystem.Subsystem):
                 self.depth *= 2
             action = (action + 1) % action_count
         assert(self.depth >= self.min_depth)
-        assert(self.total_size() <= max_size)
+        assert(self.get_cost() <= max_cost)
         return False
 
     def simplify(self):

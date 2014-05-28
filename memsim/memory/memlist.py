@@ -6,7 +6,8 @@ from memsim.memory.main import MainMemory
 
 
 def _get_weight(m):
-    return (m.get_cost() + 1) * m.score
+    cost = m.get_cost()
+    return (cost.cost + 1) * m.score
 
 
 class MemoryList(object):
@@ -101,7 +102,10 @@ class MemoryList(object):
             self._insert(self.subsystems, index, mem)
 
     def get_cost(self):
-        return sum([m.get_total_cost() for m in self.all_memories()])
+        result = self.main_memory.machine.get_zero_cost()
+        for m in self.all_memories():
+            result += m.get_total_cost()
+        return result
 
     def get_max_path_length(self):
         return max([m.get_path_length(0) for m in self.all_memories()])

@@ -33,7 +33,7 @@ architecture rtl of bram_fifo is
 
 begin
 
-    do_read <= (re or not read_ready) when count /= 0 else '0';
+    do_read <= (not read_ready) when count /= 0 else '0';
     do_write <= we when count /= DEPTH else '0';
     full <= '1' when count = DEPTH else '0';
     avail <= read_ready;
@@ -150,6 +150,11 @@ begin
                 avail => avail,
                 full => full
             );
+        mem_re <= '0';
+        mem_we <= '0';
+        mem_addr <= (others => 'X');
+        mem_out <= (others => 'X');
+        mem_mask <= (others => 'X');
     end generate;
 
     gen_fifo : if DEPTH > 1 and not BRAM generate

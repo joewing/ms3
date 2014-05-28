@@ -11,6 +11,9 @@ class Stats(container.Container):
     def __str__(self):
         return '(stats ' + self.mem.get_name() + ')'
 
+    def get_cost(self):
+        return self.machine.get_zero_cost()
+
     def generate(self, gen, source):
         return self.get_next().generate(gen, source)
 

@@ -1,4 +1,4 @@
-from memsim import lex, parser, util
+from memsim import lex, parser, util, cost
 
 
 class TargetType(object):
@@ -60,6 +60,8 @@ class MachineType(object):
                  addr_bits=32,
                  max_path_length=64,
                  max_cost=10000,
+                 max_luts=10000,
+                 max_regs=10000,
                  technology=0.045,
                  goal=GoalType.ACCESS_TIME,
                  part='xc7v585t'):
@@ -72,6 +74,8 @@ class MachineType(object):
         self.addr_mask = (1 << addr_bits) - 1
         self.max_path_length = max_path_length
         self.max_cost = max_cost
+        self.max_luts = max_luts
+        self.max_regs = max_regs
         self.time = 0
         self.ports = []
 
@@ -79,6 +83,8 @@ class MachineType(object):
         result = '(target ' + show_target(self.target) + ')'
         if self.target == TargetType.FPGA:
             result += '(part ' + str(self.part) + ')'
+            result += '(max_luts ' + str(self.max_luts) + ')'
+            result += '(max_regs ' + str(self.max_regs) + ')'
         elif self.target == TargetType.ASIC:
             result += '(technology ' + str(self.technology) + ')'
         if self.goal != GoalType.ACCESS_TIME:
@@ -88,6 +94,19 @@ class MachineType(object):
         result += '(max_path ' + str(self.max_path_length) + ')'
         result += '(max_cost ' + str(self.max_cost) + ')'
         return result
+
+    def get_zero_cost(self):
+        return cost.Cost(cost=0, size=0, luts=0, regs=0)
+
+    def get_max_cost(self):
+        if self.target == TargetType.FPGA:
+            return cost.Cost(cost=self.max_cost,
+                             size=1 << self.addr_bits,
+                             luts=self.max_luts,
+                             regs=self.max_regs)
+        else:
+            return cost.Cost(cost=self.max_cost,
+                             size=1 << self.addr_bits)
 
     def reset(self):
         self.time = 0
@@ -143,6 +162,8 @@ def parse_machine(lexer):
     part = parser.get_argument(lexer, args, 'part', 'xc7v585t')
     max_path = parser.get_argument(lexer, args, 'max_path', 64)
     max_cost = parser.get_argument(lexer, args, 'max_cost', 10000)
+    max_luts = parser.get_argument(lexer, args, 'max_luts', 10000)
+    max_regs = parser.get_argument(lexer, args, 'max_regs', 10000)
     tstr = parser.get_argument(lexer, args, 'target', 'simple')
     gstr = parser.get_argument(lexer, args, 'goal', 'access_time')
     target = parse_target(tstr)
@@ -157,5 +178,7 @@ def parse_machine(lexer):
                        addr_bits=addr_bits,
                        max_path_length=max_path,
                        max_cost=max_cost,
+                       max_luts=max_luts,
+                       max_regs=max_regs,
                        technology=technology,
                        part=part)

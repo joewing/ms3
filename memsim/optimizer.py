@@ -15,7 +15,7 @@ class Optimizer(object):
 
     def __str__(self):
         """Get a string to represent the current status."""
-        return '{}:{}[{}]'.format(self.steps, self.threshold, self.max_tries)
+        return '{}'.format(self.threshold)
 
     def load(self, db):
         """Load state from the database."""

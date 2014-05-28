@@ -36,6 +36,11 @@ function run()
 
 ghdl -a ram.vhdl arbiter.vhdl adapter.vhdl
 
+echo "Testing prefetch..."
+ghdl -a prefetch.vhdl
+echo "(prefetch (stride 16) (memory (main)))" > input.mem
+run
+
 echo "Testing cache..."
 ghdl -a cache.vhdl
 for ((lsize=8; lsize<=32; lsize=lsize*2)) ; do

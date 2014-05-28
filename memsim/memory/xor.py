@@ -1,13 +1,12 @@
-
 from memsim import parser
-from memsim.memory import base
-from memsim.memory import join
-from memsim.memory import transform
+from memsim.memory import base, join, transform
 
 
 def random_xor(machine, nxt, rand, cost):
     value = 1 << rand.randint(0, machine.addr_bits - 1)
-    return XOR(join.Join(), nxt, value)
+    result = XOR(join.Join(), nxt, value)
+    result.reset(machine)
+    return result if result.get_cost() <= cost else None
 
 
 class XOR(transform.Transform):
@@ -28,6 +27,11 @@ class XOR(transform.Transform):
         value = self.value
         return self.generate_transform('eor', value, value, gen, source)
 
+    def get_cost(self):
+        temp = XOR(join.Join(), self.get_next(), 1024)
+        temp.reset(self.machine)
+        return transform.Transform.get_cost(temp)
+
     def is_empty(self):
         return self.value == 0
 
@@ -35,8 +39,12 @@ class XOR(transform.Transform):
         assert(isinstance(other, XOR))
         self.value ^= other.value
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
+        value = self.value
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
+        if self.get_cost() > max_cost:
+            self.value = value
+            return False
         return True
 
     def push_transform(self, index, rand):

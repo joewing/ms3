@@ -9,7 +9,9 @@ def random_shift(machine, nxt, rand, cost):
     word_bits = util.get_bus_shift(word_size)
     bits = machine.addr_bits - word_bits - 1
     shift = rand.randint(-bits, bits)
-    return Shift(join.Join(), nxt, shift)
+    result = Shift(join.Join(), nxt, shift)
+    result.reset(machine)
+    return result if result.get_cost() <= cost else None
 
 
 class Shift(transform.Transform):
@@ -30,6 +32,11 @@ class Shift(transform.Transform):
         return self.generate_transform('shift', self.shift, -self.shift,
                                        gen, source)
 
+    def get_cost(self):
+        temp = Shift(join.Join(), self.get_next(), 5)
+        temp.reset(self.machine)
+        return transform.Transform.get_cost(temp)
+
     def reset(self, machine):
         transform.Transform.reset(self, machine)
         word_size = self.get_word_size()
@@ -44,11 +51,16 @@ class Shift(transform.Transform):
     def combine(self, other):
         self.shift += other.shift
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         word_bits = util.get_bus_shift(self.get_word_size())
+        shift = self.shift
         bits = self.machine.addr_bits - word_bits - 1
         self.shift = rand.randint(-bits, bits)
-        return True
+        if self.get_cost() > max_cost:
+            self.shift = shift
+            return False
+        else:
+            return True
 
     def push_transform(self, index, rand):
         if index == 0:

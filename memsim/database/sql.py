@@ -7,6 +7,7 @@ from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         UniqueConstraint, literal)
 from sqlalchemy.sql import select, and_, func, exists
 
+from memsim import cost
 from memsim.resultcache import ResultCache
 from memsim.database import base
 
@@ -48,6 +49,8 @@ fpga_results_table = Table(
     Column('name', Text, nullable=False),
     Column('frequency', Float, nullable=False),
     Column('bram_count', BigInteger, nullable=False),
+    Column('lut_count', BigInteger, nullable=False),
+    Column('reg_count', BigInteger, nullable=False),
     implicit_returning=False,
 )
 cacti_results_table = Table(
@@ -74,6 +77,8 @@ results_table = Table(
            nullable=False, index=True),
     Column('value', BigInteger, nullable=False),
     Column('cost', BigInteger, nullable=False),
+    Column('lut_count', BigInteger, nullable=False),
+    Column('reg_count', BigInteger, nullable=False),
     UniqueConstraint('model_id', 'memory_id'),
     implicit_returning=False,
 )
@@ -270,11 +275,15 @@ class SQLDatabase(base.BaseDatabase):
                 results_table.c.memory_id,
                 results_table.c.value,
                 results_table.c.cost,
+                results_table.c.lut_count,
+                results_table.c.reg_count,
             ], select([
                 literal(mod_id),
                 literal(mem_id),
                 literal(value),
-                literal(cost),
+                literal(cost.cost),
+                literal(cost.luts),
+                literal(cost.regs),
             ]).where(
                 ~exists([results_table.c.model_id]).where(
                     and_(
@@ -306,6 +315,8 @@ class SQLDatabase(base.BaseDatabase):
             memories_table.c.name,
             results_table.c.value,
             results_table.c.cost,
+            results_table.c.lut_count,
+            results_table.c.reg_count,
         ]).where(
             and_(
                 memories_table.c.id == results_table.c.memory_id,
@@ -314,15 +325,20 @@ class SQLDatabase(base.BaseDatabase):
             )
         ).order_by(
             results_table.c.cost,
+            results_table.c.lut_count,
+            results_table.c.reg_count,
             func.length(memories_table.c.name),
         )
         row = self._execute(stmt).first()
         if row:
+            c = cost.Cost(cost=row['cost'],
+                          luts=row['lut_count'],
+                          regs=row['reg_count'])
             self.best_time = datetime.now()
-            self.best = row['name'], row['value'], row['cost']
+            self.best = row['name'], row['value'], c
             return self.best
         else:
-            return None, 0, 0
+            return None, 0, cost.Cost()
 
     def get_result_count(self, mod):
         """Get the total number of results for the specified model."""
@@ -344,24 +360,29 @@ class SQLDatabase(base.BaseDatabase):
         # Check the database.
         stmt = select([
             fpga_results_table.c.frequency,
-            fpga_results_table.c.bram_count
+            fpga_results_table.c.bram_count,
+            fpga_results_table.c.lut_count,
+            fpga_results_table.c.reg_count,
         ]).where(
             fpga_results_table.c.name_hash == name_hash
         )
         row = self._execute(stmt).first()
         if row:
-            temp = (row['frequency'], row['bram_count'])
+            temp = (row['frequency'], row['bram_count'],
+                    row['lut_count'], row['reg_count'])
             self.fpga_results[name_hash] = temp
             return temp
         else:
             return None
 
-    def add_fpga_result(self, name, frequency, bram_count):
+    def add_fpga_result(self, name, frequency, bram_count,
+                        lut_count, reg_count):
         """Add an FPGA timing result."""
 
         # Insert into the local cache.
         name_hash = self.get_hash(name)
-        self.fpga_results[name_hash] = (frequency, bram_count)
+        self.fpga_results[name_hash] = (frequency, bram_count,
+                                        lut_count, reg_count)
 
         # Insert into the database.
         stmt = fpga_results_table.insert().from_select(
@@ -370,11 +391,15 @@ class SQLDatabase(base.BaseDatabase):
                 fpga_results_table.c.name,
                 fpga_results_table.c.frequency,
                 fpga_results_table.c.bram_count,
+                fpga_results_table.c.lut_count,
+                fpga_results_table.c.reg_count,
             ], select([
                 literal(name_hash),
                 literal(str(name)),
                 literal(frequency),
                 literal(bram_count),
+                literal(lut_count),
+                literal(reg_count),
             ]).where(
                 ~exists([fpga_results_table.c.name_hash]).where(
                     fpga_results_table.c.name_hash == name_hash

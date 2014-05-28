@@ -2,7 +2,7 @@ import copy
 from functools import reduce
 from abc import ABCMeta, abstractmethod
 
-from memsim import parser
+from memsim import parser, cost
 
 
 # Constructors used by the parser to construct memories.
@@ -126,7 +126,7 @@ class Memory(object):
 
     def get_cost(self):
         """Get the cost of this memory component (shallow)."""
-        return 0
+        return self.machine.get_zero_cost()
 
     def get_total_cost(self):
         """Get the total cost of the memory component and its children."""
@@ -160,7 +160,7 @@ class Memory(object):
         """Pop any address transforms or limits."""
         pass
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand, max_cost):
         """Permute a memory component.
             This function will permute the memory component without
             exceeded max_cost for that component.  This returns
