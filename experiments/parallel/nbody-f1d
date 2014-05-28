@@ -3,9 +3,9 @@
     (target     fpga)
     (part       xc6slx45)
     (frequency  100000000)
-    (max_cost   104)
-    (max_luts   14000)
-    (max_regs   41000)
+    (max_cost   92)
+    (max_luts   11000)
+    (max_regs   36000)
 )
 (memory
   (main (memory
