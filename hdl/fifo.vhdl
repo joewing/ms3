@@ -57,9 +57,9 @@ begin
                     count <= count + 1;
                 elsif do_read = '1' then
                     read_ptr <= (read_ptr + 1) mod DEPTH;
+                    dout <= data(read_ptr);
                     count <= count - 1;
                 end if;
-                dout <= data(read_ptr);
                 read_ready <= do_read or (read_ready and not re);
             end if;
         end if;
