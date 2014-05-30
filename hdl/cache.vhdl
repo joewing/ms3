@@ -112,6 +112,19 @@ architecture cache_arch of cache is
       STATE_WRITEBACK_WRITE2
    );
 
+   -- Xilinx XST 14.7 has a bug where if one instance doesn't infer
+   -- a BRAM, none do.  So we have to ensure that the RAM is at least
+   -- 2 deep otherwise we will end up using slices instead of BRAM.
+   -- Unfortunately, this will cause us to waste BRAMs.
+   function get_depth return natural is
+   begin
+      if ROW_COUNT = 1 then
+         return 2;
+      else
+         return ROW_COUNT;
+      end if;
+   end get_depth;
+
    subtype line_type is std_logic_vector(LINE_BITS - 1 downto 0);
    subtype tag_type is std_logic_vector(TAG_BITS - 1 downto 0);
    subtype age_type is std_logic_vector(AGE_BITS downto 0);
@@ -125,7 +138,7 @@ architecture cache_arch of cache is
    type line_array_type is array(0 to ASSOCIATIVITY - 1) of line_type;
    type tag_array_type is array(0 to ASSOCIATIVITY - 1) of tag_type;
    type age_array_type is array(0 to ASSOCIATIVITY - 1) of age_type;
-   type row_array_type is array(0 to ROW_COUNT - 1) of row_type;
+   type row_array_type is array(0 to get_depth - 1) of row_type;
    type word_array_type is array(0 to LINE_SIZE - 1) of word_type;
 
    constant ZERO_OFFSET    : offset_type  := (others => '0');
@@ -594,9 +607,6 @@ begin
 
    -- Update the cache.
    process(clk) is
-      variable write_hit   : boolean;
-      variable write_ok    : boolean;
-      variable fill_ok     : boolean;
    begin
       if rising_edge(clk) then
 
@@ -616,9 +626,7 @@ begin
                if mready = '1' then
                   row <= updated_row;
                end if;
-            when STATE_WRITE_FILL2 =>
-               row <= updated_row;
-            when STATE_READ_MISS2 =>
+            when STATE_WRITE_FILL2 | STATE_READ_MISS2 =>
                row <= updated_row;
             when others =>
                null;
@@ -626,8 +634,8 @@ begin
 
          -- We cannot write updated_row to data in STATE_IDLE
          -- since rindex will be invalid.
-         if state /= STATE_IDLE then
-            data(rindex) <= updated_row;
+         if state = STATE_IDLE then
+            data(rindex) <= row;
          end if;
 
       end if;
