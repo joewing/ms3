@@ -1,4 +1,5 @@
 from __future__ import print_function
+import random
 
 
 class Optimizer(object):
@@ -71,9 +72,10 @@ class Optimizer(object):
                 # Current state is pending evaluation.
                 return None
             else:
-                # Stuck; restart from the best.
+                # Current state has already been evaulated.
+                # Probabilistically restart from the best.
                 tries += 1
-                if tries > self.max_tries:
+                if random.randint(0, 1) == 0:
                     self.max_tries += 1
                     tries = 0
                     self.current, self.threshold = self.restart(db)
