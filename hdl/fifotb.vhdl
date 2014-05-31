@@ -68,33 +68,37 @@ begin
         assert avail = '0' report "avail after reset" severity failure;
 
         -- Insert an item.
-        din <= x"00000001";
+        din <= x"00000100";
         we <= '1';
         cycle(clk);
+        assert full = '0' report "full after insert" severity failure;
+        assert avail = '0' report "avail too soon" severity failure;
+        din <= (others => 'X');
         we <= '0';
-        cycle(clk);
         cycle(clk);
         assert avail = '1' report "not avail after insert" severity failure;
         assert full = '0' report "full after insert" severity failure;
-        assert dout = x"00000001" report "bad read" severity failure;
+        assert dout = x"00000100" report "bad read" severity failure;
 
         -- Remove the item.
         re <= '1';
         cycle(clk);
         re <= '0';
-        assert avail = '0' report "not avail after remove" severity failure;
+        assert avail = '0' report "avail after remove" severity failure;
         assert full = '0' report "full after remove" severity failure;
 
         -- Fill the FIFO.
-        for i in 0 to 15 loop
-            we <= '1';
+        din <= std_logic_vector(to_unsigned(0, 32));
+        we <= '1';
+        cycle(clk);
+        assert avail = '0' report "avail too soon" severity failure;
+        assert full = '0' report "full after insert" severity failure;
+        for i in 1 to 15 loop
             din <= std_logic_vector(to_unsigned(i, 32));
             cycle(clk);
-            we <= '0';
-            cycle(clk);
+            assert avail = '1' report "not avail after insert" severity failure;
             assert full = '0' report "full after insert" severity failure;
         end loop;
-        we <= '1';
         din <= x"00000010";
         cycle(clk);
         we <= '0';
@@ -108,11 +112,12 @@ begin
         for i in 0 to 16 loop
             assert avail = '1' report "not available" severity failure;
             assert unsigned(dout) = to_unsigned(i, 32)
-                report "unexpected output" severity failure;
+                report "unexpected output at " & integer'image(i)
+                severity failure;
             re <= '1';
             cycle(clk);
+            assert avail = '0' report "available" severity failure;
             re <= '0';
-            cycle(clk);
             cycle(clk);
         end loop;
 

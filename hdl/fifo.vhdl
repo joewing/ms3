@@ -28,39 +28,44 @@ architecture rtl of bram_fifo is
     signal write_ptr        : natural;
     signal count            : natural;
     signal read_ready       : std_logic;
-    signal do_read          : std_logic;
-    signal do_write         : std_logic;
 
 begin
 
-    do_read <= (not read_ready) when count /= 0 else '0';
-    do_write <= we when count /= DEPTH else '0';
-    full <= '1' when count = DEPTH else '0';
     avail <= read_ready;
+    full <= '1' when count = DEPTH else '0';
 
     process(clk)
+        variable do_read : boolean;
+        variable do_write : boolean;
     begin
         if rising_edge(clk) then
+            do_read := read_ready = '0' and count /= 0;
+            do_write := we = '1' and count /= DEPTH;
             if rst = '1' then
                 write_ptr <= 0;
                 read_ptr <= 0;
                 count <= 0;
                 read_ready <= '0';
             else
-                if do_write = '1' and do_read = '1' then
+                if do_write and do_read then
                     data(write_ptr) <= din;
+                    dout <= data(read_ptr);
                     write_ptr <= (write_ptr + 1) mod DEPTH;
                     read_ptr <= (read_ptr + 1) mod DEPTH;
-                elsif do_write = '1' then
+                elsif do_write then
                     data(write_ptr) <= din;
                     write_ptr <= (write_ptr + 1) mod DEPTH;
                     count <= count + 1;
-                elsif do_read = '1' then
-                    read_ptr <= (read_ptr + 1) mod DEPTH;
+                elsif do_read then
                     dout <= data(read_ptr);
+                    read_ptr <= (read_ptr + 1) mod DEPTH;
                     count <= count - 1;
                 end if;
-                read_ready <= do_read or (read_ready and not re);
+                if do_read then
+                    read_ready <= '1';
+                else
+                    read_ready <= read_ready and not re;
+                end if;
             end if;
         end if;
     end process;
