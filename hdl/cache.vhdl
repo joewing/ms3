@@ -634,7 +634,7 @@ begin
 
          -- We cannot write updated_row to data in STATE_IDLE
          -- since rindex will be invalid.
-         if state = STATE_IDLE then
+         if state /= STATE_IDLE then
             data(rindex) <= updated_row;
          end if;
 
