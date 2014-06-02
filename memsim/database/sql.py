@@ -254,11 +254,11 @@ class SQLDatabase(base.BaseDatabase):
         assert(value >= 0)
 
         if self.best is None:
-            self.best = str(mem), value, cost
+            self.best = str(mem), value, cost.clone()
         elif value < self.best[1]:
-            self.best = str(mem), value, cost
+            self.best = str(mem), value, cost.clone()
         elif value == self.best[1] and cost < self.best[2]:
-            self.best = str(mem), value, cost
+            self.best = str(mem), value, cost.clone()
 
         # Insert to our local cache.
         mod_hash = self.get_hash(mod)
@@ -335,8 +335,9 @@ class SQLDatabase(base.BaseDatabase):
                           luts=row['lut_count'],
                           regs=row['reg_count'])
             self.best_time = datetime.now()
-            self.best = row['name'], row['value'], c
-            return self.best
+            result = row['name'], row['value'], c
+            self.best = result[0], result[1], result[2].clone()
+            return result
         else:
             return None, 0, cost.Cost()
 

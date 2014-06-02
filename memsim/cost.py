@@ -1,4 +1,5 @@
 import functools
+import copy
 
 
 @functools.total_ordering
@@ -9,6 +10,9 @@ class Cost(object):
         self.size = size
         self.luts = luts
         self.regs = regs
+
+    def clone(self):
+        return copy.deepcopy(self)
 
     def __str__(self):
         result = str(self.cost)
