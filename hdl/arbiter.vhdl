@@ -145,7 +145,7 @@ begin
         if rising_edge(clk) then
             mre <= '0';
             mwe <= '0';
-            if rst = '0' and mfull = '0' then
+            if rst = '0' then
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
                     addr_top    := addr_bottom + ADDR_WIDTH - 1;
@@ -160,18 +160,6 @@ begin
                         mwe <= we_buffer(i);
                         mre <= re_buffer(i);
                     end if;
-                end loop;
-            end if;
-        end if;
-    end process;
-
-    -- Keep track of outstanding read requests.
-    process(clk)
-    begin
-        if rising_edge(clk) then
-            if rst = '1' then
-            else
-                for i in 0 to PORT_COUNT - 1 loop
                 end loop;
             end if;
         end if;
@@ -193,18 +181,6 @@ begin
                 for i in 0 to PORT_COUNT - 1 loop
                     word_bottom := i * WORD_WIDTH;
                     word_top    := word_bottom + WORD_WIDTH - 1;
-                    if next_active = i and next_is_read then
-
-                        -- Outstanding read started.
-                        outstanding(outstanding_wptr) <= i;
-                        re_pending(i) <= '1';
-                        if outstanding_wptr = PORT_COUNT - 1 then
-                            outstanding_wptr <= 0;
-                        else
-                            outstanding_wptr <= outstanding_wptr + 1;
-                        end if;
-
-                    end if;
                     if ravail = '1' and i = next_response then
 
                         -- Outstanding read finished.
@@ -214,6 +190,18 @@ begin
                             outstanding_rptr <= 0;
                         else
                             outstanding_rptr <= outstanding_rptr + 1;
+                        end if;
+
+                    end if;
+                    if next_active = i and next_is_read then
+
+                        -- Outstanding read started.
+                        outstanding(outstanding_wptr) <= i;
+                        re_pending(i) <= '1';
+                        if outstanding_wptr = PORT_COUNT - 1 then
+                            outstanding_wptr <= 0;
+                        else
+                            outstanding_wptr <= outstanding_wptr + 1;
                         end if;
 
                     end if;
