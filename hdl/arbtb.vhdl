@@ -36,7 +36,10 @@ architecture tb of arbtb is
     signal ram_re       : std_logic;
     signal ram_we       : std_logic;
     signal ram_mask     : std_logic_vector((WORD_WIDTH / 8) - 1 downto 0);
+    signal ram_full     : std_logic;
+    signal ram_ravail   : std_logic;
     signal ram_ready    : std_logic;
+    signal outstanding  : std_logic;
 
     signal arb_addr  : std_logic_vector(2 * ADDR_WIDTH - 1 downto 0);
     signal arb_in    : std_logic_vector(2 * WORD_WIDTH - 1 downto 0);
@@ -147,6 +150,23 @@ begin
             ready       => ram_ready
         );
 
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst = '1' then
+                outstanding <= '0';
+            else
+                if ram_re = '1' then
+                    outstanding <= '1';
+                elsif ram_ready = '1' then
+                    outstanding <= '0';
+                end if;
+            end if;
+        end if;
+    end process;
+    ram_full <= ram_re or ram_we or not ram_ready;
+    ram_ravail <= outstanding and ram_ready;
+
     arb : entity work.arbiter
         generic map (
             ADDR_WIDTH => ADDR_WIDTH,
@@ -164,12 +184,13 @@ begin
             ready => arb_ready,
             mask => arb_mask,
             maddr => ram_addr,
-            mout  => ram_din,
-            mmask => ram_mask,
-            min   => ram_dout,
+            wdata => ram_din,
+            rdata => ram_dout,
+            wmask => ram_mask,
             mre   => ram_re,
             mwe   => ram_we,
-            mready => ram_ready
+            mfull => ram_full,
+            ravail => ram_ravail
         );
     arb_addr  <= mem2_addr & mem1_addr;
     arb_in    <= mem2_din & mem1_din;

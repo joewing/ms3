@@ -182,11 +182,12 @@ class VHDLGenerator(object):
                     word_range + ');')
         self.append(pname + '_dout : out std_logic_vector(' +
                     word_range + ');')
-        self.append(pname + "_re : out std_logic;")
-        self.append(pname + "_we : out std_logic;")
-        self.append(pname + "_mask : out " +
-                    "std_logic_vector(" + mask_top + " downto 0);")
-        self.append(pname + "_ready : in std_logic;")
+        self.append(pname + '_re : out std_logic;')
+        self.append(pname + '_we : out std_logic;')
+        self.append(pname + '_mask : out ' +
+                    'std_logic_vector(' + mask_top + ' downto 0);')
+        self.append(pname + '_full : in std_logic;')
+        self.append(pname + '_avail : in std_logic;')
 
     def _emit_downstream_signals(self, ml):
         if len(list(ml.active_memories())) == 0:
@@ -280,12 +281,13 @@ class VHDLGenerator(object):
         self.append('mask => ' + pname + '_mask_vec,')
         self.append('ready => ' + pname + '_ready_vec,')
         self.append('maddr => ' + pname + '_addr,')
-        self.append('mout => ' + pname + '_dout,')
-        self.append('min => ' + pname + '_din,')
+        self.append('wdata => ' + pname + '_dout,')
+        self.append('rdata => ' + pname + '_din,')
+        self.append('wmask => ' + pname + '_mask,')
         self.append('mre => ' + pname + '_re,')
         self.append('mwe => ' + pname + '_we,')
-        self.append('mmask => ' + pname + '_mask,')
-        self.append('mready => ' + pname + '_ready')
+        self.append('mfull => ' + pname + '_full,')
+        self.append('ravail => ' + pname + '_avail')
         self.leave()
         self.append(');')
         self.leave()
