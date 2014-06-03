@@ -21,6 +21,7 @@ class dram =
         val mutable burst_size = 4
         val mutable open_page = true
         val mutable ddr = true
+        val mutable extra_cycles = 0
         val mutable banks : dram_bank array = Array.make 0 {
             page = -1; dirty = false; time = 0.0
         }
@@ -40,6 +41,7 @@ class dram =
             | "burst_size" -> burst_size <- int_of_string value
             | "open_page" -> open_page <- value = "true"
             | "ddr" -> ddr <- value = "true"
+            | "extra_cycles" -> extra_cycles <- int_of_string value
             | _ -> super#set name value
 
         method word_size = width * burst_size
@@ -95,7 +97,7 @@ class dram =
                 else write;
 
             (* Return the result. *)
-            (mult *. cycles) |> ceil |> int_of_float
+            (mult *. cycles +. extra_cycles) |> ceil |> int_of_float
 
 
     end

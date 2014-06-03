@@ -24,6 +24,7 @@ class DRAM(main.MainMemory):
                  page_count,    # Number of pages per bank
                  width,         # Width of the channel in bytes
                  burst_size,    # Size of a burst in transfers
+                 extra_cycles,  # Extra cycles per access
                  open_page,     # True for open-page, False for closed-page
                  ddr):          # True for DDR, False for SDR.
         main.MainMemory.__init__(self)
@@ -36,6 +37,7 @@ class DRAM(main.MainMemory):
         self.page_count = page_count
         self.width = width
         self.burst_size = burst_size
+        self.extra_cycles = extra_cycles
         self.open_page = open_page
         self.ddr = ddr
         self.banks = list()
@@ -91,7 +93,7 @@ class DRAM(main.MainMemory):
             addr = temp
 
         # Convert DRAM time back to machine time.
-        return int(math.ceil(delta * self.multiplier))
+        return int(math.ceil(delta * self.multiplier + extra_cycles))
 
     def _do_process(self, delta, write, addr, is_last):
 
@@ -152,6 +154,7 @@ def _create_dram(lexer, args):
     page_count = parser.get_argument(lexer, args, 'page_count', 65536)
     width = parser.get_argument(lexer, args, 'width', 8)
     burst_size = parser.get_argument(lexer, args, 'burst_size', 4)
+    extra_cycles = parser.get_argument(lexer, args, 'extra_cycles', 0)
     open_page = parser.get_argument(lexer, args, 'open_page', True)
     ddr = parser.get_argument(lexer, args, 'ddr', True)
     return DRAM(frequency=frequency,
@@ -163,6 +166,7 @@ def _create_dram(lexer, args):
                 page_count=page_count,
                 width=width,
                 burst_size=burst_size,
+                extra_cycles=extra_cycles,
                 open_page=open_page,
                 ddr=ddr)
 base.constructors['dram'] = _create_dram
