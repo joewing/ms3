@@ -4,15 +4,12 @@ import random
 
 class Optimizer(object):
 
-    steps = 0
-    threshold = 1
-    last = None
-    last_value = 0
-    current = None
-    max_tries = 1
-
     def __init__(self, current):
         self.current = current
+        self.last = None
+        self.last_value = 0
+        self.threshold = 1
+        self.delta = 1
 
     def __str__(self):
         """Get a string to represent the current status."""
@@ -49,20 +46,20 @@ class Optimizer(object):
 
         # Generate the next state.
         self.last = self.current if self.last is None else self.last
-        tries = 1
         while True:
-            self.steps += 1
-            denom = self.max_tries
+            denom = self.delta
             diff = value - self.last_value
             if diff <= self.threshold:
                 # Keep the current state.
                 self.last_value = value
                 self.last = self.current
                 self.threshold -= (self.threshold + denom - 1) // denom
+                self.delta += 1
             else:
                 # Revert to the last state.
                 self.current = self.last
                 self.threshold += (self.threshold + denom - 1) // denom
+                self.delta = max(1, self.delta - 1)
             self.current = self.modify(self.current)
             value = self.load_result(db, self.current)
             if value is None:
@@ -74,8 +71,5 @@ class Optimizer(object):
             else:
                 # Current state has already been evaulated.
                 # Probabilistically restart from the best.
-                tries += 1
-                if random.randint(0, 1) == 0:
-                    self.max_tries += 1
-                    tries = 0
+                if random.randint(0, self.delta) == 0:
                     self.current, self.threshold = self.restart(db)
