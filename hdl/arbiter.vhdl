@@ -55,7 +55,6 @@ architecture rtl of arbiter is
     -- Next active request (PORT_COUNT for none).
     signal next_active      : port_type;
     signal next_is_read     : boolean;
-    signal request_sent     : std_logic;    -- Request sent last clock.
 
     -- Buffers for subsystem requests.
     signal addr_buffer  : std_logic_vector(TOTAL_ADDR_WIDTH - 1 downto 0);
@@ -72,11 +71,11 @@ begin
     -- Determine the next request.
     -- We don't allow a request on the clock immediately following
     -- a request to avoid overrunning the command FIFO.
-    process(request_sent, re_buffer, we_buffer, mfull)
+    process(re_buffer, we_buffer, mfull)
     begin
         next_active <= PORT_COUNT;
         next_is_read <= false;
-        if mfull = '0' and request_sent = '0' then
+        if mfull = '0' then
             for i in 0 to PORT_COUNT - 1 loop
                 if re_buffer(i) = '1' or we_buffer(i) = '1' then
                     next_active <= i;
@@ -149,7 +148,6 @@ begin
         if rising_edge(clk) then
             mre <= '0';
             mwe <= '0';
-            request_sent <= '0';
             if rst = '0' then
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
@@ -164,7 +162,6 @@ begin
                         wmask <= mask_buffer(mask_top downto mask_bottom);
                         mwe <= we_buffer(i);
                         mre <= re_buffer(i);
-                        request_sent <= '1';
                     end if;
                 end loop;
             end if;
