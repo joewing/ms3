@@ -46,14 +46,16 @@ architecture rtl of arbiter is
     constant TOTAL_MASK_WIDTH   : natural := PORT_COUNT * MASK_WIDTH;
 
     -- Mapping from request to port number.
-    type read_array is array(0 to PORT_COUNT - 1) of natural;
+    subtype port_type is natural range 0 to PORT_COUNT;
+    type read_array is array(0 to PORT_COUNT) of port_type;
     signal outstanding          : read_array;
-    signal outstanding_wptr     : natural;
-    signal outstanding_rptr     : natural;
+    signal outstanding_wptr     : port_type;
+    signal outstanding_rptr     : port_type;
 
     -- Next active request (PORT_COUNT for none).
-    signal next_active      : natural;
+    signal next_active      : port_type;
     signal next_is_read     : boolean;
+    signal request_sent     : std_logic;    -- Request sent last clock.
 
     -- Buffers for subsystem requests.
     signal addr_buffer  : std_logic_vector(TOTAL_ADDR_WIDTH - 1 downto 0);
@@ -68,11 +70,13 @@ architecture rtl of arbiter is
 begin
 
     -- Determine the next request.
-    process(re, we, re_buffer, we_buffer, mfull)
+    -- We don't allow a request on the clock immediately following
+    -- a request to avoid overrunning the command FIFO.
+    process(request_sent, re_buffer, we_buffer, mfull)
     begin
         next_active <= PORT_COUNT;
         next_is_read <= false;
-        if mfull = '0' then
+        if mfull = '0' and request_sent = '0' then
             for i in 0 to PORT_COUNT - 1 loop
                 if re_buffer(i) = '1' or we_buffer(i) = '1' then
                     next_active <= i;
@@ -145,6 +149,7 @@ begin
         if rising_edge(clk) then
             mre <= '0';
             mwe <= '0';
+            request_sent <= '0';
             if rst = '0' then
                 for i in 0 to PORT_COUNT - 1 loop
                     addr_bottom := i * ADDR_WIDTH;
@@ -159,6 +164,7 @@ begin
                         wmask <= mask_buffer(mask_top downto mask_bottom);
                         mwe <= we_buffer(i);
                         mre <= re_buffer(i);
+                        request_sent <= '1';
                     end if;
                 end loop;
             end if;
@@ -177,33 +183,31 @@ begin
                 outstanding_wptr <= 0;
                 re_pending <= (others => '0');
             else
+
                 next_response := outstanding(outstanding_rptr);
                 for i in 0 to PORT_COUNT - 1 loop
                     word_bottom := i * WORD_WIDTH;
                     word_top    := word_bottom + WORD_WIDTH - 1;
                     if ravail = '1' and i = next_response then
-
-                        -- Outstanding read finished.
                         dout(word_top downto word_bottom) <= rdata;
                         re_pending(i) <= '0';
-                        if outstanding_rptr = PORT_COUNT - 1 then
+                        if outstanding_rptr = PORT_COUNT then
                             outstanding_rptr <= 0;
                         else
                             outstanding_rptr <= outstanding_rptr + 1;
                         end if;
-
                     end if;
-                    if next_active = i and next_is_read then
+                end loop;
 
-                        -- Outstanding read started.
+                for i in 0 to PORT_COUNT - 1 loop
+                    if next_active = i and next_is_read then
                         outstanding(outstanding_wptr) <= i;
                         re_pending(i) <= '1';
-                        if outstanding_wptr = PORT_COUNT - 1 then
+                        if outstanding_wptr = PORT_COUNT then
                             outstanding_wptr <= 0;
                         else
                             outstanding_wptr <= outstanding_wptr + 1;
                         end if;
-
                     end if;
                 end loop;
             end if;
