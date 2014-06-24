@@ -151,6 +151,7 @@ def run_xilinx(machine, mem, keep=False):
         return result
 
     except Exception as e:
+        os.chdir(old_dir)
         print('ERROR: XST run failed:', e)
         print('ERROR: Memory:', mem)
         raise
