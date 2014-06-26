@@ -144,6 +144,6 @@ class Transform(container.Container):
             return self.bank
         return self
 
-    def forward(self, index, start, write, addr, size):
+    def forward(self, baddr, index, start, write, addr, size):
         """Forward a request from the bank to the following memory."""
         assert(False)

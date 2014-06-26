@@ -76,8 +76,9 @@ class DRAM(main.MainMemory):
             self.banks.append(DRAMBank())
         self.multiplier = float(machine.frequency) / float(self.frequency)
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         assert(size > 0)
+        addr += baddr
         self.writes += 1 if write else 0
 
         # Convert machine time to DRAM time.
@@ -93,7 +94,7 @@ class DRAM(main.MainMemory):
             addr = temp
 
         # Convert DRAM time back to machine time.
-        return int(math.ceil(delta * self.multiplier + extra_cycles))
+        return int(math.ceil(delta * self.multiplier + self.extra_cycles))
 
     def _do_process(self, delta, write, addr, is_last):
 

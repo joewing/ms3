@@ -26,6 +26,7 @@ class Stats(container.Container):
     def can_remove(self):
         return False
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         self.dist.insert_range(addr, size)
-        return container.Container.process(self, start, write, addr, size)
+        return container.Container.process(self, baddr, start,
+                                           write, addr, size)

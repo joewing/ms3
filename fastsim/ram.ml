@@ -15,7 +15,7 @@ class ram =
 
         method word_size = word_size
 
-        method private process start write addr size =
+        method private process base start write addr size =
             writes <- writes + (if write then 1 else 0);
             start + latency
 

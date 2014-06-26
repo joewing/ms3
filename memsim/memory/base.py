@@ -179,7 +179,7 @@ class Memory(object):
             self.get_next().reset(machine)
 
     @abstractmethod
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         """Process a memory access operation.
             This function will return the number of cycles until the
             access completes.
@@ -200,7 +200,7 @@ class Memory(object):
         return 0
 
 
-def send_request(mem, start, write, addr, size):
+def send_request(mem, baddr, start, write, addr, size):
     """Send a memory request to the specified memory subsystem."""
     assert(size > 0)
     word_size = mem.get_word_size()
@@ -209,12 +209,12 @@ def send_request(mem, start, write, addr, size):
     offset = addr & word_mask
     if offset:
         first_size = min(word_size - offset, size)
-        start = mem.process(start, write, addr, first_size)
+        start = mem.process(baddr, start, write, addr, first_size)
         addr = (addr + first_size) & addr_mask
         size -= first_size
     while size:
         temp_size = min(word_size, size)
-        start = mem.process(start, write, addr, temp_size)
+        start = mem.process(baddr, start, write, addr, temp_size)
         addr = (addr + temp_size) & addr_mask
         size -= temp_size
     return start

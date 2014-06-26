@@ -68,14 +68,14 @@ class Offset(transform.Transform):
     def get_transform_path_length(self):
         return self.machine.addr_bits
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         addr = (addr + self.offset) & self.machine.addr_mask
-        return base.send_request(self.bank, start, write, addr, size)
+        return base.send_request(self.bank, baddr, start, write, addr, size)
 
-    def forward(self, index, start, write, addr, size):
+    def forward(self, baddr, index, start, write, addr, size):
         assert(index == 0)
         addr = (addr - self.offset) & self.machine.addr_mask
-        return base.send_request(self.mem, start, write, addr, size)
+        return base.send_request(self.mem, baddr, start, write, addr, size)
 
 
 def _create_offset(lexer, args):

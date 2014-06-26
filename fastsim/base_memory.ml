@@ -15,15 +15,15 @@ class virtual base_memory =
 
         method virtual writes : int
 
-        method private virtual process : int -> bool -> int -> int -> int
+        method private virtual process : int -> int -> bool -> int -> int -> int
 
-        method forward (index : int) (start : int) (write : bool)
-                       (addr : int) (size : int) : int =
+        method forward (base : int) (index : int) (start : int)
+                       (write : bool) (addr : int) (size : int) : int =
             failwith "invalid"
 
         method set_parent (p : base_memory) : unit = failwith "invalid"
 
-        method send_request (start : int) (write : bool)
+        method send_request (base : int) (start : int) (write : bool)
                             (addr : int) (size : int) : int =
             let word_size = self#word_size in
             let word_mask = word_size - 1 in
@@ -35,13 +35,13 @@ class virtual base_memory =
             if offset <> 0 then
                 begin
                     let first_size = min (word_size - offset) size in
-                    time := self#process !time write addr first_size;
+                    time := self#process base !time write addr first_size;
                     current := (addr + first_size) land addr_mask;
                     left := !left - first_size;
                 end;
             while !left > 0 do
                 let temp_size = min word_size !left in
-                time := self#process !time write !current temp_size;
+                time := self#process base !time write !current temp_size;
                 current := (!current + temp_size) land addr_mask;
                 left := !left - temp_size
             done;
@@ -98,8 +98,8 @@ class join =
 
         method writes = self#parent#writes
 
-        method process start write addr size =
-            self#parent#forward index start write addr size
+        method process base start write addr size =
+            self#parent#forward base index start write addr size
 
     end
 

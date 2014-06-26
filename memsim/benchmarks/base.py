@@ -16,20 +16,17 @@ class Benchmark(object):
     def __init__(self, index, word_size=4):
         self.index = index
         self.word_size = word_size
-        self.offset = 0
         self.directory = ''
         self.max_addr = -1
 
     def read(self, addr):
         """Generate a read."""
         addr *= self.word_size
-        addr += self.offset
         return AccessType.READ, addr, self.word_size
 
     def write(self, addr):
         """Generate a write."""
         addr *= self.word_size
-        addr += self.offset
         return AccessType.WRITE, addr, self.word_size
 
     def idle(self, cycles):
@@ -50,15 +47,14 @@ class Benchmark(object):
         else:
             return AccessType.IDLE, 0, 0
 
-    def reset(self, offset, directory):
-        """Prepare the benchmark to be run and set the address offset."""
-        self.offset = offset
+    def reset(self, directory):
+        """Prepare the benchmark to be run."""
         self.directory = directory
 
     def get_size(self, directory):
         """Get the address range of the benchmark in bytes."""
         if self.max_addr < 0:
-            self.reset(0, directory)
+            self.reset(directory)
             for t, addr, size in self.run():
                 if t == AccessType.READ or t == AccessType.WRITE:
                     self.max_addr = max(self.max_addr, addr + size)

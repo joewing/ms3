@@ -54,7 +54,8 @@ class dram =
                 { page = -1; dirty = false; time = 0.0 }
             )
 
-        method private process start write addr size =
+        method private process base start write addr size =
+            let addr = addr + base in
             writes <- writes + (if write then 1 else 0);
             let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in

@@ -27,19 +27,19 @@ class spm =
 
         method finish = max (pending - mach.time) self#next#finish
 
-        method private process_hit start write addr size =
+        method private process_hit base start write addr size =
             pending <- mach.time + start;
             pending <- pending + max (cycle_time - access_time) 0;
             start + access_time
 
-        method private process_miss start write addr size =
+        method private process_miss base start write addr size =
             pending <- mach.time + start;
-            self#next#send_request start write addr size
+            self#next#send_request base start write addr size
 
-        method private process start write addr size =
+        method private process base start write addr size =
             let result = max start (pending - mach.time) in
             if addr < size_bytes then
-                self#process_hit result write addr size
-            else self#process_miss result write addr size
+                self#process_hit base result write addr size
+            else self#process_miss base result write addr size
 
     end

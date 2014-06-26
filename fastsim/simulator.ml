@@ -121,7 +121,7 @@ let peek sim proc (index : int) (offset : int) =
 ;;
 
 let add_benchmark sim b =
-    let mem = (get_subsystem sim b#id :> base_memory) in
+    let mem = (get_subsystem sim b#id :> subsystem) in
     let produce = produce sim in
     let consume = consume sim in
     let peek = peek sim in

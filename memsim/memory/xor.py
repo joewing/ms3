@@ -59,14 +59,14 @@ class XOR(transform.Transform):
     def get_transform_path_length(self):
         return 1
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         addr ^= self.value
-        return base.send_request(self.bank, start, write, addr, size)
+        return base.send_request(self.bank, baddr, start, write, addr, size)
 
-    def forward(self, index, start, write, addr, size):
+    def forward(self, baddr, index, start, write, addr, size):
         assert(index == 0)
         addr ^= self.value
-        return base.send_request(self.mem, start, write, addr, size)
+        return base.send_request(self.mem, baddr, start, write, addr, size)
 
 
 def _create_xor(lexer, args):

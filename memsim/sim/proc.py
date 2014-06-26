@@ -23,6 +23,7 @@ class Process(object):
         self.pending_access = None
         self.delay = False
         self.size = -1
+        self.offset = 0
 
     def has_delay(self):
         """Determine if prefetching would be beneficial."""
@@ -48,7 +49,8 @@ class Process(object):
         self.machine = machine
         self.mem = mem
         self.pending_access = None
-        self.benchmark.reset(offset, self.directory)
+        self.offset = offset
+        self.benchmark.reset(self.directory)
         self.generator = self.benchmark.run()
         self.mem.reset(machine)
 
@@ -62,12 +64,12 @@ class Process(object):
     def _process(self, access):
         at, addr, size = access
         if at == AccessType.READ:
-            return send_request(self.mem, 0, False, addr, size)
+            return send_request(self.mem, self.offset, 0, False, addr, size)
         elif at == AccessType.WRITE:
-            return send_request(self.mem, 0, True, addr, size)
+            return send_request(self.mem, self.offset, 0, True, addr, size)
         elif at == AccessType.MODIFY:
-            temp = send_request(self.mem, 0, False, addr, size)
-            return send_request(self.mem, temp, True, addr, size)
+            temp = send_request(self.mem, self.offset, 0, False, addr, size)
+            return send_request(self.mem, self.offset, temp, True, addr, size)
         elif at == AccessType.IDLE:
             self.delay = self.delay or (addr > 0)
             return addr

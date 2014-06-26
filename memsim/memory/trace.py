@@ -21,13 +21,13 @@ class Trace(container.Container):
     def get_word_size(self):
         return self.mem.get_word_size()
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         out = ['W' if write else 'R']
         out.append('%x' % addr)
         out.append(':')
         out.append('%x' % size)
         print(''.join(out))
-        return self.get_next().process(start, write, addr, size)
+        return self.get_next().process(baddr, start, write, addr, size)
 
 
 def _create_trace(lexer, args):

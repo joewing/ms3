@@ -86,9 +86,9 @@ class Subsystem(base.Memory):
         base.Memory.reset(self, machine)
         self.score = 0
 
-    def process(self, start, write, addr, size):
-        addr += self.offset
-        result = base.send_request(self.mem, start, write, addr, size)
+    def process(self, baddr, start, write, addr, size):
+        result = base.send_request(self.mem, self.offset, start,
+                                   write, addr, size)
         self.score += result
         return result
 

@@ -41,40 +41,40 @@ class split =
             let bt = max (self#bank0#finish) (self#bank1#finish) in
             max self#next#finish bt
 
-        method private process start write addr size =
+        method private process base start write addr size =
             let mask = mach.addr_mask in
             let last = (addr + size - 1) land mask in
             let result = start in
             if addr > last then
                 let first_size = mask - addr + 1 in
-                let result = self#do_process result addr first_size write in
-                self#do_process result 0 (last + 1) write
+                let t = self#do_process base result addr first_size write in
+                self#do_process base t 0 (last + 1) write
             else
-                self#do_process result addr size write
+                self#do_process base result addr size write
 
-        method private do_process start addr size write =
+        method private do_process base start addr size write =
             let last = (addr + size - 1) land mach.addr_mask in
             let start =
                 if addr < offset then
                     let temp_size =
                         if last < offset then size
                         else offset - addr in
-                    self#bank0#send_request start write addr temp_size
+                    self#bank0#send_request base start write addr temp_size
                 else start
             in
             if last >= offset then
                 let temp_addr, temp_size = 
                     if addr >= offset then (addr - offset, size)
                     else (0, last - offset + 1) in
-                self#bank1#send_request start write temp_addr temp_size
+                self#bank1#send_request base start write temp_addr temp_size
             else start
 
-        method forward index start write addr size =
+        method forward base index start write addr size =
             let addr =
                 match index with
                 | 0 -> addr
                 | 1 -> (addr + offset) land mach.addr_mask
                 | _ -> failwith "invalid"
-            in self#next#send_request start write addr size
+            in self#next#send_request base start write addr size
 
     end

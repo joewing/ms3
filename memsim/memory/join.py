@@ -30,8 +30,9 @@ class Join(base.Memory):
         nl = self.parent.get_forward_path_length(incoming)
         return max(incoming, nl)
 
-    def process(self, start, write, addr, size):
-        return self.parent.forward(self.index, start, write, addr, size)
+    def process(self, baddr, start, write, addr, size):
+        return self.parent.forward(baddr, self.index, start,
+                                   write, addr, size)
 
 
 def find_join(mem, parent=None):

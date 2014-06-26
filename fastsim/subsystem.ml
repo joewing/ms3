@@ -3,13 +3,14 @@ open Machine
 
 class subsystem =
     object (self)
-        inherit container as super
 
+        val mutable mach : machine = create_machine ()
         val mutable index : int = 0
         val mutable word_size : int = 4
         val mutable depth : int = 0
         val mutable offset : int = 0
         val mutable score : int = 0
+        val mutable next : base_memory option = None
 
         method id = index
 
@@ -18,7 +19,14 @@ class subsystem =
             | "id" -> index <- int_of_string value
             | "depth" -> depth <- int_of_string value
             | "word_size" -> word_size <- int_of_string value
-            | _ -> super#set name value
+            | _ -> failwith @@ "invalid argument: (" ^ name ^ " " ^ value ^ ")"
+
+        method set_next m = next <- m
+
+        method next =
+            match next with
+            | Some m -> m
+            | None -> failwith "no next"
 
         method word_size = word_size
 
@@ -29,12 +37,16 @@ class subsystem =
         method score = score
 
         method reset m main =
-            super#reset m main;
             score <- 0;
+            mach <- m;
+            match next with
+            | Some mem -> mem#reset m main
+            | None ->
+                main#reset m main;
+                next <- Some main
 
-        method private process start write addr size =
-            let addr = addr + offset in
-            let result = self#next#send_request start write addr size in
+        method process start write addr size =
+            let result = self#next#send_request offset start write addr size in
             score <- score + result;
             result
 

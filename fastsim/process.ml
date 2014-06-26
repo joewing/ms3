@@ -1,4 +1,4 @@
-open Base_memory
+open Subsystem
 open Benchmark
 
 type process = {
@@ -7,7 +7,7 @@ type process = {
     peek : process -> int -> int -> int;
     run : string -> access stream;
     directory : string;
-    mem : base_memory;
+    mem : subsystem;
     mutable accesses : access stream;
     mutable pending_access : access option;
 }
@@ -58,8 +58,8 @@ let process_peek proc addr size =
 ;;
 
 let process_modify proc addr size =
-    let start = proc.mem#send_request 0 false addr size in
-    proc.mem#send_request start true addr size
+    let start = proc.mem#process 0 false addr size in
+    proc.mem#process start true addr size
 ;;
 
 let process_input proc addr size =
@@ -82,8 +82,8 @@ let process_output proc addr size =
 
 let process_access proc t addr size =
     match t with
-    | 'R' -> proc.mem#send_request 0 false addr size
-    | 'W' -> proc.mem#send_request 0 true addr size
+    | 'R' -> proc.mem#process 0 false addr size
+    | 'W' -> proc.mem#process 0 true addr size
     | 'M' -> process_modify proc addr size
     | 'I' -> addr
     | 'P' -> process_produce proc addr

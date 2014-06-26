@@ -162,15 +162,15 @@ class FIFO(subsystem.Subsystem):
         t = subsystem.Subsystem.done(self)
         return max(t, self.min_time - self.machine.time)
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         if self.bram or self.depth == 1:
             # Single cycle access for 1-deep FIFOs.
             result = start + 1
             self.min_time = self.machine.time + result
             return result
         else:
-            result = subsystem.Subsystem.process(self, start, write,
-                                                 addr, size)
+            result = subsystem.Subsystem.process(self, baddr, start,
+                                                 write, addr, size)
             self.min_time = self.machine.time + result
             return result
 
@@ -186,7 +186,7 @@ class FIFO(subsystem.Subsystem):
             addr = self.write_ptr * self.word_size
             self.write_ptr = (self.write_ptr + 1) % self.depth
             self.used += 1
-            return self.process(start, True, addr, self.word_size)
+            return self.process(0, start, True, addr, self.word_size)
 
     def consume(self):
         """Remove a value from the FIFO.
@@ -200,7 +200,7 @@ class FIFO(subsystem.Subsystem):
             addr = self.read_ptr * self.word_size
             self.read_ptr = (self.read_ptr + 1) % self.depth
             self.used -= 1
-            return self.process(start, False, addr, self.word_size)
+            return self.process(0, start, False, addr, self.word_size)
 
     def peek(self, offset):
         """Peek at a value on the FIFO.
@@ -214,7 +214,7 @@ class FIFO(subsystem.Subsystem):
             start = max(0, self.min_time - self.machine.time)
             temp = (self.read_ptr - offset) % self.depth
             addr = temp * self.word_size
-            return self.process(start, False, addr, self.word_size)
+            return self.process(0, start, False, addr, self.word_size)
 
 
 def _create_fifo(lexer, args):

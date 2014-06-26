@@ -19,15 +19,15 @@ class prefetch =
 
         method finish = max (time - mach.time) super#finish
 
-        method private process start write addr size =
+        method private process base start write addr size =
             let result = max start (time - mach.time) in
-            let result = self#next#send_request result write addr size in
+            let result = self#next#send_request base result write addr size in
             begin
                 if write then
                     time <- 0
                 else
                     let addr = (addr + stride) land mach.addr_mask in
-                    let t = self#next#send_request result write addr 1 in
+                    let t = self#next#send_request base result write addr 1 in
                     time <- mach.time + t
             end;
             result

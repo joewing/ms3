@@ -112,7 +112,7 @@ class cache =
                 else best
             in loop 1 lines.(first_line)
 
-        method private process_hit start write line_index =
+        method private process_hit base start write line_index =
 
             (* Update ages. *)
             let set_size = self#set_size in
@@ -139,10 +139,10 @@ class cache =
                 end
             else
                 let addr, size = line.tag, line_size in
-                let t = self#next#send_request start true addr size in
+                let t = self#next#send_request base start true addr size in
                 access_time + t
 
-        method private process_miss start write addr size =
+        method private process_miss base start write addr size =
             let line = self#find_replacement addr in
             let tag = addr land lnot (line_size - 1) in
             if (not write) || write_back then
@@ -152,7 +152,7 @@ class cache =
                 let t =
                     if line.dirty then
                         let addr, size = line.tag, line_size in
-                        self#next#send_request t true addr size
+                        self#next#send_request base t true addr size
                     else t
                 in
                 line.tag <- tag;
@@ -173,14 +173,14 @@ class cache =
 
                 (* Read the new entry. *)
                 if (not write) || size < line_size then
-                    self#next#send_request t false tag line_size
+                    self#next#send_request base t false tag line_size
                 else t
 
             else
-                let t = self#next#send_request start true addr size in
+                let t = self#next#send_request base start true addr size in
                 t + access_time
 
-        method private process start write addr size =
+        method private process base start write addr size =
 
             (* Get earliest time we could process this event. *)
             let t = max start (pending - mach.time) in
@@ -194,8 +194,8 @@ class cache =
 
             (* Process the access. *)
             let t = match self#find_hit addr with
-            | Some index -> self#process_hit t write index
-            | None -> self#process_miss t write addr size
+            | Some index -> self#process_hit base t write index
+            | None -> self#process_miss base t write addr size
             in
 
             (* Update the pending time. *)

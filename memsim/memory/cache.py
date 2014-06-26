@@ -274,25 +274,27 @@ class Cache(container.Container):
         t = container.Container.done(self)
         return max(self.pending - self.machine.time, t)
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         extra = size // self.line_size
         mask = self.machine.addr_mask
         temp = addr
         result = max(start, self.pending - self.machine.time)
         for i in xrange(extra):
-            result = self._do_process(result, write, temp, self.line_size)
+            result = self._do_process(baddr, result,
+                                      write, temp, self.line_size)
             temp = (temp + self.line_size) & mask
         if size > extra * self.line_size:
-            result = self._do_process(result, write, temp,
+            result = self._do_process(baddr, result, write, temp,
                                       size - extra * self.line_size)
         self.pending = self.machine.time + result
         self.pending += max(self.cycle_time - self.access_time, 0)
         return result
 
-    def _access_line(self, write, t, addr):
-        return base.send_request(self.mem, t, write, addr, self.line_size)
+    def _access_line(self, baddr, write, t, addr):
+        return base.send_request(self.mem, baddr, t, write,
+                                 addr, self.line_size)
 
-    def _do_process(self, start, write, addr, size):
+    def _do_process(self, baddr, start, write, addr, size):
         tag = addr & ~(self.line_size - 1)
         set_size = self.line_count // self.associativity
         line_addr = addr // self.line_size
@@ -325,7 +327,7 @@ class Cache(container.Container):
                     line.dirty = line.dirty or write
                     return start + self.access_time
                 else:
-                    t = self._access_line(True, start, tag)
+                    t = self._access_line(baddr, True, start, tag)
                     return t + self.access_time
             elif self.policy == CachePolicy.MRU:
                 if line.age < age:
@@ -347,7 +349,7 @@ class Cache(container.Container):
             # Evict this entry if necessary.
             time = start + self.access_time
             if to_replace.dirty:
-                time = self._access_line(True, time, to_replace.tag)
+                time = self._access_line(baddr, True, time, to_replace.tag)
                 to_replace.dirty = False
             to_replace.tag = tag
             to_replace.dirty = write
@@ -363,13 +365,13 @@ class Cache(container.Container):
 
             # Read the new entry.
             if (not write) or size != self.line_size:
-                time = self._access_line(False, time, tag)
+                time = self._access_line(baddr, False, time, tag)
 
             return time
 
         else:
             # Write on a write-through cache.
-            t = base.send_request(self.mem, start, True, addr, size)
+            t = base.send_request(self.mem, baddr, start, True, addr, size)
             return t + self.access_time
 
 

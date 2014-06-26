@@ -106,12 +106,12 @@ class Prefetch(container.Container):
         t = container.Container.done(self)
         return max(self.time - self.machine.time, t)
 
-    def process(self, start, write, addr, size):
+    def process(self, baddr, start, write, addr, size):
         result = max(start, self.time - self.machine.time)
-        result = self.mem.process(result, write, addr, size)
+        result = self.mem.process(baddr, result, write, addr, size)
         if not write:
             temp = (addr + self.stride) & self.machine.addr_mask
-            t = self.mem.process(result, write, temp, 1)
+            t = self.mem.process(baddr, result, write, temp, 1)
             self.time = self.machine.time + t
         else:
             self.time = 0
