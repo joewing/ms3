@@ -18,7 +18,7 @@
         (page_count 8192)
         (width 2)
         (burst_size 8)
-        (open_page true)
+        (open_page false)
         (ddr true)
     )
   ))
