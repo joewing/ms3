@@ -25,7 +25,7 @@ class RAM(main.MainMemory):
 
     def process(self, baddr, start, write, addr, size):
         assert(size > 0)
-        addr += baddr
+        addr = (addr + baddr) & self.machine.addr_mask
         self.writes += 1 if write else 0
         offset = addr % self.word_size
         count = (size + self.word_size + offset - 1) // self.word_size

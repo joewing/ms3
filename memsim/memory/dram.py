@@ -78,7 +78,7 @@ class DRAM(main.MainMemory):
 
     def process(self, baddr, start, write, addr, size):
         assert(size > 0)
-        addr += baddr
+        addr = (addr + baddr) & self.machine.addr_mask
         self.writes += 1 if write else 0
 
         # Convert machine time to DRAM time.

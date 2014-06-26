@@ -55,7 +55,7 @@ class dram =
             )
 
         method private process base start write addr size =
-            let addr = addr + base in
+            let addr = (addr + base) land mach.addr_mask in
             writes <- writes + (if write then 1 else 0);
             let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in
