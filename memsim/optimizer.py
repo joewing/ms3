@@ -8,8 +8,8 @@ class Optimizer(object):
         self.current = current
         self.last = None
         self.last_value = 0
-        self.threshold = 1
-        self.delta = 1
+        self.threshold = 1024
+        self.delta = 1024
 
     def __str__(self):
         """Get a string to represent the current status."""
@@ -54,6 +54,7 @@ class Optimizer(object):
                 self.last_value = value
                 self.last = self.current
                 self.threshold -= (self.threshold + denom - 1) // denom
+                self.threshold = max(1, self.threshold)
                 self.delta += 1
             else:
                 # Revert to the last state.
@@ -71,5 +72,6 @@ class Optimizer(object):
             else:
                 # Current state has already been evaulated.
                 # Probabilistically restart from the best.
-                if random.randint(0, self.delta) == 0:
-                    self.current, self.threshold = self.restart(db)
+                if random.randint(0, 1) == 0:
+                    self.current, _ = self.restart(db)
+                    self.threshold = random.randint(1, max(1, diff))
