@@ -117,8 +117,7 @@ class Memory(object):
 
     def count(self):
         """Count the total number of components that make up this memory."""
-        counts = map(lambda m: m.count(), self.get_banks())
-        result = reduce(lambda a, b: a + b, counts, 1)
+        result = 1 + sum([m.count() for m in self.get_banks()])
         n = self.get_next()
         if n:
             result += n.count()

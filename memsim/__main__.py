@@ -313,6 +313,7 @@ def main():
             elif main_context.thread_count == 0:
                 main_context.stop = True
                 break
+            gc.collect()
             time.sleep(0.125)
         main_context.pool.terminate()
     except KeyboardInterrupt:

@@ -155,30 +155,34 @@ class MemoryOptimizer(Optimizer):
              Returns the updated memory.
         """
         assert(index >= 0)
+
+        # Check if this is the component to remove.
         n = mem.get_next()
         if index == 0:
             if n is not None and mem.can_remove():
                 return n
             else:
                 return mem
-        nc = n.count()
-        if index <= nc:
-            mem.push_transform(-1, dist)
-            mem.set_next(self.remove(dist, n, index - 1))
-            mem.pop_transform(dist)
-            return mem
-        t = nc + 1
+
+        # Check subcomponents.
+        index -= 1
         banks = mem.get_banks()
         for i, bank, in enumerate(banks):
             c = bank.count()
-            if index < t + c:
+            if index < c:   # In this bank.
                 mem.push_transform(i, dist)
-                updated = self.remove(dist, bank, index - t)
+                updated = self.remove(dist, bank, index)
                 mem.set_bank(i, updated)
                 mem.pop_transform(dist)
                 return mem
-            t += c
-        assert(False)
+            index -= c
+
+        # In the next component.
+        if n is not None:
+            mem.push_transform(-1, dist)
+            mem.set_next(self.remove(dist, n, index))
+            mem.pop_transform(dist)
+        return mem
 
     def modify(self, last):
         """Modify the memory subsystem."""
