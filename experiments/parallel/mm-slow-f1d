@@ -55,24 +55,6 @@
     (subsystem (id 11)(depth 0)(word_size 4)
         (memory (main))
     )
-    (subsystem (id 12)(depth 0)(word_size 4)
-        (memory (main))
-    )
-    (subsystem (id 13)(depth 0)(word_size 4)
-        (memory (main))
-    )
-    (subsystem (id 14)(depth 0)(word_size 4)
-        (memory (main))
-    )
-    (subsystem (id 15)(depth 0)(word_size 4)
-        (memory (main))
-    )
-    (subsystem (id 16)(depth 0)(word_size 4)
-        (memory (main))
-    )
-    (subsystem (id 17)(depth 0)(word_size 4)
-        (memory (main))
-    )
     (fifo (id 1)(depth 256)(bram false)(word_size 4)
         ; 2 -> 1
         (memory (main))
@@ -106,7 +88,7 @@
         (memory (main))
     )
     (fifo (id 9)(depth 256)(bram false)(word_size 4)
-        ; 8 -> 17
+        ; 8 -> 11
         (memory (main))
     )
     (fifo (id 10)(depth 256)(bram false)(word_size 4)
@@ -118,83 +100,11 @@
         (memory (main))
     )
     (fifo (id 12)(depth 256)(bram false)(word_size 4)
-        ; 9 -> 17
+        ; 9 -> 11
         (memory (main))
     )
     (fifo (id 13)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 10
-        (memory (main))
-    )
-    (fifo (id 14)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 10
-        (memory (main))
-    )
-    (fifo (id 15)(depth 256)(bram false)(word_size 4)
-        ; 10 -> 17
-        (memory (main))
-    )
-    (fifo (id 16)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 11
-        (memory (main))
-    )
-    (fifo (id 17)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 11
-        (memory (main))
-    )
-    (fifo (id 18)(depth 256)(bram false)(word_size 4)
-        ; 11 -> 17
-        (memory (main))
-    )
-    (fifo (id 19)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 12
-        (memory (main))
-    )
-    (fifo (id 20)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 12
-        (memory (main))
-    )
-    (fifo (id 21)(depth 256)(bram false)(word_size 4)
-        ; 12 -> 17
-        (memory (main))
-    )
-    (fifo (id 22)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 13
-        (memory (main))
-    )
-    (fifo (id 23)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 13
-        (memory (main))
-    )
-    (fifo (id 24)(depth 256)(bram false)(word_size 4)
-        ; 13 -> 17
-        (memory (main))
-    )
-    (fifo (id 25)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 14
-        (memory (main))
-    )
-    (fifo (id 26)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 14
-        (memory (main))
-    )
-    (fifo (id 27)(depth 256)(bram false)(word_size 4)
-        ; 14 -> 17
-        (memory (main))
-    )
-    (fifo (id 28)(depth 256)(bram false)(word_size 4)
-        ; 6 -> 15
-        (memory (main))
-    )
-    (fifo (id 29)(depth 256)(bram false)(word_size 4)
-        ; 7 -> 15
-        (memory (main))
-    )
-    (fifo (id 30)(depth 256)(bram false)(word_size 4)
-        ; 15 -> 17
-        (memory (main))
-    )
-    (fifo (id 31)(depth 256)(bram false)(word_size 4)
-        ; 17 -> 16
+        ; 11 -> 10
         (memory (main))
     )
 )
@@ -208,13 +118,6 @@
     (trace (id 7)(name kernel47))
     (trace (id 8)(name kernel68))
     (trace (id 9)(name kernel69))
-    (trace (id 10)(name kernel610))
-    (trace (id 11)(name kernel611))
-    (trace (id 12)(name kernel612))
-    (trace (id 13)(name kernel613))
-    (trace (id 14)(name kernel614))
-    (trace (id 15)(name kernel615))
-    (trace (id 16)(name kernel716))
-    (trace (id 17)(name kernel517))
+    (trace (id 10)(name kernel710))
+    (trace (id 11)(name kernel511))
 )
-
