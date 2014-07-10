@@ -50,7 +50,7 @@ class ProcessList(object):
         if rc < 0:
             self.producers[index] = p
         elif index in self.consumers:
-            t = self.machine.time + fifo.get_pending()
+            t = self.machine.time + rc
             self.heap.push(t, self.consumers[index])
             del self.consumers[index]
         return rc
@@ -65,7 +65,7 @@ class ProcessList(object):
         if rc < 0:
             self.consumers[index] = p
         elif index in self.producers:
-            t = self.machine.time + fifo.get_pending()
+            t = self.machine.time + rc
             self.heap.push(t, self.producers[index])
             del self.producers[index]
         return rc
@@ -80,7 +80,7 @@ class ProcessList(object):
         if rc < 0:
             self.consumers[index] = p
         elif index in self.producers:
-            t = self.machine.time + fifo.get_pending()
+            t = self.machine.time + rc
             self.heap.push(t, self.producers[index])
             del self.producers[index]
         return rc

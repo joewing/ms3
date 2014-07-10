@@ -166,29 +166,25 @@ class Split(container.Container):
             self.bank1 = b
 
     def permute(self, rand, max_cost):
+        word_size = self.get_word_size()
+        offset = self.offset
         action = rand.randint(0, 3)
-        if action == 0:
-            # Decrement the offset.
-            offset = self.offset
-            self.offset -= 1
+        if action == 0 or action == 1:
+            # Increment/decrement.
+            direction = word_size if action == 0 else -word_size
+            self.offset += direction
+            while rand.randbool():
+                self.offset += direction
             if self.offset < rand.get_min_address():
+                self.offset = rand.get_min_address()
+            if self.offset > rand.get_max_address():
                 self.offset = rand.get_max_address()
             if self.get_cost() > max_cost:
                 self.offset = offset
                 return False
-        elif action == 1:
-            # Increment the offset.
-            offset = self.offset
-            self.offset += 1
-            if self.offset > rand.get_max_address():
-                self.offset = rand.get_min_address()
-            if self.get_cost() > max_cost:
-                self.offset = offset
-                return False
         elif action == 2:
-            # Generate a new offset from the prior.
-            offset = self.offset
-            self.offset = rand.random_address(self.get_word_size())
+            # Resample the prior.
+            self.offset = rand.random_address(word_size)
             if self.get_cost() > max_cost:
                 self.offset = offset
                 return False

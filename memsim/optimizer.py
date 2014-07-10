@@ -72,6 +72,6 @@ class Optimizer(object):
             else:
                 # Current state has already been evaulated.
                 # Probabilistically restart from the best.
-                if random.randint(0, 1) == 0:
+                if random.randint(0, 3) == 0:
                     self.current, _ = self.restart(db)
                     self.threshold = random.randint(1, max(1, diff))

@@ -46,10 +46,11 @@ class Offset(transform.Transform):
     def permute(self, rand, max_cost):
         word_size = self.get_word_size()
         offset = self.offset
-        if rand.randbool():
-            self.offset = rand.randint(-word_size, word_size)
-        else:
-            self.offset = -rand.random_address(word_size)
+        direction = 1 if rand.randbool() else -1
+        direction *= 1 if randbool() else word_size
+        self.offset += direction
+        while rand.randint(0, 1) == 0:
+            self.offset += direction
         if self.get_cost() > max_cost:
             self.offset = offset
             return False
