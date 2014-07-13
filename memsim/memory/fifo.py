@@ -231,7 +231,7 @@ def _create_fifo(lexer, args):
     index = parser.get_argument(lexer, args, 'id', 0)
     word_size = parser.get_argument(lexer, args, 'word_size', 4)
     depth = parser.get_argument(lexer, args, 'depth', 1)
-    bram = parser.get_argument(lexer, args, 'bram', True)
+    bram = parser.get_argument(lexer, args, 'bram', False)
     min_depth = parser.get_argument(lexer, args, 'min_depth', 1)
     mem = parser.get_argument(lexer, args, 'memory')
     return FIFO(index=index, mem=mem, depth=depth, min_depth=min_depth,
