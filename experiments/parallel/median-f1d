@@ -55,7 +55,7 @@
     )
 )
 (benchmarks
-    (trace (id 1)(name Print1))
+    (trace (id 1)(last true)(name Print1))
     (trace (id 2)(name Median2))
     (trace (id 3)(name Dedup3))
     (trace (id 4)(name kernel24))

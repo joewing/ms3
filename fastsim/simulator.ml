@@ -77,7 +77,7 @@ let produce sim proc (index : int) =
         else
             try
                 let c = Hashtbl.find sim.consumers index in
-                let t = sim.model.mach.time + rc in
+                let t = fifo#consume_time in
                 Pq.push sim.heap t c;
                 Hashtbl.remove sim.consumers index
             with Not_found -> ()
@@ -94,7 +94,7 @@ let consume sim proc (index : int) =
         else
             try
                 let p = Hashtbl.find sim.producers index in
-                let t = sim.model.mach.time + rc in
+                let t = fifo#produce_time in
                 Pq.push sim.heap t p;
                 Hashtbl.remove sim.producers index
             with Not_found -> ()
@@ -104,17 +104,9 @@ let consume sim proc (index : int) =
 let peek sim proc (index : int) (offset : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#peek offset in
-    begin
-        if rc < 0 then
-            Hashtbl.replace sim.consumers index proc
-        else
-            try
-                let p = Hashtbl.find sim.producers index in
-                let t = sim.model.mach.time + rc in
-                Pq.push sim.heap t p;
-                Hashtbl.remove sim.producers index
-            with Not_found -> ()
-    end; rc
+    if rc < 0 then
+        Hashtbl.add sim.consumers index proc
+    else (); rc
 ;;
 
 let add_benchmark sim b =
@@ -169,18 +161,26 @@ let check_done sim =
 
 let run_simulator sim =
     reset_simulator sim;
-    while not (Pq.is_empty sim.heap) do
-        sim.model.mach.time <- max sim.model.mach.time (Pq.get_key sim.heap);
-        let proc = Pq.pop sim.heap in
-        let delta = process_step proc in
-        if delta >= 0 then
-            let next_time = sim.model.mach.time + delta in
-            Pq.push sim.heap next_time proc
-    done;
+    begin
+        try
+            while not (Pq.is_empty sim.heap) do
+                sim.model.mach.time <-
+                    max sim.model.mach.time (Pq.get_key sim.heap);
+                let proc = Pq.pop sim.heap in
+                let delta = process_step proc in
+                if delta >= 0 then
+                    let next_time = sim.model.mach.time + delta in
+                    Pq.push sim.heap next_time proc
+            done
+        with
+            End_simulation -> ()
+    end;
     check_done sim;
+(*
     List.iter (fun p ->
         let t = process_finish p in
         sim.model.mach.time <- max sim.model.mach.time t
     ) sim.processes;
+*)
     get_scores sim
 ;;

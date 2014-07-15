@@ -50,7 +50,7 @@ class ProcessList(object):
         if rc < 0:
             self.producers[index] = p
         elif index in self.consumers:
-            t = self.machine.time + rc
+            t = fifo.get_consume_time()
             self.heap.push(t, self.consumers[index])
             del self.consumers[index]
         return rc
@@ -65,7 +65,7 @@ class ProcessList(object):
         if rc < 0:
             self.consumers[index] = p
         elif index in self.producers:
-            t = self.machine.time + rc
+            t = fifo.get_produce_time()
             self.heap.push(t, self.producers[index])
             del self.producers[index]
         return rc
@@ -172,17 +172,17 @@ class ProcessList(object):
 
         # fastsim not available.
         # Run the simulation until there are no more events to process.
-        while not self.heap.empty():
-            self.machine.time = max(self.machine.time, self.heap.key())
-            p = self.heap.value()
-            self.heap.pop()
-            try:
+        try:
+            while not self.heap.empty():
+                self.machine.time = max(self.machine.time, self.heap.key())
+                p = self.heap.value()
+                self.heap.pop()
                 delta = p.step()
                 if delta >= 0:
                     next_time = self.machine.time + delta
                     self.heap.push(next_time, p)
-            except StopIteration:
-                pass
+        except StopIteration:
+            pass
 
         # Take into account any leftover time.
         for p in self.processes:

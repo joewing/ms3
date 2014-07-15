@@ -18,3 +18,5 @@ val process_step : process -> int
 val process_finish : process -> int
 
 val process_is_done : process -> bool
+
+exception End_simulation

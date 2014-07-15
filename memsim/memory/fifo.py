@@ -43,6 +43,12 @@ class FIFO(subsystem.Subsystem):
     def is_fifo(self):
         return True
 
+    def get_consume_time(self):
+        return self.min_consume_time
+
+    def get_produce_time(self):
+        return self.min_produce_time
+
     def get_parameter_count(self):
         count = subsystem.Subsystem.get_parameter_count(self)
         return count + 1
@@ -208,7 +214,7 @@ class FIFO(subsystem.Subsystem):
         else:
             result = max(1, self.min_consume_time - self.machine.time)
             if self.used > 1:
-                self.read_next(result)
+                self.read_next(0)
             self.used -= 1
             return result
 

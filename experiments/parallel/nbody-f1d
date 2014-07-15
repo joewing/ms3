@@ -83,5 +83,5 @@
     (trace (id 4)(name Accumulate4))
     (trace (id 5)(name Force5))
     (trace (id 6)(name Update6))
-    (trace (id 7)(name Print7))
+    (trace (id 7)(last true)(name Print7))
 )

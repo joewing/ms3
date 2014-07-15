@@ -211,7 +211,7 @@
     (trace (id 21)(name Merge26214421))
     (trace (id 22)(name Merge52428822))
     (trace (id 23)(name SelectLast23))
-    (trace (id 24)(name Output24))
+    (trace (id 24)(last true)(name Output24))
 )
 
 

@@ -61,6 +61,8 @@ class DRAM(main.MainMemory):
             result += '(ddr true)'
         else:
             result += '(ddr false)'
+        if self.extra_cycles != 1.0:
+            result += '(extra ' + str(self.extra_cycles) + ')'
         result += ')'
         return result
 
@@ -155,7 +157,7 @@ def _create_dram(lexer, args):
     page_count = parser.get_argument(lexer, args, 'page_count', 65536)
     width = parser.get_argument(lexer, args, 'width', 8)
     burst_size = parser.get_argument(lexer, args, 'burst_size', 4)
-    extra_cycles = parser.get_argument(lexer, args, 'extra_cycles', 0)
+    extra_cycles = parser.get_argument(lexer, args, 'extra', 1.0)
     open_page = parser.get_argument(lexer, args, 'open_page', True)
     ddr = parser.get_argument(lexer, args, 'ddr', True)
     return DRAM(frequency=frequency,

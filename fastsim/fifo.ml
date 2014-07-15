@@ -34,6 +34,10 @@ class fifo =
             min_produce_time <- 0;
             min_consume_time <- 0
 
+        method consume_time = max mach.time min_consume_time
+
+        method produce_time = max mach.time min_produce_time
+
         method is_full = used = depth
 
         method is_empty = used = 0
@@ -83,7 +87,7 @@ class fifo =
                 begin
                     let result = max 1 (min_consume_time - mach.time) in
                     if used > 1 then
-                        self#read_next result
+                        self#read_next 0
                     else ();
                     used <- used - 1;
                     result

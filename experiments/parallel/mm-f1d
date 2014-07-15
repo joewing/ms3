@@ -118,6 +118,6 @@
     (trace (id 7)(name kernel47))
     (trace (id 8)(name kernel68))
     (trace (id 9)(name kernel69))
-    (trace (id 10)(name kernel710))
+    (trace (id 10)(last true)(name kernel710))
     (trace (id 11)(name kernel511))
 )

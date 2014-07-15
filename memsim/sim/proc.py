@@ -96,17 +96,13 @@ class Process(object):
             temp = self.pl.consume(self, addr)
             if temp < 0:
                 temp = self.pl.consume(self, size)
-            if temp < 0:
-                self.pending_access = access
-            return temp
+            return max(0, temp)
         elif at == AccessType.OUTPUT:
             self.delay = True
             temp = self.pl.produce(self, addr)
             if temp < 0:
                 temp = self.pl.produce(self, size)
-            if temp < 0:
-                self.pending_access = access
-            return temp
+            return max(0, temp)
         elif at == AccessType.END:
             self.machine.end(addr)
             return 0
