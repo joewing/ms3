@@ -8,7 +8,7 @@ def random_split(machine, nxt, rand, cost):
     bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
     result.reset(machine)
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class Split(container.Container):
@@ -179,19 +179,19 @@ class Split(container.Container):
                 self.offset = rand.get_min_address()
             if self.offset > rand.get_max_address():
                 self.offset = rand.get_max_address()
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.offset = offset
                 return False
         elif action == 2:
             # Resample the prior.
             self.offset = rand.random_address(word_size)
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.offset = offset
                 return False
         else:
             # Swap banks.
             self.bank0, self.bank1 = self.bank1, self.bank0
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.bank0, self.bank1 = self.bank1, self.bank0
                 return False
         return True

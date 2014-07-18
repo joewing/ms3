@@ -138,22 +138,22 @@ class FIFO(subsystem.Subsystem):
         for i in xrange(action_count):
             if action == 0 and self.machine.target == TargetType.FPGA:
                 self.bram = not self.bram
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     return True
                 self.bram = not self.bram
             elif action == 1:
                 self.depth *= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     return True
                 self.depth //= 2
             elif action == 2 and self.depth // 2 >= self.min_depth:
                 self.depth //= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     return True
                 self.depth *= 2
             action = (action + 1) % action_count
         assert(self.depth >= self.min_depth)
-        assert(self.get_cost() <= max_cost)
+        assert(self.get_cost().fits(max_cost))
         return False
 
     def simplify(self):

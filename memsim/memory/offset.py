@@ -10,7 +10,7 @@ def random_offset(machine, nxt, rand, cost):
         offset = -rand.random_address(word_size)
     result = Offset(join.Join(), nxt, offset)
     result.reset(machine)
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class Offset(transform.Transform):
@@ -51,7 +51,7 @@ class Offset(transform.Transform):
         self.offset += direction
         while rand.randint(0, 1) == 0:
             self.offset += direction
-        if self.get_cost() > max_cost:
+        if not self.get_cost().fits(max_cost):
             self.offset = offset
             return False
         else:

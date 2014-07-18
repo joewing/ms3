@@ -11,16 +11,16 @@ def random_spm(machine, nxt, rand, cost):
     size = max(MIN_SPM_SIZE, word_size)
     spm = SPM(nxt, word_size, size)
     spm.reset(machine)
-    while spm.get_cost() < cost:
+    while spm.get_cost().fits(cost):
         spm.size *= 2
         spm.update_latency()
-        if spm.get_cost() > cost:
+        if not spm.get_cost().fits(cost):
             spm.size //= 2
             spm.update_latency()
             break
         elif rand.randint(0, 8) == 0:
             break
-    return spm if spm.get_cost() <= cost else None
+    return spm if spm.get_cost().fits(cost) else None
 
 
 class SPM(container.Container):
@@ -115,27 +115,28 @@ class SPM(container.Container):
         temp = rand.randint(0, 3)
         if temp == 0 and self.size > self.word_size:
             self.size //= 2
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.size *= 2
                 result = False
         elif temp == 1:
             self.size *= 2
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.size //= 2
                 result = False
         elif temp == 2 and self.word_size > 1:
             self.word_size //= 2
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.size *= 2
                 result = False
         elif temp == 3 and self.size > self.word_size:
             self.word_size *= 2
-            if self.get_cost() > max_cost:
+            if not self.get_cost().fits(max_cost):
                 self.word_size //= 2
                 result = False
         else:
             result = False
         self.update_latency()
+        assert(self.get_cost().fits(max_cost))
         return result
 
     def simplify(self):

@@ -6,7 +6,7 @@ def random_prefetch(machine, nxt, rand, cost):
     stride = nxt.get_word_size() * rand.randint(-8, 8)
     result = Prefetch(nxt, stride)
     result.reset(machine)
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class Prefetch(container.Container):
@@ -82,11 +82,11 @@ class Prefetch(container.Container):
     def permute(self, rand, max_cost):
         stride = self.stride
         self.stride = self.get_word_size() * rand.randint(-8, 8)
-        if self.get_cost() > max_cost:
+        if self.get_cost().fits(max_cost):
+            return True
+        else:
             self.stride = stride
             return False
-        else:
-            return True
 
     def set_next(self, n):
         container.Container.set_next(self, n)

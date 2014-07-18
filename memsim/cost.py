@@ -1,8 +1,6 @@
-import functools
 import copy
 
 
-@functools.total_ordering
 class Cost(object):
 
     def __init__(self, cost=1 << 31, size=0, luts=0, regs=0):
@@ -32,7 +30,7 @@ class Cost(object):
                     self.luts - other.luts,
                     self.regs - other.regs)
 
-    def __lt__(self, other):
+    def fits(self, other):
         if self.cost >= other.cost:
             return False
         if self.size >= other.size:
@@ -40,16 +38,5 @@ class Cost(object):
         if self.luts >= other.luts:
             return False
         if self.regs >= other.regs:
-            return False
-        return True
-
-    def __eq__(self, other):
-        if self.cost != other.cost:
-            return False
-        if self.size != other.size:
-            return False
-        if self.luts != other.luts:
-            return False
-        if self.regs != other.regs:
             return False
         return True

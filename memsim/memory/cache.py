@@ -42,15 +42,15 @@ def random_cache(machine, nxt, rand, cost):
                    policy=policy,
                    write_back=write_back)
     result.reset(machine)
-    while result.get_cost() < cost:
+    while result.get_cost().fits(cost):
         result.line_count *= 2
-        if result.get_cost() > cost:
+        if not result.get_cost().fits(cost):
             result.line_count //= 2
             break
         elif rand.randint(0, 8) == 0:
             break
     result.update_latency()
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class CacheLine(object):
@@ -212,54 +212,55 @@ class Cache(container.Container):
         for i in xrange(param_count):
             if param == 0:
                 self.line_size *= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.line_size = line_size
             elif param == 1 and line_size > 1:
                 self.line_size //= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.line_size = line_size
             elif param == 2:
                 self.line_count *= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.line_count = line_count
             elif param == 3 and line_count > associativity:
                 self.line_count //= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.line_count = line_count
             elif param == 4 and associativity < line_count:
                 self.associativity *= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.associativity = associativity
             elif param == 5 and associativity > 1:
                 self.associativity //= 2
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.assocativity = associativity
             elif param == 6:
                 self.policy = rand.randint(0, CachePolicy.MAX_POLICY)
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.policy = policy
             else:
                 self.write_back = not self.write_back
-                if self.get_cost() <= max_cost:
+                if self.get_cost().fits(max_cost):
                     self.update_latency()
                     return True
                 self.write_back = write_back
             param = (param + 1) % param_count
         self.update_latency()
+        assert(self.get_cost().fits(max_cost))
         return False
 
     def reset(self, m):

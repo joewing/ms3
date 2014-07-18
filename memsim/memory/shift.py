@@ -11,7 +11,7 @@ def random_shift(machine, nxt, rand, cost):
     shift = rand.randint(-bits, bits)
     result = Shift(join.Join(), nxt, shift)
     result.reset(machine)
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class Shift(transform.Transform):
@@ -56,11 +56,11 @@ class Shift(transform.Transform):
         shift = self.shift
         bits = self.machine.addr_bits - word_bits - 1
         self.shift = rand.randint(-bits, bits)
-        if self.get_cost() > max_cost:
+        if self.get_cost().fits(max_cost):
+            return True
+        else:
             self.shift = shift
             return False
-        else:
-            return True
 
     def push_transform(self, index, rand):
         if index == 0:

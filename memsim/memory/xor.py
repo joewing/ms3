@@ -6,7 +6,7 @@ def random_xor(machine, nxt, rand, cost):
     value = 1 << rand.randint(0, machine.addr_bits - 1)
     result = XOR(join.Join(), nxt, value)
     result.reset(machine)
-    return result if result.get_cost() <= cost else None
+    return result if result.get_cost().fits(cost) else None
 
 
 class XOR(transform.Transform):
@@ -42,7 +42,7 @@ class XOR(transform.Transform):
     def permute(self, rand, max_cost):
         value = self.value
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
-        if self.get_cost() > max_cost:
+        if not self.get_cost().fits(max_cost):
             self.value = value
             return False
         return True
