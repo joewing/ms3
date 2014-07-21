@@ -84,7 +84,6 @@ let produce sim proc (index : int) =
     end; rc
 ;;
 
-
 let consume sim proc (index : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#consume in

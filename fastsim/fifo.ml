@@ -43,14 +43,10 @@ class fifo =
         method is_empty = used = 0
 
         method private process start write addr size =
-            let result =
-                if bram || depth = 1 then
-                    start + 1
-                else
-                    super#process start write addr size
-            in
-                score <- score + result;
-                result
+            if bram || depth = 1 then
+                start + 1
+            else
+                super#process start write addr size
 
         method private read_next start =
             let start = max start (min_consume_time - mach.time) in
@@ -73,7 +69,9 @@ class fifo =
                     if used = 1 then
                         self#read_next t
                     else ();
-                    max 1 start
+                    let result = max 1 start in
+                    score <- score + result;
+                    result
                 end
 
         method consume =
@@ -86,6 +84,7 @@ class fifo =
                         self#read_next 0
                     else ();
                     used <- used - 1;
+                    score <- score + result;
                     result
                 end
 
