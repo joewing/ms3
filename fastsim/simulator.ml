@@ -176,11 +176,5 @@ let run_simulator sim =
             End_simulation -> ()
     end;
     check_done sim;
-(*
-    List.iter (fun p ->
-        let t = process_finish p in
-        sim.model.mach.time <- max sim.model.mach.time t
-    ) sim.processes;
-*)
     get_scores sim
 ;;

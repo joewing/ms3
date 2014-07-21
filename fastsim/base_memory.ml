@@ -9,8 +9,6 @@ class virtual base_memory =
 
         method reset (m : machine) (main : base_memory) : unit = mach <- m
 
-        method finish : int = 0
-
         method virtual word_size : int
 
         method virtual writes : int
@@ -76,8 +74,6 @@ class virtual container =
                     main#reset m main;
                     next <- Some main
 
-        method finish = self#next#finish
-
     end
 
 class join =
@@ -122,8 +118,6 @@ class virtual transform =
             super#reset m main;
             self#bank#reset m main
 
-        method finish =
-            max super#finish self#bank#finish
     end
 
 let log2 (n : int) : int =

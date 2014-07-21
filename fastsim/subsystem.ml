@@ -50,9 +50,4 @@ class subsystem =
             score <- score + result;
             result
 
-        method finish =
-            let result = self#next#finish in
-            score <- score + result;
-            result
-
     end

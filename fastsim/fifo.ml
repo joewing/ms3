@@ -42,10 +42,6 @@ class fifo =
 
         method is_empty = used = 0
 
-        method finish =
-            let t = max min_produce_time min_consume_time in
-            max super#finish (t - mach.time)
-
         method private process start write addr size =
             let result =
                 if bram || depth = 1 then

@@ -17,8 +17,6 @@ class prefetch =
             super#reset m main;
             time <- 0
 
-        method finish = max (time - mach.time) super#finish
-
         method private process base start write addr size =
             let result = max start (time - mach.time) in
             let result = self#next#send_request base result write addr size in

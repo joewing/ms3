@@ -55,8 +55,6 @@ class cache =
                 { tag = 0; age = 0; dirty = false }
             )
 
-        method finish = max (pending - mach.time) self#next#finish
-
         method private sum_ages first_line =
             let set_size = self#set_size in
             let rec loop i total =

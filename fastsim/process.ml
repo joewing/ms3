@@ -109,8 +109,6 @@ let process_step proc =
     | None                  -> process_next proc
 ;;
 
-let process_finish proc = proc.mem#finish;;
-
 let process_is_done proc =
     match proc.accesses with
     | SCons _ -> false

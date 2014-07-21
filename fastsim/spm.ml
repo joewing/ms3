@@ -25,8 +25,6 @@ class spm =
             super#reset m main;
             pending <- 0
 
-        method finish = max (pending - mach.time) self#next#finish
-
         method private process_hit base start write addr size =
             pending <- mach.time + start;
             pending <- pending + max (cycle_time - access_time) 0;
