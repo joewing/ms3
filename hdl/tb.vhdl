@@ -275,9 +275,6 @@ begin
             if ram_re = '1' then
                 assert mem_we = '0'
                     report "read and write" severity failure;
-            elsif ram_we = '1' then
-                assert mem_ready = '0'
-                    report "write when not ready" severity failure;
             end if;
         end if;
     end process;
