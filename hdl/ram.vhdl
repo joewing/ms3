@@ -19,7 +19,8 @@ entity ram is
         re       : in  std_logic;
         we       : in  std_logic;
         mask     : in  std_logic_vector((WORD_WIDTH / 8) - 1 downto 0);
-        ready    : out std_logic
+        full     : out std_logic;
+        avail    : out std_logic
     );
 end ram;
 
@@ -34,6 +35,7 @@ architecture ram_arch of ram is
     signal nat_addr   : natural;
     signal do_read    : std_logic;
     signal do_write   : std_logic;
+    signal read_ready : std_logic;
 
 begin
 
@@ -42,6 +44,7 @@ begin
         if rising_edge(clk) then
             if rst = '1' then
                 counter <= to_unsigned(1, LATENCY);
+                read_ready <= '0';
             elsif re = '1' or we = '1' then
                 counter <= "1" & to_unsigned(0, LATENCY - 1);
             elsif counter(0) = '0'  then
@@ -57,6 +60,11 @@ begin
                     end loop;
                 end if;
                 value <= data(nat_addr);
+                if we = '1' or re = '1' then
+                    read_ready <= '0';
+                else
+                    read_ready <= counter(1);
+                end if;
             else
                 value <= (others => '0');
             end if;
@@ -72,7 +80,8 @@ begin
         end if;
     end process;
 
-    ready <= counter(0);
+    full <= not counter(0);
+    avail <= read_ready;
 
     doutn : if SIZE > 0 generate
         dout <= value when counter(0) = '1' else (others => 'Z');

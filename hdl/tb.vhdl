@@ -28,7 +28,8 @@ architecture tb_arch of tb is
     signal ram_re       : std_logic;
     signal ram_we       : std_logic;
     signal ram_mask     : std_logic_vector((WORD_WIDTH / 8) - 1 downto 0);
-    signal ram_ready    : std_logic;
+    signal ram_full     : std_logic;
+    signal ram_avail    : std_logic;
 
     procedure cycle(signal clk : out std_logic) is
     begin
@@ -110,7 +111,8 @@ begin
             re          => ram_re,
             we          => ram_we,
             mask        => ram_mask,
-            ready       => ram_ready
+            full        => ram_full,
+            avail       => ram_avail
         );
 
     mem1 : entity work.mem
@@ -123,7 +125,8 @@ begin
             port0_re        => ram_re,
             port0_we        => ram_we,
             port0_mask      => ram_mask,
-            port0_ready     => ram_ready,
+            port0_full      => ram_full,
+            port0_avail     => ram_avail,
             subsystem0_addr => mem_addr(ADDR_WIDTH - 1 downto 0),
             subsystem0_in   => mem_din,
             subsystem0_out  => mem_dout,

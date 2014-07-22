@@ -19,6 +19,9 @@ function run()
     echo "(memory"                          >> input.model
     cat input.mem                           >> input.model
     echo ")))"                              >> input.model
+    echo "(benchmarks"                      >> input.model
+    echo "(trace (id 0)(name test))"        >> input.model
+    echo ")"                                >> input.model
     cat input.mem
     pypy ../memgen.py input.model > mem.vhdl 2> /dev/null
     ghdl -a mem.vhdl tb.vhdl

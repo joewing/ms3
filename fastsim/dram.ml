@@ -22,6 +22,7 @@ class dram =
         val mutable open_page = true
         val mutable ddr = true
         val mutable extra_cycles = 1.0
+        val mutable last_time = 0
         val mutable banks : dram_bank array = Array.make 0 {
             page = -1; dirty = false; time = 0.0
         }
@@ -55,6 +56,7 @@ class dram =
             )
 
         method private process base start write addr size =
+            let start = max start (last_time - mach.time) in
             let addr = (addr + base) land mach.addr_mask in
             writes <- writes + (if write then 1 else 0);
             let mult = mach.frequency /. frequency in
@@ -98,7 +100,10 @@ class dram =
                 else write;
 
             (* Return the result. *)
-            (mult *. cycles +. extra_cycles) |> ceil |> int_of_float
+            let result = (mult *. cycles +. extra_cycles)
+                       |> ceil |> int_of_float in
+            last_time <- mach.time + result;
+            result
 
 
     end
