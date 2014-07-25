@@ -1,5 +1,5 @@
 type 'a t = {
-    heap : (int * 'a option) array;
+    mutable heap : (int * 'a option) array;
     mutable size : int
 }
 
@@ -37,6 +37,11 @@ let is_empty q =
 
 let push q key value =
     q.size <- q.size + 1;
+    let len = Array.length q.heap in
+    if q.size >= len then
+        let extension = Array.make len (0, None) in
+        q.heap <- Array.append q.heap extension
+    else ();
     q.heap.(q.size) <- (key, Some value);
     let i = ref q.size in
     while !i > 1 do

@@ -152,12 +152,6 @@ let get_scores sim =
     ] in subsystem_scores @ fifo_scores @ totals
 ;;
 
-let check_done sim =
-    let has_done = List.exists process_is_done sim.processes in
-    if not has_done then
-        failwith "invalid trace"
-;;
-
 let run_simulator sim =
     reset_simulator sim;
     begin
@@ -174,6 +168,5 @@ let run_simulator sim =
         with
             End_simulation -> ()
     end;
-    check_done sim;
     get_scores sim
 ;;
