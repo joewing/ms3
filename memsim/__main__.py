@@ -169,7 +169,7 @@ def optimize(db, mod, iterations, seed, directory):
 
         # Exit if we've performed enough evaluations.
         if result_count >= iterations:
-            break
+            return False
 
         # Get the next subsystem to evaluate.
         if main_context.verbose:
@@ -177,7 +177,7 @@ def optimize(db, mod, iterations, seed, directory):
         ml = o.optimize(db, t)
         if ml is None:
             # Another process is working on this value.
-            break
+            return True
 
         # Evaluate the memory subsystem.
         if main_context.verbose:
@@ -195,7 +195,8 @@ def run_experiment(db, mod, iterations, seed, directory):
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
-        optimize(db, mod, iterations, seed, directory)
+        while optimize(db, mod, iterations, seed, directory):
+            pass
     except KeyboardInterrupt:
         return -1
     except:
