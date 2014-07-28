@@ -257,7 +257,7 @@ class SQLDatabase(base.BaseDatabase):
             self.best = str(mem), value, cost.clone()
         elif value < self.best[1]:
             self.best = str(mem), value, cost.clone()
-        elif value == self.best[1] and cost < self.best[2]:
+        elif value == self.best[1] and cost.fits(self.best[2]):
             self.best = str(mem), value, cost.clone()
 
         # Insert to our local cache.
