@@ -220,7 +220,7 @@ class MemoryOptimizer(Optimizer):
             for i in xrange(100):
 
                 # Modify the memory.
-                if action == 0:  # Insert
+                if action == 0 and not mem.is_fifo():  # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
