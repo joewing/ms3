@@ -48,25 +48,24 @@ architecture spm_arch of spm is
    signal rmask      : std_logic_vector((WORD_WIDTH / 8) - 1 downto 0);
    signal busy       : std_logic;
    signal was_hit    : std_logic;
+   signal have_value : std_logic;
 
 begin
 
-   process(clk)
-   begin
-      if rising_edge(clk) then
-         if rwe = '1' then
-            for b in 0 to WORD_BYTES - 1 loop
-               if rmask(b) = '1' then
-                  data(b)(raddr) <= rin(b * 8 + 7 downto b * 8);
-               end if;
-            end loop;
-         elsif rre = '1' then
-            for b in 0 to WORD_BYTES - 1 loop
-               value(b * 8 + 7 downto b * 8) <= data(b)(raddr);
-            end loop;
-         end if;
-      end if;
-   end process;
+    access_proc : for b in 0 to WORD_BYTES - 1 generate
+        process(clk)
+        begin
+            if rising_edge(clk) then
+                if rwe = '1' and rmask(b) = '1' then
+                    data(b)(raddr) <= rin(b * 8 + 7 downto b * 8);
+                end if;
+                if rre = '1' then
+                    value(b * 8 + 7 downto b * 8) <= data(b)(raddr);
+                end if;
+                have_value <= was_hit;
+            end if;
+        end process;
+    end generate;
 
    addr_slice  <= addr(ADDR_WIDTH - 1 downto SIZE_BITS);
    is_hit      <= '1' when unsigned(addr_slice) = 0 else '0';
@@ -95,7 +94,7 @@ begin
    mre   <= re and not is_hit;
    mwe   <= we and not is_hit;
    mmask <= mask;
-   dout  <= value when was_hit = '1' else min;
+   dout  <= value when have_value = '1' else min;
    mout  <= din;
    ready <= mready and not busy;
 
