@@ -47,6 +47,7 @@ architecture rtl of adapter is
     signal do_write     : std_logic;
     signal in_buf       : std_logic_vector(IN_WORD_WIDTH - 1 downto 0);
     signal in_mask      : std_logic_vector((IN_WORD_WIDTH / 8) - 1 downto 0);
+    signal raddr        : std_logic_vector(IN_ADDR_WIDTH - 1 downto 0);
 
 begin
 
@@ -134,7 +135,7 @@ begin
         end process;
 
         -- Assign dout.
-        -- Low bits are assigned directly from min.
+        -- High bits are assigned directly from min.
         -- The rest are assigned from in_buf.
         dout(IN_WORD_WIDTH - 1 downto IN_WORD_WIDTH - OUT_WORD_WIDTH) <= min;
         dout(IN_WORD_WIDTH - OUT_WORD_WIDTH - 1 downto 0)
@@ -150,20 +151,18 @@ begin
             variable mask_top       : natural;
             variable mask_bottom    : natural;
         begin
+            mout <= din(OUT_WORD_WIDTH - 1 downto 0);
+            mmask <= mask(OUT_MASK_BITS - 1 downto 0);
             for i in 1 to WORD_COUNT loop
                 word_bottom     := i * OUT_WORD_WIDTH;
                 word_top        := word_bottom + OUT_WORD_WIDTH - 1;
-                mask_bottom     := i * OUT_MASK_BITS;
+                mask_bottom     := WORD_COUNT * OUT_MASK_BITS;
                 mask_top        := mask_bottom + OUT_MASK_BITS - 1;
                 if current = i then
                     mout <= in_buf(word_top downto word_bottom);
                     mmask <= in_mask(mask_top downto mask_bottom);
                 end if;
             end loop;
-            if current = 0 then
-                mout <= din(OUT_WORD_WIDTH - 1 downto 0);
-                mmask <= mask(OUT_MASK_BITS - 1 downto 0);
-            end if;
         end process;
 
         -- Assign maddr.
@@ -192,6 +191,18 @@ begin
         mwe <= we;
         ready <= mready;
 
+        -- Buffer the address.
+        -- This is needed for reads since the address doesn't need
+        -- to remain valid after re is asserted.
+        process(clk)
+        begin
+            if rising_edge(clk) then
+                if re = '1' then
+                    raddr <= addr;
+                end if;
+            end if;
+        end process;
+
         -- Assign maddr.
         -- maddr is not as wide, so we take the most significant bits.
         maddr <= addr(IN_ADDR_WIDTH - 1 downto IN_ADDR_WIDTH - OUT_ADDR_WIDTH);
@@ -206,8 +217,8 @@ begin
         begin
             mmask <= (others => '0');
             for i in 0 to bound loop
-                bottom  := i * (IN_WORD_WIDTH / 8);
-                top     := bottom + (IN_WORD_WIDTH / 8) - 1;
+                bottom  := i * IN_MASK_BITS;
+                top     := bottom + IN_MASK_BITS - 1;
                 if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
                     mmask(top downto bottom) <= mask;
                 end if;
@@ -216,7 +227,7 @@ begin
 
         -- Assign dout and mout.
         -- dout is not as wide as min, so we select the bits based on addr.
-        process(addr, min, din)
+        process(raddr, min, din)
             constant bits   : natural := IN_ADDR_WIDTH - OUT_ADDR_WIDTH;
             constant bound  : natural := (2 ** bits) - 1;
             variable bottom : natural;
@@ -225,7 +236,7 @@ begin
             for i in 0 to bound loop
                 bottom  := i * IN_WORD_WIDTH;
                 top     := bottom + IN_WORD_WIDTH - 1;
-                if to_integer(unsigned(addr(bits - 1 downto 0))) = i then
+                if to_integer(unsigned(raddr(bits - 1 downto 0))) = i then
                     dout <= min(top downto bottom);
                 end if;
                 mout(top downto bottom) <= din;

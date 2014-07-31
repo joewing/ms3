@@ -67,8 +67,10 @@ done
 echo "Testing spm..."
 ghdl -a spm.vhdl
 for ((size=8; size<=256; size=size*2)) ; do
-    echo "(spm (size $size) (memory (main)))" > input.mem
-    run
+    for ((wsize=2; wsize<=8; wsize=wsize*2)) ; do
+        echo "(spm (size $size)(word_size $wsize)(memory (main)))" > input.mem
+        run
+    done
 done
 
 echo "Testing split..."
@@ -85,6 +87,15 @@ run
 echo "(offset (value -16)(bank (join))(memory (main)))" > input.mem
 run
 echo "(offset (value 3)(bank (join))(memory (main)))" > input.mem
+run
+
+echo "Testing eor"
+ghdl -a eor.vhdl
+echo "(xor (value 2)(bank (join))(memory (main)))" > input.mem
+run
+echo "(xor (value 16)(bank (join))(memory (main)))" > input.mem
+run
+echo "(xor (value 257)(bank (join))(memory (main)))" > input.mem
 run
 
 echo "Success"
