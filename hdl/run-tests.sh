@@ -46,7 +46,7 @@ run
 
 echo "Testing cache..."
 ghdl -a cache.vhdl
-for ((lsize=8; lsize<=32; lsize=lsize*2)) ; do
+for ((lsize=1; lsize<=32; lsize=lsize*2)) ; do
     for ((lcount=1; lcount<=16; lcount=lcount*2)) ; do
         for ((a=1; a<=8; a=a*2)) ; do
             for p in 'lru' 'mru' 'fifo' 'plru' ; do

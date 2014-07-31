@@ -156,7 +156,7 @@ begin
             for i in 1 to WORD_COUNT loop
                 word_bottom     := i * OUT_WORD_WIDTH;
                 word_top        := word_bottom + OUT_WORD_WIDTH - 1;
-                mask_bottom     := WORD_COUNT * OUT_MASK_BITS;
+                mask_bottom     := i * OUT_MASK_BITS;
                 mask_top        := mask_bottom + OUT_MASK_BITS - 1;
                 if current = i then
                     mout <= in_buf(word_top downto word_bottom);
