@@ -56,7 +56,7 @@ class Optimizer(object):
                 self.threshold -= (self.threshold + denom - 1) // denom
                 self.threshold = max(1, self.threshold)
                 self.delta += 1
-            elif random.randint(0, 7) == 0:
+            elif random.randint(0, 15) == 0:
                 # Restart from the best state.
                 self.current, _ = self.restart(db)
                 self.threshold = diff
@@ -76,6 +76,6 @@ class Optimizer(object):
             else:
                 # Current state has already been evaulated.
                 # Probabilistically restart from the best.
-                if random.randint(0, 7) == 0:
+                if random.randint(0, 15) == 0:
                     self.current, _ = self.restart(db)
                     self.threshold = max(1, abs(diff))
