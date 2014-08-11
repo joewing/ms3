@@ -8,6 +8,7 @@ class virtual benchmark :
         val mutable last : bool
         method id : int
         method is_last : bool
+        method is_ignored : bool
         method set : string -> string -> unit
         method virtual run : string -> access stream
     end

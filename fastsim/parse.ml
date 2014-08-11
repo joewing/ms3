@@ -132,10 +132,14 @@ let match_subsystem token_list =
     (m, token_list)
 ;;
 
-let match_fifo token_list =
+let match_fifo sub token_list =
     let token_list = match_open token_list in
     let token_list = match_literal "fifo" token_list in
-    let m = new Fifo.fifo in
+    let m = if sub >= 0 then
+            new Dummy_fifo.dummy_fifo
+        else
+            new Fifo.fifo
+    in
     let token_list = match_arguments (set_fifo m) token_list in
     let token_list = match_close token_list in
     (m, token_list)
@@ -152,7 +156,7 @@ let match_main_memory token_list =
     (main, token_list)
 ;;
 
-let match_memory_list token_list =
+let match_memory_list sub token_list =
     let token_list = match_open token_list in
     let token_list = match_literal "memory" token_list in
     let (main, token_list) = match_main_memory token_list in
@@ -163,7 +167,7 @@ let match_memory_list token_list =
             let (subsystems, fifos, token_list) = helper token_list in
             (mem :: subsystems, fifos, token_list)
         | Open _ :: Literal ("fifo", _) :: _ ->
-            let (mem, token_list) = match_fifo token_list in
+            let (mem, token_list) = match_fifo sub token_list in
             let (subsystems, fifos, token_list) = helper token_list in
             (subsystems, mem :: fifos, token_list)
         | _ -> ([], [], token_list)
@@ -192,27 +196,37 @@ let match_benchmark = function
     | t -> parse_error t "invalid benchmark"
 ;;
 
-let rec match_benchmark_list = function
+let rec match_benchmark_list sub = function
     | Open _ :: token_list ->
             let (benchmark, token_list) = match_benchmark token_list in
             let token_list = match_close token_list in
-            let (next, token_list) = match_benchmark_list token_list in
-            (benchmark :: next, token_list)
+            let (next, token_list) = match_benchmark_list sub token_list in
+            begin
+                if sub >= 0 && benchmark#id != sub then
+                    benchmark#set "ignore" "true"
+                else if sub >= 0 then
+                    benchmark#set "last" "true"
+                else ();
+                (benchmark :: next, token_list)
+            end
     | token_list -> ([], token_list)
 ;;
 
-let match_benchmarks token_list =
+let match_benchmarks token_list sub =
     let token_list = match_open token_list in
     let token_list = match_literal "benchmarks" token_list in
-    let (result, token_list) = match_benchmark_list token_list in
+    let (result, token_list) = match_benchmark_list sub token_list in
     (result, match_close token_list)
 ;;
 
-let parse_model token_list : Model.model =
+let parse_model token_list sub : Model.model =
     let (mach, token_list) = match_machine token_list in
-    let (main, subsystems, fifos, token_list) = match_memory_list token_list in
-    let (benchmarks, token_list) = match_benchmarks token_list in
+    let (main, subsystems, fifos, token_list)
+        = match_memory_list sub token_list in
+    let (benchmarks, token_list) = match_benchmarks token_list sub in
     { mach; main; subsystems; fifos; benchmarks }
 ;;
 
-let parse_model_file file_name = parse_model @@ tokenize file_name;;
+let parse_model_file file_name subsystem_index =
+    parse_model (tokenize file_name) subsystem_index
+;;

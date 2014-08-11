@@ -115,7 +115,9 @@ let add_benchmark sim b =
     let peek = peek sim in
     let run = b#run in
     let proc = create_process produce consume peek run sim.directory mem in
-    sim.processes <- proc :: sim.processes
+    if not b#is_ignored then
+        sim.processes <- proc :: sim.processes
+    else ()
 ;;
 
 let reset_simulator sim =
@@ -156,7 +158,7 @@ let run_simulator sim =
     reset_simulator sim;
     begin
         try
-            while not (Pq.is_empty sim.heap) do
+            while true do
                 sim.model.mach.time <-
                     max sim.model.mach.time (Pq.get_key sim.heap);
                 let proc = Pq.pop sim.heap in
