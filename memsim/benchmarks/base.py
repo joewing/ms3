@@ -52,17 +52,25 @@ class Benchmark(object):
         """Prepare the benchmark to be run."""
         self.directory = directory
 
+    def collect_stats(self, directory, dist):
+        """Collect statistics for the benchmark."""
+        self.reset(directory)
+        for t, addr, size in self.run(False):
+            if t == AccessType.READ or t == AccessType.WRITE:
+                dist.insert_range(addr, size)
+                self.max_addr = max(self.max_addr, addr + size)
+
     def get_size(self, directory):
         """Get the address range of the benchmark in bytes."""
         if self.max_addr < 0:
             self.reset(directory)
-            for t, addr, size in self.run():
+            for t, addr, size in self.run(False):
                 if t == AccessType.READ or t == AccessType.WRITE:
                     self.max_addr = max(self.max_addr, addr + size)
         return max(self.max_addr, 0)
 
     @abstractmethod
-    def run(self):
+    def run(self, repeat):
         """Run the benchmark.
             Note that the results of a benchmark should be deterministic.
             This function should use 'yield' memory accesses.

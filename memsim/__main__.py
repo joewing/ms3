@@ -94,50 +94,42 @@ def get_initial_memory(db, m, dist, directory):
 
         # Load statistics from the database.
         state = db.load(m)
-        use_prefetch = state['use_prefetch']
         dist.load(state, m)
 
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
         ml = memory.parse_memory_list(lexer)
-        return ml, best_value, use_prefetch
+        return ml, best_value
 
-    # No previous memory subsystem is stored, so we need run the
-    # empty memory subsystem to collect statistics.
-
-    # Create a memory subsystem to collect statistics.
-    ml = m.memory.clone()
-    pl = sim.ProcessList(m.machine, directory)
-    for fifo in ml.all_fifos():
-        fd = dist.get_fifo_distribution(fifo)
-        fifo.set_next(stats.Stats(fd, fifo.get_next()))
+    # First collect statistics.
+    if main_context.verbose:
+        print('Collecting statistics')
     for b in m.benchmarks:
-        mem = ml.get_subsystem(b.index)
-        sd = dist.get_subsystem_distribution(mem)
-        mem.set_next(stats.Stats(sd, mem.get_next()))
-        pl.add_benchmark(b)
+        mem = m.memory.get_subsystem(b.index)
+        sd  = dist.get_subsystem_distribution(mem)
+        b.collect_stats(directory, sd)
 
-    if main_context.verbose:
-        print('Initial Memory: {}'.format(ml))
-
-    # Collect statistics and get the execution time.
-    best_value = pl.run(ml, False)
-    best_cost = ml.get_cost()
-
-    if main_context.verbose:
-        print('Time: {}'.format(best_value))
-        print('Cost: {}'.format(best_cost))
-
-    # Save statistics to the database.
+    # Save the statistics to the database.
     state = dict()
-    use_prefetch = pl.has_delay()
-    state['use_prefetch'] = use_prefetch
     dist.save(state)
     db.save(m, state)
 
-    # Return the empty memory subsystem and execution time.
+    # Run the initial memory subsystem.
+    ml = m.memory.clone()
+    pl = sim.ProcessList(m.machine, directory)
+    for b in m.benchmarks:
+        pl.add_benchmark(b)
+    if main_context.verbose:
+        print('Initial Memory: {}'.format(m.memory))
+    best_value = pl.run(ml)
+    best_cost = ml.get_cost()
+    if main_context.verbose:
+        print('Value: {}'.format(best_value))
+        print('Cost: {}'.format(best_cost))
+
+    # Return the empty memory subsystem and its value.
     db.add_result(m, m.memory, best_value, best_cost)
-    return m.memory, best_value, use_prefetch
+    return m.memory, best_value
 
 
 def optimize(db, mod, iterations, seed, directory):
@@ -151,10 +143,10 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t, use_prefetch = get_initial_memory(db, mod, dist, directory)
+    ml, t = get_initial_memory(db, mod, dist, directory)
 
     # Perform the optimization.
-    o = MemoryOptimizer(mod, ml, seed, dist, directory, use_prefetch)
+    o = MemoryOptimizer(mod, ml, seed, dist, directory)
     while True:
 
         # Show the best and get its value.
@@ -184,7 +176,7 @@ def optimize(db, mod, iterations, seed, directory):
             print(ml.simplified())
         t = pl.run(ml.simplified(), main_context.fast)
         if main_context.verbose:
-            print('Time: {}'.format(t))
+            print('Value: {}'.format(t))
 
         gc.collect()
 

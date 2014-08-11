@@ -21,12 +21,14 @@ class Split(base.Benchmark):
         result += ')'
         return result
 
-    def run(self):
+    def run(self, repeat):
         while True:
             yield AccessType.CONSUME, self.in_port, 0
             yield AccessType.OUTPUT, self.out0, self.out1
             yield AccessType.CONSUME, self.in_port, 0
             yield AccessType.OUTPUT, self.out1, self.out0
+            if self.last or not repeat:
+                break
 
 
 def _create_split(lexer, args):

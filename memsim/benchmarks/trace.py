@@ -25,7 +25,7 @@ class Trace(base.Benchmark):
         result += ')'
         return result
 
-    def run(self):
+    def run(self, repeat):
         base_name = '/'.join([self.directory, self.name])
         file_name = ''.join([base_name, TRACE_SUFFIX])
         while True:
@@ -57,7 +57,7 @@ class Trace(base.Benchmark):
                             yield AccessType.END, addr, size
                         else:
                             assert(False)
-            if self.last:
+            if self.last or not repeat:
                 break
 
 

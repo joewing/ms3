@@ -21,13 +21,8 @@ class Process(object):
         self.mem = None
         self.machine = None
         self.pending_access = None
-        self.delay = False
         self.size = -1
         self.offset = 0
-
-    def has_delay(self):
-        """Determine if prefetching would be beneficial."""
-        return self.delay
 
     def total_size(self, directory):
         """Get the total size of the memory subsystem in bytes."""
@@ -51,7 +46,7 @@ class Process(object):
         self.pending_access = None
         self.offset = offset
         self.benchmark.reset(self.directory)
-        self.generator = self.benchmark.run()
+        self.generator = self.benchmark.run(True)
         self.mem.reset(machine)
 
     def done(self):
@@ -71,34 +66,28 @@ class Process(object):
             temp = send_request(self.mem, self.offset, 0, False, addr, size)
             return send_request(self.mem, self.offset, temp, True, addr, size)
         elif at == AccessType.IDLE:
-            self.delay = self.delay or (addr > 0)
             return addr
         elif at == AccessType.PRODUCE:
-            self.delay = True
             temp = self.pl.produce(self, addr)
             if temp < 0:
                 self.pending_access = access
             return temp
         elif at == AccessType.CONSUME:
-            self.delay = True
             temp = self.pl.consume(self, addr)
             if temp < 0:
                 self.pending_access = access
             return temp
         elif at == AccessType.PEEK:
-            self.delay = True
             temp = self.pl.peek(self, addr, size)
             if temp < 0:
                 self.pending_access = access
             return temp
         elif at == AccessType.INPUT:
-            self.delay = True
             temp = self.pl.consume(self, addr)
             if temp < 0:
                 temp = self.pl.consume(self, size)
             return max(0, temp)
         elif at == AccessType.OUTPUT:
-            self.delay = True
             temp = self.pl.produce(self, addr)
             if temp < 0:
                 temp = self.pl.produce(self, size)

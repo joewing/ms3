@@ -33,13 +33,6 @@ class ProcessList(object):
         proc = Process(self, benchmark, self.directory)
         self.processes.append(proc)
 
-    def has_delay(self):
-        """Determine if there are blocking operations.
-
-        This is used to determine if prefetching is useful.
-        """
-        return any(map(lambda p: p.has_delay(), self.processes))
-
     def produce(self, p, index):
         """Produce a value on the specified FIFO (0 based).
 
@@ -112,7 +105,7 @@ class ProcessList(object):
         cmd = 'fastsim/fastsim'
         if not isfile(cmd):
             print('{} not found'.format(cmd))
-            return -1
+            assert(False)
 
         # Run the simulation.
         total = -1
@@ -155,42 +148,11 @@ class ProcessList(object):
         else:
             assert(False)
 
-    def run(self, ml, use_fastsim):
+    def run(self, ml):
         """Run a simulation.
 
         Argument:
             ml: The MemoryList describing the memories to use.
         """
-        # Reset to prepare for the simulation.
         self.reset(ml)
-
-        # Try to use fastsim.
-        if use_fastsim:
-            rc = self.fastsim(ml)
-            if rc >= 0:
-                return rc
-
-        # fastsim not available.
-        # Run the simulation until there are no more events to process.
-        try:
-            while not self.heap.empty():
-                self.machine.time = max(self.machine.time, self.heap.key())
-                p = self.heap.value()
-                self.heap.pop()
-                delta = p.step()
-                if delta >= 0:
-                    next_time = self.machine.time + delta
-                    self.heap.push(next_time, p)
-        except StopIteration:
-            pass
-
-        # Take into account any leftover time.
-        for p in self.processes:
-            self.machine.time = max(p.done(), self.machine.time)
-
-        if self.machine.goal == GoalType.ACCESS_TIME:
-            return self.machine.time
-        elif self.machine.goal == GoalType.WRITES:
-            return ml.main_memory.get_write_count()
-        else:
-            assert(False)
+        return self.fastsim(ml)

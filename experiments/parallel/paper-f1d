@@ -5,7 +5,7 @@
     (frequency  100000000)
     (max_cost   92)
     (max_luts   19000)
-    (max_regs   42000)
+    (max_regs   40000)
 )
 (memory
   (main (memory
