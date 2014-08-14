@@ -30,12 +30,12 @@ class MemoryList(object):
         lst[index] = value
 
     def choice(self, rand):
-        weights = [_get_weight(m) for m in self.all_memories()]
+        weights = [_get_weight(m) for m in self.active_subsystems()]
         total_weight = sum(weights)
         if total_weight == 0:
-            return rand.choice(list(self.all_memories()))
+            return rand.choice(list(self.active_subsystems()))
         draw = rand.randint(0, total_weight - 1)
-        for weight, mem in zip(weights, self.all_memories()):
+        for weight, mem in zip(weights, self.active_subsystems()):
             if weight > draw:
                 return mem
             draw -= weight

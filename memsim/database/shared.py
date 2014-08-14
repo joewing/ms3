@@ -35,20 +35,29 @@ class SharedDatabase(base.BaseDatabase):
     def save(self, mod, state):
         return self._execute('save', False, str(mod), state)
 
-    def get_result(self, mod, mem):
-        result_hash = self.get_hash(mod) + self.get_hash(mem)
+    def get_result(self, mod, mem, subsystem):
+        result_hash = self.get_result_hash(mod, mem, subsystem)
         if result_hash in self.result_cache:
             return self.result_cache[result_hash]
-        result = self._execute('get_result', True, str(mod), str(mem))
+        result = self._execute('get_result', True, str(mod),
+                               str(mem), subsystem)
         if result is not None and result >= 0:
             self.result_cache[result_hash] = result
         return result
 
-    def add_result(self, mod, mem, value, cost):
-        result_hash = self.get_hash(mod) + self.get_hash(mem)
+    def add_result(self, mod, mem, subsystem, value, cost):
+        result_hash = self.get_result_hash(mod, mem, subsystem)
         self.result_cache[result_hash] = value
-        return self._execute('add_result', False,
-                             str(mod), str(mem), value, cost)
+        return self._execute('add_result', False, str(mod), str(mem),
+                             subsystem, value, cost)
+
+    def insert_best(self, mod, mem, value, cost):
+        return self._execute('insert_best', False, str(mod),
+                             str(mem), value, cost)
+
+    def update_best(self, mod, mem, value, cost):
+        return self._execute('update_best', False, str(mod),
+                             str(mem), value, cost)
 
     def get_best(self, mod):
         return self._execute('get_best', True, str(mod))

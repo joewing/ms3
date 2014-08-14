@@ -20,6 +20,7 @@ class MemoryOptimizer(Optimizer):
     constructors = [
         cache.random_cache,
         offset.random_offset,
+        prefetch.random_prefetch,
         shift.random_shift,
         split.random_split,
         split.random_split,
@@ -27,27 +28,28 @@ class MemoryOptimizer(Optimizer):
         xor.random_xor,
     ]
 
-    def __init__(self, mod, ml, seed, dist, directory, use_prefetch=False):
+    def __init__(self, mod, ml, seed, dist, directory):
         Optimizer.__init__(self, ml)
         self.rand = random.Random(seed)
         self.model = mod
         self.dist = dist
         self.directory = directory
         ml.reset(mod.machine)
-        if use_prefetch:
-            self.constructors.append(prefetch.random_prefetch)
 
-    def store_result(self, db, current, value):
+    def store_result(self, db, current, subsystem, value):
         """Store a result."""
-        simplified = current.simplified()
-        db.add_result(self.model, str(simplified), value,
-                      simplified.get_cost())
+        mem = current.get_subsystem(subsystem)
+        simplified = mem.simplify()
+        db.add_result(self.model, str(simplified), subsystem,
+                      value[subsystem], simplified.get_cost())
 
-    def load_result(self, db, current):
+    def load_result(self, db, current, subsystem):
         """Load a result.
         Returns None if the state has not yet been evaluated.
         """
-        return db.get_result(self.model, str(current.simplified()))
+        mem = current.get_subsystem(subsystem)
+        simplified = str(mem.simplify())
+        return db.get_result(self.model, simplified, subsystem)
 
     def create_memory(self, dist, nxt, cost, in_bank):
 
@@ -212,6 +214,7 @@ class MemoryOptimizer(Optimizer):
             count = mem.count()
             parameter_count = mem.get_parameter_count()
             mem_size = mem.get_size()
+            subsystem = mem.index
 
             # Select an action to perform.
             # We make multiple attempts for the selected action
@@ -220,27 +223,27 @@ class MemoryOptimizer(Optimizer):
             for i in xrange(100):
 
                 # Modify the memory.
-                if action == 0 and not mem.is_fifo():  # Insert
+                if action == 0:             # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
                     if temp is not None and str(temp) != before:
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
-                            return current
-                elif action <= mem_size:  # Remove
+                            return current, subsystem
+                elif action <= mem_size:    # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
                     if temp is not None and str(temp) != before:
                         current.update(temp)
                         if current.get_max_path_length() <= max_path:
-                            return current
-                else:   # Permute
+                            return current, subsystem
+                else:                       # Permute
                     index = self.rand.randint(0, count - 1)
                     if self.permute(dist, mem, index, max_cost):
                         if current.get_max_path_length() <= max_path:
-                            return current
+                            return current, subsystem
 
     def restart(self, db):
         best_name, best_value, _ = db.get_best(self.model)

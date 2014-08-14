@@ -5,7 +5,7 @@ import sys
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
                         UniqueConstraint, literal)
-from sqlalchemy.sql import select, and_, func, exists
+from sqlalchemy.sql import select, and_, or_, func, exists
 
 from memsim import cost
 from memsim.resultcache import ResultCache
@@ -40,6 +40,7 @@ models_table = Table(
     Column('id', Integer, primary_key=True),
     Column('model_hash', String(64), nullable=False, unique=True),
     Column('name', Text, nullable=False),
+    Column('label', Text),
     Column('data', Text, nullable=False),
     implicit_returning=False,
 )
@@ -75,11 +76,23 @@ results_table = Table(
            nullable=False, index=True),
     Column('memory_id', None, ForeignKey('memories.id'),
            nullable=False, index=True),
+    Column('subsystem', Integer, nullable=False),
     Column('value', BigInteger, nullable=False),
     Column('cost', BigInteger, nullable=False),
     Column('lut_count', BigInteger, nullable=False),
     Column('reg_count', BigInteger, nullable=False),
-    UniqueConstraint('model_id', 'memory_id'),
+    UniqueConstraint('model_id', 'memory_id', 'subsystem'),
+    implicit_returning=False,
+)
+best_table = Table(
+    'best', metadata,
+    Column('model_id', None, ForeignKey('models.id'),
+           nullable=False, primary_key=True),
+    Column('name', Text, nullable=False),
+    Column('value', BigInteger, nullable=False),
+    Column('cost', BigInteger, nullable=False),
+    Column('lut_count', BigInteger, nullable=False),
+    Column('reg_count', BigInteger, nullable=False),
     implicit_returning=False,
 )
 
@@ -94,10 +107,8 @@ class SQLDatabase(base.BaseDatabase):
         self.results = ResultCache(65536)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
-        self.models = ResultCache(32)       # model_hash -> (id, state)
+        self.models = ResultCache(8)        # model_hash -> (id, state)
         self.memories = ResultCache(65536)  # memory_hash -> id
-        self.best = None
-        self.best_time = None
         self.send_count = 0
 
     def connect(self):
@@ -153,19 +164,20 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            ident = row['id']
-            state = json.loads(row['data'])
+            ident = row.id
+            state = json.loads(row.data)
             self.models[mod_hash] = ident, state
             return ident, state
 
         # Insert a new model.
-        stmt = models_table.insert().from_select(
-            [
+        stmt = models_table.insert().from_select([
                 models_table.c.model_hash,
+                models_table.c.label,
                 models_table.c.name,
                 models_table.c.data,
             ], select([
                 literal(mod_hash),
+                literal(mod.label),
                 literal(str(mod)),
                 literal('{}'),
             ]).where(
@@ -190,8 +202,7 @@ class SQLDatabase(base.BaseDatabase):
 
         # Attempt to insert a new memory.
         # This is the expected case.
-        stmt = memories_table.insert().from_select(
-            [
+        stmt = memories_table.insert().from_select([
                 memories_table.c.name_hash,
                 memories_table.c.name,
             ], select([
@@ -210,11 +221,11 @@ class SQLDatabase(base.BaseDatabase):
             memories_table.c.name_hash == mem_hash
         )
         row = self._execute(stmt).first()
-        ident = row['id']
+        ident = row.id
         self.memories[mem_hash] = ident
         return ident
 
-    def get_result(self, mod, mem):
+    def get_result(self, mod, mem, subsystem):
         """Look up the result for the specified model.
 
         This will return the result if found.  If not found and the
@@ -224,9 +235,7 @@ class SQLDatabase(base.BaseDatabase):
         """
 
         # Check the local cache.
-        mod_hash = self.get_hash(mod)
-        mem_hash = self.get_hash(mem)
-        result_hash = mod_hash + mem_hash
+        result_hash = self.get_result_hash(mod, mem, subsystem)
         if result_hash in self.results:
             return self.results[result_hash]
 
@@ -237,42 +246,34 @@ class SQLDatabase(base.BaseDatabase):
             and_(
                 results_table.c.model_id == mod_id,
                 results_table.c.memory_id == memory_id,
+                results_table.c.subsystem == subsystem,
             )
         )
         row = self._execute(stmt).first()
         if row:
-            value = row['value']
+            value = row.value
             self.results[result_hash] = value
             return value
         else:
             self.results[result_hash] = -1
             return None
 
-    def add_result(self, mod, mem, value, cost):
+    def add_result(self, mod, mem, subsystem, value, cost):
         """Add a result for the specified model."""
 
         assert(value >= 0)
 
-        if self.best is None:
-            self.best = str(mem), value, cost.clone()
-        elif value < self.best[1]:
-            self.best = str(mem), value, cost.clone()
-        elif value == self.best[1] and cost.fits(self.best[2]):
-            self.best = str(mem), value, cost.clone()
-
         # Insert to our local cache.
-        mod_hash = self.get_hash(mod)
-        mem_hash = self.get_hash(mem)
-        result_hash = mod_hash + mem_hash
+        result_hash = self.get_result_hash(mod, mem, subsystem)
         self.results[result_hash] = value
 
         # Insert to the database.
         mod_id = self._get_model_id(mod)
         mem_id = self._get_memory_id(mem)
-        stmt = results_table.insert().from_select(
-            [
+        stmt = results_table.insert().from_select([
                 results_table.c.model_id,
                 results_table.c.memory_id,
+                results_table.c.subsystem,
                 results_table.c.value,
                 results_table.c.cost,
                 results_table.c.lut_count,
@@ -280,6 +281,7 @@ class SQLDatabase(base.BaseDatabase):
             ], select([
                 literal(mod_id),
                 literal(mem_id),
+                literal(subsystem),
                 literal(value),
                 literal(cost.cost),
                 literal(cost.luts),
@@ -289,6 +291,7 @@ class SQLDatabase(base.BaseDatabase):
                     and_(
                         results_table.c.model_id == mod_id,
                         results_table.c.memory_id == mem_id,
+                        results_table.c.subsystem == subsystem,
                     )
                 )
             )
@@ -296,48 +299,99 @@ class SQLDatabase(base.BaseDatabase):
         self._execute(stmt)
         return True
 
-    def get_best(self, mod):
-        """Get the best result for the specified model.
-
-        Returns (name, value, cost).
-        """
-
-        if self.best_time is not None:
-            now = datetime.now()
-            if now - self.best_time < timedelta(seconds=CACHE_SECONDS):
-                return self.best
-
+    def insert_best(self, mod, mem, value, cost):
+        """Insert the best value."""
         mod_id = self._get_model_id(mod)
-        min_query = select([
-            func.min(results_table.c.value)
-        ]).where(results_table.c.model_id == mod_id)
-        stmt = select([
-            memories_table.c.name,
-            results_table.c.value,
-            results_table.c.cost,
-            results_table.c.lut_count,
-            results_table.c.reg_count,
+        stmt = best_table.insert().from_select([
+            best_table.c.model_id,
+            best_table.c.name,
+            best_table.c.value,
+            best_table.c.cost,
+            best_table.c.lut_count,
+            best_table.c.reg_count,
+        ], select([
+            literal(mod_id),
+            literal(str(mem)),
+            literal(value),
+            literal(cost.cost),
+            literal(cost.luts),
+            literal(cost.regs),
         ]).where(
-            and_(
-                memories_table.c.id == results_table.c.memory_id,
-                results_table.c.model_id == mod_id,
-                results_table.c.value == min_query,
+            ~exists([best_table.c.model_id]).where(
+                best_table.c.model_id == mod_id
             )
-        ).order_by(
-            results_table.c.cost,
-            results_table.c.lut_count,
-            results_table.c.reg_count,
-            func.length(memories_table.c.name),
+        ))
+        self._execute(stmt)
+        return True
+
+
+    def update_best(self, mod, mem, value, cost):
+        """Update the best."""
+        better_filter = or_(
+            best_table.c.value > value,
+            and_(
+                best_table.c.value == value,
+                best_table.c.cost > cost.cost,
+            ),
+            and_(
+                best_table.c.value == value,
+                best_table.c.cost == cost.cost,
+                best_table.c.lut_count > cost.luts,
+            ),
+            and_(
+                best_table.c.value == value,
+                best_table.c.cost == cost.cost,
+                best_table.c.lut_count == cost.luts,
+                best_table.c.reg_count > cost.regs,
+            ),
+            and_(
+                best_table.c.value == value,
+                best_table.c.cost == cost.cost,
+                best_table.c.lut_count == cost.luts,
+                best_table.c.reg_count == cost.regs,
+                func.char_length(best_table.c.name) >
+                    func.char_length(literal(str(mem))),
+            ),
         )
-        row = self._execute(stmt).first()
+
+        # Update if a best already exists.
+        mod_id = self._get_model_id(mod)
+        stmt = best_table.update().where(
+            and_(
+                best_table.c.model_id == mod_id,
+                better_filter,
+            )
+        ).values(
+            name=literal(str(mem)),
+            value=literal(value),
+            cost=literal(cost.cost),
+            lut_count=literal(cost.luts),
+            reg_count=literal(cost.regs),
+        )
+        self._execute(stmt)
+        return True
+
+    def get_best(self, mod):
+        """Get the best memory for the specified model.
+
+        Returns a string representation of the memory list.
+        """
+        mod_id = self._get_model_id(mod)
+        query = select([
+            best_table.c.name,
+            best_table.c.value,
+            best_table.c.cost,
+            best_table.c.lut_count,
+            best_table.c.reg_count,
+        ]).where(
+            best_table.c.model_id == mod_id
+        )
+        row = self._execute(query).first()
         if row:
-            c = cost.Cost(cost=row['cost'],
-                          luts=row['lut_count'],
-                          regs=row['reg_count'])
-            self.best_time = datetime.now()
-            result = row['name'], row['value'], c
-            self.best = result[0], result[1], result[2].clone()
-            return result
+            c = cost.Cost(cost=row.cost,
+                          luts=row.lut_count,
+                          regs=row.reg_count)
+            return row.name, row.value, c
         else:
             return None, 0, cost.Cost()
 
@@ -386,8 +440,7 @@ class SQLDatabase(base.BaseDatabase):
                                         lut_count, reg_count)
 
         # Insert into the database.
-        stmt = fpga_results_table.insert().from_select(
-            [
+        stmt = fpga_results_table.insert().from_select([
                 fpga_results_table.c.name_hash,
                 fpga_results_table.c.name,
                 fpga_results_table.c.frequency,
@@ -428,7 +481,7 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            temp = (row['access_time'], row['cycle_time'], row['area'])
+            temp = (row.access_time, row.cycle_time, row.area)
             self.cacti_results[name_hash] = temp
             return temp
         else:
@@ -442,8 +495,7 @@ class SQLDatabase(base.BaseDatabase):
         self.cacti_results[name_hash] = (access_time, cycle_time, area)
 
         # Insert into the database.
-        stmt = cacti_results_table.insert().from_select(
-            [
+        stmt = cacti_results_table.insert().from_select([
                 cacti_results_table.c.name_hash,
                 cacti_results_table.c.name,
                 cacti_results_table.c.area,
@@ -467,22 +519,24 @@ class SQLDatabase(base.BaseDatabase):
     def get_status(self):
         """Get the status of all models.
 
-        Returns (name, evaluations, value).
+        Returns (label, subsystem, evaluations, value).
         """
         stmt = select([
-            models_table.c.name.label('name'),
+            models_table.c.label.label('label'),
+            results_table.c.subsystem.label('subsystem'),
             func.min(results_table.c.value).label('value'),
             func.count(results_table.c.value).label('evals'),
         ]).where(
             results_table.c.model_id == models_table.c.id
         ).group_by(
-            models_table.c.name
+            models_table.c.label,
+            results_table.c.subsystem,
         )
         for row in self._execute(stmt):
-            yield row['name'], row['evals'], row['value']
+            yield row.label, row.subsystem, row.evals, row.value
 
     def get_states(self):
         """Get all model IDs and names from the database."""
         stmt = select([models_table.c.id, models_table.c.name])
         for row in self._execute(stmt):
-            yield row['id'], row['name']
+            yield row.id, row.name

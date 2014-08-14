@@ -24,6 +24,7 @@ class split_benchmark =
                 match lst with
                 | temp :: rest  -> SCons (temp, process rest)
                 | []            -> process access_list ()
-            in process access_list ()
-
+            in
+            if last then SNil
+            else process access_list ()
     end

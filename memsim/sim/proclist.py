@@ -99,7 +99,7 @@ class ProcessList(object):
             offset += p.total_size(self.directory)
         assert(offset < (1 << self.machine.addr_bits))
 
-    def fastsim(self, ml):
+    def fastsim(self, ml, subsystem):
 
         # Check if fastsim is available.
         cmd = 'fastsim/fastsim'
@@ -115,7 +115,8 @@ class ProcessList(object):
         mod.memory = ml
         mod.machine = self.machine
         mod.benchmarks = [p.benchmark for p in self.processes]
-        p = Popen([cmd, '-d', self.directory], stdin=PIPE, stdout=PIPE)
+        args = [cmd, '-d', self.directory, '-s', str(subsystem)]
+        p = Popen(args, stdin=PIPE, stdout=PIPE)
         result, _ = p.communicate(input=str(mod))
 
         # Parse the results.
@@ -139,7 +140,7 @@ class ProcessList(object):
                 else:
                     print(name)
                     assert(False)
-        assert(total > 0)
+        assert(total >= 0)
         assert(writes >= 0)
         if self.machine.goal == GoalType.ACCESS_TIME:
             return total
@@ -148,11 +149,11 @@ class ProcessList(object):
         else:
             assert(False)
 
-    def run(self, ml):
+    def run(self, ml, subsystem):
         """Run a simulation.
 
         Argument:
             ml: The MemoryList describing the memories to use.
         """
         self.reset(ml)
-        return self.fastsim(ml)
+        return self.fastsim(ml, subsystem)

@@ -20,6 +20,7 @@ from memsim import (
 )
 from memsim.memory import stats
 from memsim.memopt import MemoryOptimizer
+from memsim.optimizer import PendingException
 from memsim.database.server import DatabaseServer
 
 
@@ -37,8 +38,6 @@ parser.add_option('-t', '--threads', dest='threads', default=1,
                   help='number of threads')
 parser.add_option('-v', '--verbose', dest='verbose', default=False,
                   action='store_true', help='be verbose')
-parser.add_option('-f', '--nofast', dest='fast', default=True,
-                  action='store_false', help='disable fastsim')
 
 
 class MainContext(object):
@@ -51,7 +50,6 @@ class MainContext(object):
     thread_count = 0
     pool = None
     verbose = False
-    fast = True
     stop = False
     lock = threading.Lock()
 
@@ -82,53 +80,75 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
+def get_total_value(value):
+    """Aggregate value for multiple subsystems."""
+    return sum(value.values())
+
+
+def get_subsystem_values(db, m, directory):
+    pl = sim.ProcessList(m.machine, directory)
+    for b in m.benchmarks:
+        pl.add_benchmark(b)
+    best_value = dict()
+    for b in m.benchmarks:
+        subsystem = b.index
+        mem = m.memory.get_subsystem(subsystem)
+        value = db.get_result(m, mem, subsystem)
+        if value is None:
+            value = pl.run(m.memory, subsystem)
+            db.add_result(m, mem, subsystem, value, mem.get_cost())
+        best_value[subsystem] = value
+    return best_value
+
+
 def get_initial_memory(db, m, dist, directory):
     """Get the initial subsystem and its total access time.
 
     This runs from a process in the process pool.
     """
 
-    # First attempt to load the best subsystem from the database.
-    best_name, best_value, _ = db.get_best(m)
+    # Load the model from the database.
+    # If not found, we need to collect statistics first.
+    state = db.load(m)
+    if len(state) == 0:
+        if main_context.verbose:
+            print('Collecting statistics')
+        for b in m.benchmarks:
+            mem = m.memory.get_subsystem(b.index)
+            sd = dist.get_subsystem_distribution(mem)
+            b.collect_stats(directory, sd)
+            dist.save(state)
+            db.save(m, state)
+
+    # Attempt to load the best subsystem from the database.
+    # If not found, we need to evaluate it.
+    best_name, _, _ = db.get_best(m)
     if best_name:
 
         # Load statistics from the database.
         state = db.load(m)
         dist.load(state, m)
 
+        # Load the values for each subsystem.
+        best_value = get_subsystem_values(db, m, directory)
+
         # Create the initial memory subsystem.
         lexer = lex.Lexer(StringIO(best_name))
         ml = memory.parse_memory_list(lexer)
         return ml, best_value
 
-    # First collect statistics.
-    if main_context.verbose:
-        print('Collecting statistics')
-    for b in m.benchmarks:
-        mem = m.memory.get_subsystem(b.index)
-        sd  = dist.get_subsystem_distribution(mem)
-        b.collect_stats(directory, sd)
-
-    # Save the statistics to the database.
-    state = dict()
-    dist.save(state)
-    db.save(m, state)
-
-    # Run the initial memory subsystem.
-    ml = m.memory.clone()
-    pl = sim.ProcessList(m.machine, directory)
-    for b in m.benchmarks:
-        pl.add_benchmark(b)
+    # Get the current value.
     if main_context.verbose:
         print('Initial Memory: {}'.format(m.memory))
-    best_value = pl.run(ml)
-    best_cost = ml.get_cost()
+    best_value = get_subsystem_values(db, m, directory)
+    total = get_total_value(best_value)
+    m.memory.reset(m.machine)
+    db.insert_best(m, m.memory, total, m.memory.get_cost())
     if main_context.verbose:
-        print('Value: {}'.format(best_value))
-        print('Cost: {}'.format(best_cost))
+        print('Value: {}'.format(total))
+        print('Cost: {}'.format(m.memory.get_cost()))
 
     # Return the empty memory subsystem and its value.
-    db.add_result(m, m.memory, best_value, best_cost)
     return m.memory, best_value
 
 
@@ -143,7 +163,7 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, t = get_initial_memory(db, mod, dist, directory)
+    ml, value = get_initial_memory(db, mod, dist, directory)
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, ml, seed, dist, directory)
@@ -166,17 +186,20 @@ def optimize(db, mod, iterations, seed, directory):
         # Get the next subsystem to evaluate.
         if main_context.verbose:
             print('Iteration {} / {}'.format(result_count + 1, iterations))
-        ml = o.optimize(db, t)
-        if ml is None:
+        try:
+            ml, subsystem = o.optimize(db, value)
+        except PendingException:
             # Another process is working on this value.
             return True
 
         # Evaluate the memory subsystem.
         if main_context.verbose:
             print(ml.simplified())
-        t = pl.run(ml.simplified(), main_context.fast)
+        value[subsystem] = pl.run(ml.simplified(), subsystem)
+        total = get_total_value(value)
+        db.update_best(mod, ml, total, ml.get_cost())
         if main_context.verbose:
-            print('Value: {}'.format(t))
+            print('Value: {}'.format(total))
 
         gc.collect()
 
@@ -279,7 +302,6 @@ def main():
     main_context.seed = int(options.seed) if options.seed else int(time.time())
     main_context.iterations = int(options.iterations)
     main_context.verbose = options.verbose
-    main_context.fast = options.fast
     db = database.get_instance(options.url)
 
     # Create the database server.

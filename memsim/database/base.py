@@ -27,7 +27,7 @@ class BaseDatabase(object):
         return None
 
     @abstractmethod
-    def add_result(self, mod, mem, value, cost):
+    def add_result(self, mod, mem, subsystem, value, cost):
         """Insert a result to the database."""
         return True
 
@@ -65,3 +65,9 @@ class BaseDatabase(object):
     def get_hash(self, value):
         """Get the hash for a value."""
         return hashlib.sha1(str(value)).hexdigest()
+
+    def get_result_hash(self, mod, mem, subsystem):
+        """Get the hash for a particular result."""
+        mod_hash = self.get_hash(mod)
+        mem_hash = self.get_hash(mem)
+        return mod_hash + '-' + mem_hash + '-' + str(subsystem)

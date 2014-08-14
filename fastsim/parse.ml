@@ -45,6 +45,16 @@ let rec match_arguments setter token_list =
     | _ -> token_list
 ;;
 
+let match_label token_list =
+    let token_list = match_open token_list in
+    match match_string token_list with
+    | ("label", token_list) ->
+        let (label, token_list) = match_string token_list in
+        let token_list = match_close token_list in
+        token_list
+    | _ -> parse_error token_list "expected 'label'"
+;;
+
 let set_mach mach name = function
     | [Literal (s, _)] -> set_machine mach name s
     | t -> parse_error t ("invalid machine argument: " ^ name)
@@ -203,9 +213,15 @@ let rec match_benchmark_list sub = function
             let (next, token_list) = match_benchmark_list sub token_list in
             begin
                 if sub >= 0 && benchmark#id != sub then
-                    benchmark#set "ignore" "true"
+                    begin
+                        benchmark#set "last" "false";
+                        benchmark#set "ignore" "true"
+                    end
                 else if sub >= 0 then
-                    benchmark#set "last" "true"
+                    begin
+                        benchmark#set "last" "true";
+                        benchmark#set "ignore" "false"
+                    end
                 else ();
                 (benchmark :: next, token_list)
             end
@@ -220,6 +236,7 @@ let match_benchmarks token_list sub =
 ;;
 
 let parse_model token_list sub : Model.model =
+    let token_list = match_label token_list in
     let (mach, token_list) = match_machine token_list in
     let (main, subsystems, fifos, token_list)
         = match_memory_list sub token_list in

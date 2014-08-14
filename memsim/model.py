@@ -4,12 +4,14 @@ from memsim import benchmarks, lex, machine, memory
 class Model(object):
 
     def __init__(self):
+        self.label = 'undefined'
         self.machine = machine.MachineType()
         self.memory = None
         self.benchmarks = []
 
     def __str__(self):
         result = []
+        result += '(label ' + str(self.label) + ')'
         result += '(machine ' + str(self.machine) + ')'
         result += '(memory ' + str(self.memory) + ')'
         result += '(benchmarks '
@@ -41,6 +43,8 @@ def parse_model(lexer, model=None):
             model.memory = memory.parse_memory_list(lexer)
         elif name == 'benchmarks':
             model.benchmarks = _parse_benchmarks(lexer)
+        elif name == 'label':
+            model.label = _parse_str(lexer)
         elif name == 'include':
             value = lexer.get_value()
             lexer.match(lex.TOKEN_LITERAL)
@@ -49,6 +53,12 @@ def parse_model(lexer, model=None):
             lex.ParseError(lexer, 'invalid top-level component: ' + name)
         lexer.match(lex.TOKEN_CLOSE)
     return model
+
+
+def _parse_str(lexer):
+    value = lexer.get_value()
+    lexer.match(lex.TOKEN_LITERAL)
+    return value
 
 
 def _parse_int(lexer):
