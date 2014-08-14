@@ -35,10 +35,10 @@ def get_name_map(db, experiments):
 
 def show_state(db, experiments):
     names = get_name_map(db, experiments)
-    for mname, evals, value in db.get_status():
+    for mname, label, evals in db.get_status():
         key = db.get_hash(mname)
         if key in names:
-            print(mname)
+            print(label)
             best_name, best_value, best_cost = db.get_best(mname)
             print('  Hash: ', db.get_hash(mname))
             print('  Iter: ', evals)

@@ -519,21 +519,20 @@ class SQLDatabase(base.BaseDatabase):
     def get_status(self):
         """Get the status of all models.
 
-        Returns (label, subsystem, evaluations, value).
+        Returns (mname, label, evaluations).
         """
         stmt = select([
             models_table.c.label.label('label'),
-            results_table.c.subsystem.label('subsystem'),
-            func.min(results_table.c.value).label('value'),
+            models_table.c.name.label('name'),
             func.count(results_table.c.value).label('evals'),
         ]).where(
             results_table.c.model_id == models_table.c.id
         ).group_by(
             models_table.c.label,
-            results_table.c.subsystem,
+            models_table.c.name,
         )
         for row in self._execute(stmt):
-            yield row.label, row.subsystem, row.evals, row.value
+            yield row.name, row.label, row.evals
 
     def get_states(self):
         """Get all model IDs and names from the database."""
