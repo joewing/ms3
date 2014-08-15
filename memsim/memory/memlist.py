@@ -7,7 +7,7 @@ from memsim.memory.main import MainMemory
 
 def _get_weight(m):
     cost = m.get_cost()
-    return (cost.cost + 1) * m.score
+    return (cost.cost + 1) * (m.score + 1)
 
 
 class MemoryList(object):

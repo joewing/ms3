@@ -47,7 +47,7 @@ class Offset(transform.Transform):
         word_size = self.get_word_size()
         offset = self.offset
         direction = 1 if rand.randbool() else -1
-        direction *= 1 if randbool() else word_size
+        direction *= 1 if rand.randbool() else word_size
         self.offset += direction
         while rand.randint(0, 1) == 0:
             self.offset += direction

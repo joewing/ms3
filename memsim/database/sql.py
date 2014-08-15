@@ -327,6 +327,7 @@ class SQLDatabase(base.BaseDatabase):
 
     def update_best(self, mod, mem, value, cost):
         """Update the best."""
+        mod_id = self._get_model_id(mod)
         better_filter = or_(
             best_table.c.value > value,
             and_(
@@ -353,9 +354,6 @@ class SQLDatabase(base.BaseDatabase):
                     func.char_length(literal(str(mem))),
             ),
         )
-
-        # Update if a best already exists.
-        mod_id = self._get_model_id(mod)
         stmt = best_table.update().where(
             and_(
                 best_table.c.model_id == mod_id,

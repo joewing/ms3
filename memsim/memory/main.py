@@ -12,6 +12,9 @@ class MainMemory(base.Memory):
     def get_name(self):
         return '(main)'
 
+    def get_parameter_count(self):
+        return 0
+
     def get_write_count(self):
         return self.writes
 

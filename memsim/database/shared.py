@@ -13,7 +13,7 @@ class SharedDatabase(base.BaseDatabase):
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue
-        self.result_cache = ResultCache(128)
+        self.result_cache = ResultCache(1024)
         self.fpga_cache = ResultCache(64)
         self.cacti_cache = ResultCache(64)
 

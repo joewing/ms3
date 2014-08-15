@@ -12,6 +12,9 @@ class Join(base.Memory):
     def __str__(self):
         return '(join)'
 
+    def get_parameter_count(self):
+        return 0
+
     def get_word_size(self):
         return self.parent.get_word_size()
 

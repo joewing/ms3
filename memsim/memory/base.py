@@ -34,6 +34,7 @@ class Memory(object):
         """Get the name of this memory subsystem."""
         return str(self)
 
+    @abstractmethod
     def get_parameter_count(self):
         """Get the number of parameters."""
         return 0

@@ -36,21 +36,6 @@ class MemoryOptimizer(Optimizer):
         self.directory = directory
         ml.reset(mod.machine)
 
-    def store_result(self, db, current, subsystem, value):
-        """Store a result."""
-        mem = current.get_subsystem(subsystem)
-        simplified = mem.simplify()
-        db.add_result(self.model, str(simplified), subsystem,
-                      value[subsystem], simplified.get_cost())
-
-    def load_result(self, db, current, subsystem):
-        """Load a result.
-        Returns None if the state has not yet been evaluated.
-        """
-        mem = current.get_subsystem(subsystem)
-        simplified = str(mem.simplify())
-        return db.get_result(self.model, simplified, subsystem)
-
     def create_memory(self, dist, nxt, cost, in_bank):
 
         # Attempt to create the new subsystem component.
@@ -244,10 +229,3 @@ class MemoryOptimizer(Optimizer):
                     if self.permute(dist, mem, index, max_cost):
                         if current.get_max_path_length() <= max_path:
                             return current, subsystem
-
-    def restart(self, db):
-        best_name, best_value, _ = db.get_best(self.model)
-        lexer = lex.Lexer(StringIO(best_name))
-        current = memory.parse_memory_list(lexer)
-        current.reset(self.model.machine)
-        return current, best_value
