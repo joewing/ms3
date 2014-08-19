@@ -166,6 +166,7 @@ def optimize(db, mod, iterations, seed, directory):
     best_cost = last_ml.get_cost()
     best_value = get_total_value(values)
     result_count = db.get_result_count(mod)
+    assert(best_cost.fits(mod.machine.get_max_cost()))
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, best_value, seed, dist, directory)

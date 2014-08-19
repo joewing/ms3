@@ -174,6 +174,7 @@ class MemoryOptimizer(Optimizer):
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
         max_cost = self.model.machine.get_max_cost()
+        assert(last.get_cost().fits(max_cost))
         while True:
 
             # Select a memory to modify.
@@ -217,9 +218,7 @@ class MemoryOptimizer(Optimizer):
                     updated = self.permute(dist, mem, index)
                 if updated:
                     if not current.get_cost().fits(max_cost):
-                        current = last.clone()
-                        continue
+                        break
                     if current.get_max_path_length() > max_path:
-                        current = last.clone()
-                        continue
+                        break
                     return current, subsystem
