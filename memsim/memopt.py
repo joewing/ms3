@@ -18,23 +18,22 @@ from memsim.memory import (
 class MemoryOptimizer(Optimizer):
 
     constructors = [
-        cache.random_cache,
-        offset.random_offset,
-        prefetch.random_prefetch,
-        shift.random_shift,
-        split.random_split,
-        split.random_split,
+        #cache.random_cache,
+        #offset.random_offset,
+        #prefetch.random_prefetch,
+        #shift.random_shift,
+        #split.random_split,
+        #split.random_split,
         spm.random_spm,
-        xor.random_xor,
+        #xor.random_xor,
     ]
 
-    def __init__(self, mod, ml, seed, dist, directory):
-        Optimizer.__init__(self, ml)
+    def __init__(self, mod, value, seed, dist, directory):
+        Optimizer.__init__(self, value)
         self.rand = random.Random(seed)
         self.model = mod
         self.dist = dist
         self.directory = directory
-        ml.reset(mod.machine)
 
     def create_memory(self, dist, nxt, cost, in_bank):
 
@@ -176,7 +175,8 @@ class MemoryOptimizer(Optimizer):
 
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
-        max_cost = self.model.machine.get_max_cost() - last.get_cost()
+        mach_cost = self.model.machine.get_max_cost()
+        max_cost = mach_cost - last.get_cost()
         for f in last.all_fifos():
             max_cost.size -= f.total_size()
             max_cost.size -= f.get_word_size()
@@ -197,35 +197,39 @@ class MemoryOptimizer(Optimizer):
                 if not dist.is_empty():
                     break
             count = mem.count()
-            parameter_count = mem.get_parameter_count()
-            mem_size = mem.get_size()
+            parameter_count = mem.get_parameter_count() * 8
             subsystem = mem.index
 
             # Select an action to perform.
             # We make multiple attempts for the selected action
             # and memory subsystem before trying something new.
-            action = self.rand.randint(0, 1 + parameter_count + mem_size)
-            for i in xrange(100):
+            action = self.rand.randint(0, 1 + parameter_count + count)
+            for i in xrange(count):
 
                 # Modify the memory.
+                updated = False
                 if action == 0:             # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.insert(dist, mem, index, max_cost)
                     if temp is not None and str(temp) != before:
                         current.update(temp)
-                        if current.get_max_path_length() <= max_path:
-                            return current, subsystem
-                elif action <= mem_size:    # Remove
+                        updated = True
+                elif action <= count:       # Remove
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
                     temp = self.remove(dist, mem, index)
                     if temp is not None and str(temp) != before:
                         current.update(temp)
-                        if current.get_max_path_length() <= max_path:
-                            return current, subsystem
+                        updated = True
                 else:                       # Permute
                     index = self.rand.randint(0, count - 1)
-                    if self.permute(dist, mem, index, max_cost):
-                        if current.get_max_path_length() <= max_path:
-                            return current, subsystem
+                    updated = self.permute(dist, mem, index, max_cost)
+                if updated:
+                    if not current.get_cost().fits(mach_cost):
+                        current = last.clone()
+                        continue
+                    if current.get_max_path_length() > max_path:
+                        current = last.clone()
+                        continue
+                    return current, subsystem

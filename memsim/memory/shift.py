@@ -52,6 +52,7 @@ class Shift(transform.Transform):
         self.shift += other.shift
 
     def permute(self, rand, max_cost):
+        assert(self.get_cost().fits(max_cost))
         word_bits = util.get_bus_shift(self.get_word_size())
         shift = self.shift
         bits = self.machine.addr_bits - word_bits - 1

@@ -39,10 +39,6 @@ class Memory(object):
         """Get the number of parameters."""
         return 0
 
-    def get_size(self):
-        """Get the size of this memory subsystem."""
-        return 1
-
     @abstractmethod
     def can_remove(self):
         """Determine if this memory component can be removed."""
@@ -130,10 +126,10 @@ class Memory(object):
 
     def get_total_cost(self):
         """Get the total cost of the memory component and its children."""
-        costs = map(lambda m: m.get_total_cost(), self.get_banks())
+        costs = [m.get_total_cost() for m in self.get_banks()]
         result = reduce(lambda a, b: a + b, costs, self.get_cost())
-        if self.get_next():
-            result += self.get_next().get_total_cost()
+        if self.get_next() is not None:
+            result += self.get_next().get_cost()
         return result
 
     def get_path_length(self, incoming):

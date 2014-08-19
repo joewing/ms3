@@ -40,6 +40,7 @@ class XOR(transform.Transform):
         self.value ^= other.value
 
     def permute(self, rand, max_cost):
+        assert(self.get_cost().fits(max_cost))
         value = self.value
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
         if not self.get_cost().fits(max_cost):

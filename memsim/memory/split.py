@@ -36,12 +36,6 @@ class Split(container.Container):
         count += self.bank1.get_parameter_count()
         return count + 1
 
-    def get_size(self):
-        size = container.Container.get_size(self)
-        size += self.bank0.get_size()
-        size += self.bank1.get_size()
-        return size + 1
-
     def get_word_size(self):
         return self.mem.get_word_size()
 
@@ -166,6 +160,7 @@ class Split(container.Container):
             self.bank1 = b
 
     def permute(self, rand, max_cost):
+        assert(self.get_cost().fits(max_cost))
         word_size = self.get_word_size()
         offset = self.offset
         action = rand.randint(0, 3)
@@ -194,6 +189,7 @@ class Split(container.Container):
             if not self.get_cost().fits(max_cost):
                 self.bank0, self.bank1 = self.bank1, self.bank0
                 return False
+        assert(self.get_cost().fits(max_cost))
         return True
 
     def simplify(self):

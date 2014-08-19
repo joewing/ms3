@@ -44,6 +44,7 @@ class Offset(transform.Transform):
         self.offset += other.offset
 
     def permute(self, rand, max_cost):
+        assert(self.get_cost().fits(max_cost))
         word_size = self.get_word_size()
         offset = self.offset
         direction = 1 if rand.randbool() else -1

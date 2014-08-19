@@ -89,7 +89,7 @@ def get_subsystem_values(db, m, ml, directory):
     pl = sim.ProcessList(m.machine, directory)
     for b in m.benchmarks:
         pl.add_benchmark(b)
-    best_value = dict()
+    result = dict()
     for b in m.benchmarks:
         subsystem = b.index
         mem = ml.get_subsystem(subsystem)
@@ -97,8 +97,8 @@ def get_subsystem_values(db, m, ml, directory):
         if value is None:
             value = pl.run(ml, subsystem)
             db.add_result(m, mem, subsystem, value, mem.get_cost())
-        best_value[subsystem] = value
-    return best_value
+        result[subsystem] = value
+    return result
 
 
 def get_initial_memory(db, m, dist, directory):
@@ -134,22 +134,20 @@ def get_initial_memory(db, m, dist, directory):
         ml = memory.parse_memory_list(lexer)
 
         # Load the values for each subsystem.
-        best_value = get_subsystem_values(db, m, ml, directory)
-        return ml, best_value
+        return ml, get_subsystem_values(db, m, ml, directory)
 
     # Get the current value.
     if main_context.verbose:
         print('Initial Memory: {}'.format(m.memory))
-    best_value = get_subsystem_values(db, m, m.memory, directory)
+    ml = m.memory.clone()
+    best_value = get_subsystem_values(db, m, ml, directory)
     total = get_total_value(best_value)
-    m.memory.reset(m.machine)
-    db.insert_best(m, m.memory, total, m.memory.get_cost())
+    ml.reset(m.machine)
+    db.insert_best(m, ml, total, ml.get_cost())
     if main_context.verbose:
         print('Value: {}'.format(total))
-        print('Cost: {}'.format(m.memory.get_cost()))
-
-    # Return the empty memory subsystem and its value.
-    return m.memory, best_value
+        print('Cost: {}'.format(ml.get_cost()))
+    return get_initial_memory(db, m, dist, directory)
 
 
 def optimize(db, mod, iterations, seed, directory):
@@ -163,56 +161,58 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    ml, values = get_initial_memory(db, mod, dist, directory)
+    last_ml, values = get_initial_memory(db, mod, dist, directory)
+    last_ml.reset(mod.machine)
+    best_cost = last_ml.get_cost()
+    best_value = get_total_value(values)
+    result_count = db.get_result_count(mod)
 
     # Perform the optimization.
-    updated = True
-    o = MemoryOptimizer(mod, ml, seed, dist, directory)
+    o = MemoryOptimizer(mod, best_value, seed, dist, directory)
+    db.update_status(best_value, best_cost, result_count, str(o))
     while True:
 
+        # Get the next subsystem to try.
+        try:
+            ml, subsystem = o.get_next(last_ml)
+        except PendingException:
+            return True
+
+        # Evaluate the current memory subsystem.
+        simplified = ml.simplified()
+        new_values = get_subsystem_values(db, mod, simplified, directory)
+        total = get_total_value(new_values)
+        cost = simplified.get_cost()
+
+        # Update the best.
+        updated = False
+        lower_cost = cost.fits(best_cost)
+        if total < best_value or (total == best_value and lower_cost):
+            best_value = total
+            best_cost = cost
+            db.update_best(mod, simplified, total, cost)
+            updated = True
+
         # Request the best and result count only after evaluating
-        # a new state.
+        # a new state or updating the best.
         if updated:
             result_count = db.get_result_count(mod)
-            best_mem, best_value, best_cost = db.get_best(mod)
             db.update_status(best_value, best_cost, result_count, str(o))
             if main_context.verbose:
-                print('Best Memory: {}'.format(best_mem))
                 print('Best Value:  {}'.format(best_value))
                 print('Best Cost:   {}'.format(best_cost))
-
-            # Exit if we've performed enough evaluations.
             if result_count >= iterations:
                 return False
-
             if main_context.verbose:
                 print('Iteration {} / {}'.format(result_count + 1, iterations))
 
-        # Get the next subsystem to evaluate.
+        # Update the optimizer.
         try:
-            total = get_total_value(values)
-            ml, subsystem = o.optimize(db, total)
+            if o.update(total):
+                last_ml = ml
         except PendingException:
             # Another process is working on this value.
             return True
-
-        # Evaluate the memory subsystem.
-        mem = ml.get_subsystem(subsystem).clone().simplify()
-        value = db.get_result(mod, mem, subsystem)
-        updated = value is None
-        if updated and main_context.verbose:
-            print(subsystem, mem)
-        if updated:
-            value = pl.run(ml, subsystem)
-            db.add_result(mod, mem, subsystem, value, mem.get_cost())
-        values[subsystem] = value
-        total = get_total_value(values)
-        cost = ml.get_cost()
-        if total < best_value or (total == best_value and cost < best_cost):
-            db.update_best(mod, ml, total, ml.get_cost())
-            updated = True
-        if updated and main_context.verbose:
-            print('Value: {}'.format(total))
 
 
 def run_experiment(db, mod, iterations, seed, directory):

@@ -9,12 +9,10 @@ class PendingException(Exception):
 
 class Optimizer(object):
 
-    def __init__(self, current):
-        self.current = current
-        self.last = None
-        self.last_value = 0
-        self.threshold = 1024
-        self.delta = 8
+    def __init__(self, value):
+        self.last_value = value
+        self.threshold = 1 + value // 8
+        self.delta = 1024
 
     def __str__(self):
         """Get a string to represent the current status."""
@@ -24,40 +22,25 @@ class Optimizer(object):
         """Modify the current state."""
         assert(False)
 
-    def optimize(self, db, value):
-        """This function is to be called after each evaluation.
-           It returns the next memory list to evaluate.
-        """
+    def get_next(self, current):
+        """Get the next state to evaluate."""
+        return self.modify(current)
 
-        # If we don't have a last state, just save the current
-        # state as the last state and generate a new subsystem.
-        if self.last is None:
-            # We don't have a last state.
-            self.last = self.current
-            self.last_value = value
-            self.current, subsystem = self.modify(self.current)
-            return self.current, subsystem
-
-        # Determine if we should keep the current state or
-        # revert to the last state.
+    def update(self, value):
+        """Set the value from the last modification."""
         diff = value - self.last_value
         denom = self.delta
         if diff <= self.threshold:
-            # Keep the current state.
-            self.last = self.current
+            # Accept this state.
             self.last_value = value
             self.threshold -= (self.threshold + denom - 1) // denom
             self.threshold = max(1, self.threshold)
             self.delta += 1
-        elif random.randint(0, 31) == 0:
-            # Randomly restart from the best.
-            raise PendingException()
+            return True
         else:
-            # Revert to the last state.
-            self.current = self.last
+            # Reject this state.
             self.threshold += (self.threshold + denom - 1) // denom
-            self.delta = max(1, self.delta - 1)
-
-        # Generate a new subsystem to try.
-        self.current, subsystem = self.modify(self.current)
-        return self.current, subsystem
+            self.delta -= 1
+            if random.randint(0, self.delta) == 0:
+                raise PendingException()
+            return False

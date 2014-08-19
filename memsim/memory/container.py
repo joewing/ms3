@@ -12,9 +12,6 @@ class Container(base.Memory):
     def get_parameter_count(self):
         return self.mem.get_parameter_count()
 
-    def get_size(self):
-        return 1 + self.mem.get_size()
-
     def get_cost(self):
         if self.machine.target == machine.TargetType.FPGA:
             return xilinx.get_cost(self.machine, self)

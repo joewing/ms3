@@ -80,6 +80,7 @@ class Prefetch(container.Container):
         return name
 
     def permute(self, rand, max_cost):
+        assert(self.get_cost().fits(max_cost))
         stride = self.stride
         self.stride = self.get_word_size() * rand.randint(-8, 8)
         if self.get_cost().fits(max_cost):

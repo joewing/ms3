@@ -111,33 +111,36 @@ class SPM(container.Container):
             assert(False)
 
     def permute(self, rand, max_cost):
-        result = True
+        assert(self.get_cost().fits(max_cost))
         temp = rand.randint(0, 3)
-        if temp == 0 and self.size > self.word_size:
+        min_size = max(self.word_size, MIN_SPM_SIZE)
+        if temp == 0 and self.size > min_size:
             self.size //= 2
-            if not self.get_cost().fits(max_cost):
-                self.size *= 2
-                result = False
+            if self.get_cost().fits(max_cost):
+                self.update_latency()
+                return True
+            self.size *= 2
         elif temp == 1:
             self.size *= 2
-            if not self.get_cost().fits(max_cost):
-                self.size //= 2
-                result = False
+            if self.get_cost().fits(max_cost):
+                self.update_latency()
+                return True
+            self.size //= 2
         elif temp == 2 and self.word_size > 1:
             self.word_size //= 2
-            if not self.get_cost().fits(max_cost):
-                self.size *= 2
-                result = False
+            if self.get_cost().fits(max_cost):
+                self.update_latency()
+                return True
+            self.size *= 2
         elif temp == 3 and self.size > self.word_size:
             self.word_size *= 2
-            if not self.get_cost().fits(max_cost):
-                self.word_size //= 2
-                result = False
-        else:
-            result = False
+            if self.get_cost().fits(max_cost):
+                self.update_latency()
+                return True
+            self.word_size //= 2
         self.update_latency()
         assert(self.get_cost().fits(max_cost))
-        return result
+        return False
 
     def simplify(self):
         self.mem = self.mem.simplify()
