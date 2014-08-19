@@ -6,21 +6,15 @@ from memsim.memory import base, cacti, container, xilinx
 MIN_SPM_SIZE = 512
 
 
-def random_spm(machine, nxt, rand, cost):
+def random_spm(machine, nxt, rand):
     word_size = nxt.get_word_size()
     size = max(MIN_SPM_SIZE, word_size)
     spm = SPM(nxt, word_size, size)
     spm.reset(machine)
-    while spm.get_cost().fits(cost):
+    while rand.randint(0, 1) == 0:
         spm.size *= 2
         spm.update_latency()
-        if not spm.get_cost().fits(cost):
-            spm.size //= 2
-            spm.update_latency()
-            break
-        elif rand.randint(0, 8) == 0:
-            break
-    return spm if spm.get_cost().fits(cost) else None
+    return spm
 
 
 class SPM(container.Container):
@@ -110,36 +104,26 @@ class SPM(container.Container):
         else:
             assert(False)
 
-    def permute(self, rand, max_cost):
-        assert(self.get_cost().fits(max_cost))
+    def permute(self, rand):
         temp = rand.randint(0, 3)
         min_size = max(self.word_size, MIN_SPM_SIZE)
         if temp == 0 and self.size > min_size:
             self.size //= 2
-            if self.get_cost().fits(max_cost):
-                self.update_latency()
-                return True
-            self.size *= 2
+            self.update_latency()
+            return True
         elif temp == 1:
             self.size *= 2
-            if self.get_cost().fits(max_cost):
-                self.update_latency()
-                return True
-            self.size //= 2
+            self.update_latency()
+            return True
         elif temp == 2 and self.word_size > 1:
             self.word_size //= 2
-            if self.get_cost().fits(max_cost):
-                self.update_latency()
-                return True
-            self.size *= 2
+            self.update_latency()
+            return True
         elif temp == 3 and self.size > self.word_size:
             self.word_size *= 2
-            if self.get_cost().fits(max_cost):
-                self.update_latency()
-                return True
-            self.word_size //= 2
+            self.update_latency()
+            return True
         self.update_latency()
-        assert(self.get_cost().fits(max_cost))
         return False
 
     def simplify(self):

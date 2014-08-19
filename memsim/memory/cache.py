@@ -29,7 +29,7 @@ def parse_policy(lexer, name):
     raise lex.ParseError(lexer, "invalid cache policy: " + name)
 
 
-def random_cache(machine, nxt, rand, cost):
+def random_cache(machine, nxt, rand):
     line_size = nxt.get_word_size()
     line_count = 16
     associativity = 1
@@ -42,15 +42,10 @@ def random_cache(machine, nxt, rand, cost):
                    policy=policy,
                    write_back=write_back)
     result.reset(machine)
-    while result.get_cost().fits(cost):
+    while rand.randint(0, 1) == 0:
         result.line_count *= 2
-        if not result.get_cost().fits(cost):
-            result.line_count //= 2
-            break
-        elif rand.randint(0, 8) == 0:
-            break
     result.update_latency()
-    return result if result.get_cost().fits(cost) else None
+    return result
 
 
 class CacheLine(object):
@@ -201,7 +196,7 @@ class Cache(container.Container):
         elif self.machine.target == machine.TargetType.FPGA:
             return xilinx.get_cost(self.machine, self)
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand):
         param_count = 8
         param = rand.randint(0, param_count - 1)
         line_size = self.line_size
@@ -212,55 +207,38 @@ class Cache(container.Container):
         for i in xrange(param_count):
             if param == 0:
                 self.line_size *= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.line_size = line_size
+                self.update_latency()
+                return True
             elif param == 1 and line_size > 1:
                 self.line_size //= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.line_size = line_size
+                self.update_latency()
+                return True
             elif param == 2:
                 self.line_count *= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.line_count = line_count
+                self.update_latency()
+                return True
             elif param == 3 and line_count > associativity:
                 self.line_count //= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.line_count = line_count
+                self.update_latency()
+                return True
             elif param == 4 and associativity < line_count:
                 self.associativity *= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.associativity = associativity
+                self.update_latency()
+                return True
             elif param == 5 and associativity > 1:
                 self.associativity //= 2
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.assocativity = associativity
+                self.update_latency()
+                return True
             elif param == 6:
                 self.policy = rand.randint(0, CachePolicy.MAX_POLICY)
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.policy = policy
+                self.update_latency()
+                return True
             else:
                 self.write_back = not self.write_back
-                if self.get_cost().fits(max_cost):
-                    self.update_latency()
-                    return True
-                self.write_back = write_back
+                self.update_latency()
+                return True
             param = (param + 1) % param_count
         self.update_latency()
-        assert(self.get_cost().fits(max_cost))
         return False
 
     def reset(self, m):

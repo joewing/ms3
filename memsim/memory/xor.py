@@ -2,11 +2,11 @@ from memsim import parser
 from memsim.memory import base, join, transform
 
 
-def random_xor(machine, nxt, rand, cost):
+def random_xor(machine, nxt, rand):
     value = 1 << rand.randint(0, machine.addr_bits - 1)
     result = XOR(join.Join(), nxt, value)
     result.reset(machine)
-    return result if result.get_cost().fits(cost) else None
+    return result
 
 
 class XOR(transform.Transform):
@@ -39,13 +39,8 @@ class XOR(transform.Transform):
         assert(isinstance(other, XOR))
         self.value ^= other.value
 
-    def permute(self, rand, max_cost):
-        assert(self.get_cost().fits(max_cost))
-        value = self.value
+    def permute(self, rand):
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
-        if not self.get_cost().fits(max_cost):
-            self.value = value
-            return False
         return True
 
     def push_transform(self, index, rand):

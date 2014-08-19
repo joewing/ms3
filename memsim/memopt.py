@@ -18,14 +18,14 @@ from memsim.memory import (
 class MemoryOptimizer(Optimizer):
 
     constructors = [
-        #cache.random_cache,
-        #offset.random_offset,
-        #prefetch.random_prefetch,
-        #shift.random_shift,
-        #split.random_split,
-        #split.random_split,
+        cache.random_cache,
+        offset.random_offset,
+        prefetch.random_prefetch,
+        shift.random_shift,
+        split.random_split,
+        split.random_split,
         spm.random_spm,
-        #xor.random_xor,
+        xor.random_xor,
     ]
 
     def __init__(self, mod, value, seed, dist, directory):
@@ -35,11 +35,11 @@ class MemoryOptimizer(Optimizer):
         self.dist = dist
         self.directory = directory
 
-    def create_memory(self, dist, nxt, cost, in_bank):
+    def create_memory(self, dist, nxt, in_bank):
 
         # Attempt to create the new subsystem component.
         constructor = self.rand.choice(self.constructors)
-        result = constructor(self.model.machine, nxt, dist, cost)
+        result = constructor(self.model.machine, nxt, dist)
         if result is None:
             return nxt
 
@@ -79,19 +79,18 @@ class MemoryOptimizer(Optimizer):
         result.reset(self.model.machine)
         return result
 
-    def permute(self, dist, mem, index, max_cost):
+    def permute(self, dist, mem, index):
         """Permute a specific memory component.
             Returns True if successful.
         """
         assert(index >= 0)
         if index == 0:
-            mc = max_cost + mem.get_cost()
-            return mem.permute(dist, mc)
+            return mem.permute(dist)
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
-            result = self.permute(dist, n, index - 1, max_cost)
+            result = self.permute(dist, n, index - 1)
             mem.pop_transform(dist)
             return result
         t = nc + 1
@@ -100,27 +99,27 @@ class MemoryOptimizer(Optimizer):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
-                result = self.permute(dist, banks[i], index - t, max_cost)
+                result = self.permute(dist, banks[i], index - t)
                 mem.pop_transform(dist)
                 return result
             t += c
         assert(False)
 
-    def insert(self, dist, mem, index, max_cost):
+    def insert(self, dist, mem, index):
         """Insert a memory component before index.
             Returns the updated memory.
         """
         assert(index >= 0)
         if index == 0:
             if mem.can_insert():
-                return self.create_memory(dist, mem, max_cost, False)
+                return self.create_memory(dist, mem, False)
             else:
                 return mem
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
-            mem.set_next(self.insert(dist, n, index - 1, max_cost))
+            mem.set_next(self.insert(dist, n, index - 1))
             mem.pop_transform(dist)
             return mem
         banks = mem.get_banks()
@@ -129,8 +128,7 @@ class MemoryOptimizer(Optimizer):
             c = banks[i].count()
             if index < t + c:
                 mem.push_transform(i, dist)
-                mem.set_bank(i, self.insert(dist, banks[i],
-                                            index - t, max_cost))
+                mem.set_bank(i, self.insert(dist, banks[i], index - t))
                 mem.pop_transform(dist)
                 return mem
             t += c
@@ -175,15 +173,7 @@ class MemoryOptimizer(Optimizer):
 
         # Loop until we successfully modify the memory subsystem.
         max_path = self.model.machine.max_path_length
-        mach_cost = self.model.machine.get_max_cost()
-        max_cost = mach_cost - last.get_cost()
-        for f in last.all_fifos():
-            max_cost.size -= f.total_size()
-            max_cost.size -= f.get_word_size()
-        for b in self.model.benchmarks:
-            m = last.get_subsystem(b.index)
-            max_cost.size -= m.get_word_size()
-            max_cost.size -= b.get_size(self.directory)
+        max_cost = self.model.machine.get_max_cost()
         while True:
 
             # Select a memory to modify.
@@ -211,7 +201,7 @@ class MemoryOptimizer(Optimizer):
                 if action == 0:             # Insert
                     before = str(mem)
                     index = self.rand.randint(0, count - 1)
-                    temp = self.insert(dist, mem, index, max_cost)
+                    temp = self.insert(dist, mem, index)
                     if temp is not None and str(temp) != before:
                         current.update(temp)
                         updated = True
@@ -224,9 +214,9 @@ class MemoryOptimizer(Optimizer):
                         updated = True
                 else:                       # Permute
                     index = self.rand.randint(0, count - 1)
-                    updated = self.permute(dist, mem, index, max_cost)
+                    updated = self.permute(dist, mem, index)
                 if updated:
-                    if not current.get_cost().fits(mach_cost):
+                    if not current.get_cost().fits(max_cost):
                         current = last.clone()
                         continue
                     if current.get_max_path_length() > max_path:

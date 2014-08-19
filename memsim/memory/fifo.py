@@ -132,28 +132,21 @@ class FIFO(subsystem.Subsystem):
         gen.leave()
         return name
 
-    def permute(self, rand, max_cost):
+    def permute(self, rand):
         action_count = 3
         action = rand.randint(0, action_count - 1)
         for i in xrange(action_count):
             if action == 0 and self.machine.target == TargetType.FPGA:
                 self.bram = not self.bram
-                if self.get_cost().fits(max_cost):
-                    return True
-                self.bram = not self.bram
+                return True
             elif action == 1:
                 self.depth *= 2
-                if self.get_cost().fits(max_cost):
-                    return True
-                self.depth //= 2
+                return True
             elif action == 2 and self.depth // 2 >= self.min_depth:
                 self.depth //= 2
-                if self.get_cost().fits(max_cost):
-                    return True
-                self.depth *= 2
+                return True
             action = (action + 1) % action_count
         assert(self.depth >= self.min_depth)
-        assert(self.get_cost().fits(max_cost))
         return False
 
     def simplify(self):

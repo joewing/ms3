@@ -38,7 +38,7 @@ class Option(base.Memory):
         base.Memory.reset(self, machine)
         self.options[self.index].reset(machine)
 
-    def permute(self, rand, max_cost, max_size):
+    def permute(self, rand):
         self.index = rand.randint(0, len(self.options) - 1)
         return True
 

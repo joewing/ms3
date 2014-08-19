@@ -2,13 +2,13 @@ from memsim import parser
 from memsim.memory import base, container, join
 
 
-def random_split(machine, nxt, rand, cost):
+def random_split(machine, nxt, rand):
     offset = rand.random_address(nxt.get_word_size())
     bank0 = join.Join(0)
     bank1 = join.Join(1)
     result = Split(bank0, bank1, nxt, offset)
     result.reset(machine)
-    return result if result.get_cost().fits(cost) else None
+    return result
 
 
 class Split(container.Container):
@@ -159,8 +159,7 @@ class Split(container.Container):
         else:
             self.bank1 = b
 
-    def permute(self, rand, max_cost):
-        assert(self.get_cost().fits(max_cost))
+    def permute(self, rand):
         word_size = self.get_word_size()
         offset = self.offset
         action = rand.randint(0, 3)
@@ -174,22 +173,12 @@ class Split(container.Container):
                 self.offset = rand.get_min_address()
             if self.offset > rand.get_max_address():
                 self.offset = rand.get_max_address()
-            if not self.get_cost().fits(max_cost):
-                self.offset = offset
-                return False
         elif action == 2:
             # Resample the prior.
             self.offset = rand.random_address(word_size)
-            if not self.get_cost().fits(max_cost):
-                self.offset = offset
-                return False
         else:
             # Swap banks.
             self.bank0, self.bank1 = self.bank1, self.bank0
-            if not self.get_cost().fits(max_cost):
-                self.bank0, self.bank1 = self.bank1, self.bank0
-                return False
-        assert(self.get_cost().fits(max_cost))
         return True
 
     def simplify(self):

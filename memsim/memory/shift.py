@@ -4,14 +4,14 @@ from memsim.memory import join
 from memsim.memory import transform
 
 
-def random_shift(machine, nxt, rand, cost):
+def random_shift(machine, nxt, rand):
     word_size = nxt.get_word_size()
     word_bits = util.get_bus_shift(word_size)
     bits = machine.addr_bits - word_bits - 1
     shift = rand.randint(-bits, bits)
     result = Shift(join.Join(), nxt, shift)
     result.reset(machine)
-    return result if result.get_cost().fits(cost) else None
+    return result
 
 
 class Shift(transform.Transform):
@@ -51,17 +51,11 @@ class Shift(transform.Transform):
     def combine(self, other):
         self.shift += other.shift
 
-    def permute(self, rand, max_cost):
-        assert(self.get_cost().fits(max_cost))
+    def permute(self, rand):
         word_bits = util.get_bus_shift(self.get_word_size())
-        shift = self.shift
         bits = self.machine.addr_bits - word_bits - 1
         self.shift = rand.randint(-bits, bits)
-        if self.get_cost().fits(max_cost):
-            return True
-        else:
-            self.shift = shift
-            return False
+        return True
 
     def push_transform(self, index, rand):
         if index == 0:
