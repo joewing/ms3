@@ -2,13 +2,13 @@ from memsim import machine, parser, util, cost
 from memsim.memory import base, cacti, container, xilinx
 
 
-# Minimum SPM size in bytes.
-MIN_SPM_SIZE = 512
+# Minimum number of words.
+MIN_SPM_WORDS = 512
 
 
 def random_spm(machine, nxt, rand):
     word_size = nxt.get_word_size()
-    size = max(MIN_SPM_SIZE, word_size)
+    size = MIN_SPM_WORDS * word_size
     spm = SPM(nxt, word_size, size)
     spm.reset(machine)
     while rand.randint(0, 1) == 0:
@@ -106,8 +106,7 @@ class SPM(container.Container):
 
     def permute(self, rand):
         temp = rand.randint(0, 3)
-        min_size = max(self.word_size, MIN_SPM_SIZE)
-        if temp == 0 and self.size > min_size:
+        if temp == 0 and self.size > self.word_size * MIN_SPM_WORDS:
             self.size //= 2
             self.update_latency()
             return True
@@ -119,7 +118,7 @@ class SPM(container.Container):
             self.word_size //= 2
             self.update_latency()
             return True
-        elif temp == 3 and self.size > self.word_size:
+        elif temp == 3 and self.size > self.word_size * MIN_SPM_WORDS:
             self.word_size *= 2
             self.update_latency()
             return True
