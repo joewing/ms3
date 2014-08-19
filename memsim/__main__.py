@@ -96,7 +96,7 @@ def get_subsystem_values(db, m, ml, directory):
         value = db.get_result(m, mem, subsystem)
         if value is None:
             value = pl.run(ml, subsystem)
-            db.add_result(m, mem, subsystem, value, mem.get_cost())
+            db.add_result(m, mem, subsystem, value, mem.get_total_cost())
         result[subsystem] = value
     return result
 
