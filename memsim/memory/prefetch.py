@@ -87,13 +87,6 @@ class Prefetch(container.Container):
     def set_next(self, n):
         container.Container.set_next(self, n)
 
-    def simplify(self):
-        self.mem = self.mem.simplify()
-        if self.stride == 0:
-            return self.mem
-        else:
-            return self
-
     def reset(self, m):
         container.Container.reset(self, m)
         self.time = 0

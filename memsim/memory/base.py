@@ -136,16 +136,6 @@ class Memory(object):
         """Get the total path length before the next register."""
         return incoming
 
-    def simplify(self):
-        """Return a simplified memory subsystem."""
-        banks = self.get_banks()
-        for i in xrange(len(banks)):
-            self.set_bank(i, banks[i].simplify())
-        n = self.get_next()
-        if n:
-            self.set_next(n.simplify())
-        return self
-
     def push_transform(self, index, rand):
         """Push any address transforms or limits for bank index.
             index=-1 is used for the next memory.

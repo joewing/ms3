@@ -181,15 +181,6 @@ class Split(container.Container):
             self.bank0, self.bank1 = self.bank1, self.bank0
         return True
 
-    def simplify(self):
-        self.bank0 = self.bank0.simplify()
-        self.bank1 = self.bank1.simplify()
-        self.mem = self.mem.simplify()
-        if isinstance(self.bank0, join.Join) and \
-           isinstance(self.bank1, join.Join):
-            return self.mem
-        return self
-
     def get_path_length(self, incoming):
         start = incoming + self.machine.addr_bits
         b0 = self.bank0.get_path_length(start)

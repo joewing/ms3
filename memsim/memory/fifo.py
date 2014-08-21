@@ -149,13 +149,6 @@ class FIFO(subsystem.Subsystem):
         assert(self.depth >= self.min_depth)
         return False
 
-    def simplify(self):
-        if self.bram or self.depth == 1:
-            self.mem = self.get_main()
-        else:
-            self.mem = self.mem.simplify()
-        return self
-
     def done(self):
         t = subsystem.Subsystem.done(self)
         t = max(t, self.min_consume_time - self.machine.time)

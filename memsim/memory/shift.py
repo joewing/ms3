@@ -45,12 +45,6 @@ class Shift(transform.Transform):
             self.shift += bits
         self.shift %= bits
 
-    def is_empty(self):
-        return self.shift == 0
-
-    def combine(self, other):
-        self.shift += other.shift
-
     def permute(self, rand):
         word_bits = util.get_bus_shift(self.get_word_size())
         bits = self.machine.addr_bits - word_bits - 1

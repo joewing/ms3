@@ -32,13 +32,6 @@ class XOR(transform.Transform):
         temp.reset(self.machine)
         return transform.Transform.get_cost(temp)
 
-    def is_empty(self):
-        return self.value == 0
-
-    def combine(self, other):
-        assert(isinstance(other, XOR))
-        self.value ^= other.value
-
     def permute(self, rand):
         self.value = 1 << rand.randint(0, self.machine.addr_bits - 1)
         return True

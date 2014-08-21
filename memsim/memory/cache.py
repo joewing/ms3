@@ -42,7 +42,7 @@ def random_cache(machine, nxt, rand):
                    policy=policy,
                    write_back=write_back)
     result.reset(machine)
-    while rand.randint(0, 1) == 0:
+    while rand.randint(0, 1) == 0 and result.line_count < 16384:
         result.line_count *= 2
     result.update_latency()
     return result

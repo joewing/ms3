@@ -36,13 +36,6 @@ class Offset(transform.Transform):
         temp.reset(self.machine)
         return transform.Transform.get_cost(temp)
 
-    def is_empty(self):
-        return self.offset == 0
-
-    def combine(self, other):
-        assert(isinstance(other, Offset))
-        self.offset += other.offset
-
     def permute(self, rand):
         word_size = self.get_word_size()
         direction = 1 if rand.randbool() else -1

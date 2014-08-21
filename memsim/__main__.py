@@ -180,10 +180,10 @@ def optimize(db, mod, iterations, seed, directory):
             return True
 
         # Evaluate the current memory subsystem.
-        simplified = ml.simplified()
-        new_values = get_subsystem_values(db, mod, simplified, directory)
+        new_values = get_subsystem_values(db, mod, ml, directory)
         total = get_total_value(new_values)
-        cost = simplified.get_cost()
+        cost = ml.get_cost()
+        assert(cost.fits(mod.machine.get_max_cost()))
 
         # Update the best.
         updated = False
@@ -191,7 +191,7 @@ def optimize(db, mod, iterations, seed, directory):
         if total < best_value or (total == best_value and lower_cost):
             best_value = total
             best_cost = cost
-            db.update_best(mod, simplified, total, cost)
+            db.update_best(mod, ml, total, cost)
             updated = True
 
         # Request the best and result count only after evaluating

@@ -5,15 +5,16 @@ from memsim.memory import base, cacti, container, xilinx
 # Minimum number of words.
 MIN_SPM_WORDS = 512
 
+# Maximum word size.
+MAX_WORD_SIZE = 1024
+
 
 def random_spm(machine, nxt, rand):
     word_size = nxt.get_word_size()
     size = MIN_SPM_WORDS * word_size
+    size = word_size * MIN_SPM_WORDS * (2 ** rand.randint(0, 5))
     spm = SPM(nxt, word_size, size)
     spm.reset(machine)
-    while rand.randint(0, 1) == 0:
-        spm.size *= 2
-        spm.update_latency()
     return spm
 
 
@@ -106,7 +107,8 @@ class SPM(container.Container):
 
     def permute(self, rand):
         temp = rand.randint(0, 3)
-        if temp == 0 and self.size > self.word_size * MIN_SPM_WORDS:
+        min_size = self.word_size * MIN_SPM_WORDS
+        if temp == 0 and self.size > min_size:
             self.size //= 2
             self.update_latency()
             return True
@@ -118,19 +120,13 @@ class SPM(container.Container):
             self.word_size //= 2
             self.update_latency()
             return True
-        elif temp == 3 and self.size > self.word_size * MIN_SPM_WORDS:
+        elif temp == 3 and self.size > min_size and \
+             self.word_size < MAX_WORD_SIZE:
             self.word_size *= 2
             self.update_latency()
             return True
         self.update_latency()
         return False
-
-    def simplify(self):
-        self.mem = self.mem.simplify()
-        if self.size < self.word_size:
-            return self.mem
-        else:
-            return self
 
     def reset(self, m):
         container.Container.reset(self, m)

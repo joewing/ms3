@@ -72,6 +72,8 @@ def run_xilinx(machine, mem, keep=False):
     if temp:
         return XilinxResult(temp[0], temp[1], temp[2], temp[3])
 
+    print(name)
+
     # Create a directory for this run.
     old_dir = os.getcwd()
     dname = tempfile.mkdtemp(suffix='', prefix='ms')

@@ -114,17 +114,6 @@ class MemoryList(object):
         for m in self.all_memories():
             m.reset(machine)
 
-    def simplified(self):
-        """Return a simplified version of this memory list.
-            This does not mutate the original memory list.
-        """
-        new = self.clone()
-        for s in self.all_subsystems():
-            new.subsystems[s.index] = s.simplify()
-        for f in self.all_fifos():
-            new.fifos[f.index] = f.simplify()
-        return new
-
 
 def parse_memory_list(lexer):
     main = None
