@@ -173,6 +173,9 @@ class Cache(container.Container):
             self.access_time = 3
             self.cycle_time = 3
 
+    def get_bytes(self):
+        return self.line_count * self.line_size
+
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
             index_bits = util.log2(self.line_count - 1)

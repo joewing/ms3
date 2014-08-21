@@ -159,6 +159,12 @@ def run_xilinx(machine, mem, keep=False):
         raise
 
 
+def check_estimated_cost(machine, mem):
+    """Check if the cost is reasonable enough to warrant simulation."""
+    max_size = (machine.max_cost * 512 * 36) // 8
+    return mem.get_bytes() <= max_size
+
+
 def get_frequency(machine, mem):
     """Get the frequency of the specified memory."""
     return run_xilinx(machine, mem).frequency
@@ -166,6 +172,8 @@ def get_frequency(machine, mem):
 
 def get_cost(machine, mem):
     """Get the cost of this memory component."""
+    if not check_estimated_cost(machine, mem):
+        return cost.Cost(cost=1 << 31)
     result = run_xilinx(machine, mem)
     if result.frequency >= machine.frequency:
         size = 0

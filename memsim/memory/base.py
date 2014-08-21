@@ -64,6 +64,10 @@ class Memory(object):
         """Get the word size for this memory component."""
         return 0
 
+    def get_bytes(self):
+        """Get the number of bytes this component uses."""
+        return 0
+
     def clone(self):
         """Create a deep copy of this memory."""
         return copy.deepcopy(self)

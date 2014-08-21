@@ -95,6 +95,9 @@ class SPM(container.Container):
             self.access_time = 2
             self.cycle_time = 2
 
+    def get_bytes(self):
+        return self.size
+
     def get_cost(self):
         if self.machine.target == machine.TargetType.SIMPLE:
             return cost.Cost(self.size * self.word_size)
