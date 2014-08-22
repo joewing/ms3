@@ -96,6 +96,8 @@ def get_subsystem_values(db, m, ml, directory):
         if value is None:
             value = pl.run(ml, subsystem)
             db.add_result(m, mem, subsystem, value, mem.get_total_cost())
+        if value < 0:
+            raise PendingException()
         result[subsystem] = value
     return result
 
@@ -173,10 +175,7 @@ def optimize(db, mod, iterations, seed, directory):
     while True:
 
         # Get the next subsystem to try.
-        try:
-            ml, subsystem = o.get_next(last_ml)
-        except PendingException:
-            return True
+        ml, subsystem = o.get_next(last_ml)
 
         # Evaluate the current memory subsystem.
         new_values = get_subsystem_values(db, mod, ml, directory)
@@ -207,12 +206,8 @@ def optimize(db, mod, iterations, seed, directory):
                 print('Iteration {} / {}'.format(result_count + 1, iterations))
 
         # Update the optimizer.
-        try:
-            if o.update(total):
-                last_ml = ml
-        except PendingException:
-            # Another process is working on this value.
-            return True
+        if o.update(total):
+            last_ml = ml
 
 
 def run_experiment(db, mod, iterations, seed, directory):
@@ -221,8 +216,11 @@ def run_experiment(db, mod, iterations, seed, directory):
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
-        while optimize(db, mod, iterations, seed, directory):
-            pass
+        while True:
+            try:
+                optimize(db, mod, iterations, seed, directory)
+            except PendingException:
+                pass
     except KeyboardInterrupt:
         return -1
     except:
