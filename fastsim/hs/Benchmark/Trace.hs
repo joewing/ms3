@@ -1,6 +1,7 @@
 module Benchmark.Trace where
 import Data.Char
 import System.IO
+import Access
 import Benchmark
 
 data TraceBenchmark = TraceBenchmark {
