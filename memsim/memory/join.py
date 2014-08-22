@@ -1,4 +1,3 @@
-
 from memsim.memory import base
 
 
@@ -32,10 +31,6 @@ class Join(base.Memory):
     def get_path_length(self, incoming):
         nl = self.parent.get_forward_path_length(incoming)
         return max(incoming, nl)
-
-    def process(self, baddr, start, write, addr, size):
-        return self.parent.forward(baddr, self.index, start,
-                                   write, addr, size)
 
 
 def find_join(mem, parent=None):

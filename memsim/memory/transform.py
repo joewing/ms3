@@ -117,7 +117,3 @@ class Transform(container.Container):
         incoming += self.get_transform_path_length()
         nl = container.Container.get_path_length(self, incoming)
         return max(incoming, nl)
-
-    def forward(self, baddr, index, start, write, addr, size):
-        """Forward a request from the bank to the following memory."""
-        assert(False)

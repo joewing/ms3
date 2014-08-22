@@ -40,9 +40,6 @@ assert spm
 from memsim.memory import xor
 assert xor
 
-from memsim.memory import trace
-assert trace
-
 from memsim.memory import subsystem
 assert subsystem
 

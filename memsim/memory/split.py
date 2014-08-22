@@ -192,48 +192,6 @@ class Split(container.Container):
         nl = container.Container.get_path_length(self, incoming)
         return max(incoming, nl)
 
-    def done(self):
-        t1 = self.bank0.done()
-        t2 = self.bank1.done()
-        t3 = self.mem.done()
-        return max(t1, t2, t3)
-
-    def process(self, baddr, start, write, addr, size):
-        mask = self.machine.addr_mask
-        last = (addr + size - 1) & mask
-        result = start
-        if addr > last:
-            result = self._do_process(baddr, result,
-                                      addr, mask - addr + 1, write)
-            result = self._do_process(baddr, result, 0, last + 1, write)
-        else:
-            result = self._do_process(baddr, result, addr, size, write)
-        return result
-
-    def _do_process(self, baddr, t, addr, size, write):
-        last = (addr + size - 1) & self.machine.addr_mask
-        if addr < self.offset:
-            if last <= self.offset:
-                temp_size = size
-            else:
-                temp_size = self.offset - addr
-            t = base.send_request(self.bank0, baddr, t, write, addr, temp_size)
-        if last >= self.offset:
-            if addr >= self.offset:
-                temp_addr = addr - self.offset
-                temp_size = size
-            else:
-                temp_addr = 0
-                temp_size = last - self.offset + 1
-            t = base.send_request(self.bank1, baddr, t,
-                                  write, temp_addr, temp_size)
-        return t
-
-    def forward(self, baddr, index, start, write, addr, size):
-        if index == 1:
-            addr = (addr + self.offset) & self.machine.addr_mask
-        return base.send_request(self.mem, baddr, start, write, addr, size)
-
 
 def _create_split(lexer, args):
     offset = parser.get_argument(lexer, args, 'offset', 0)

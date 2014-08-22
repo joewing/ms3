@@ -18,7 +18,6 @@ from memsim import (
     model,
     sim,
 )
-from memsim.memory import stats
 from memsim.memopt import MemoryOptimizer
 from memsim.optimizer import PendingException
 from memsim.database.server import DatabaseServer

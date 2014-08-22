@@ -40,6 +40,3 @@ class Container(base.Memory):
             incoming += 8
         nl = self.mem.get_path_length(incoming)
         return max(incoming, nl)
-
-    def process(self, baddr, start, write, addr, size):
-        return self.mem.process(baddr, start, write, addr, size)

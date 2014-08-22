@@ -26,7 +26,6 @@ class SPM(container.Container):
         self.size = size
         self.access_time = access_time
         self.cycle_time = cycle_time
-        self.pending = 0
 
     def __str__(self):
         result = '(spm '
@@ -133,7 +132,6 @@ class SPM(container.Container):
 
     def reset(self, m):
         container.Container.reset(self, m)
-        self.pending = 0
         self.update_latency()
 
     def push_transform(self, index, rand):
@@ -147,47 +145,6 @@ class SPM(container.Container):
         incoming += self.machine.addr_bits
         nl = container.Container.get_path_length(self, incoming)
         return max(incoming, nl)
-
-    def done(self):
-        t = container.Container.done(self)
-        return max(self.pending - self.machine.time, t)
-
-    def process(self, baddr, start, write, addr, size):
-        word_size = self.get_word_size()
-        result = max(start, self.pending - self.machine.time)
-        last_addr = (addr + size) & self.machine.addr_mask
-        if addr < self.size and last_addr <= self.size:
-            # Complete hits the scrachpad
-            offset = addr % word_size
-            count = (size + word_size + offset - 1) // word_size
-            self.pending = self.machine.time + result
-            self.pending += max(self.cycle_time - self.access_time, 0)
-            result += (count - 1) * self.cycle_time + self.access_time
-        elif addr >= self.size and last_addr > self.size:
-            # Completely misses the scratchpad
-            self.pending = self.machine.time + result
-            result = base.send_request(self.mem, baddr, result,
-                                       write, addr, size)
-        elif addr > self.size and last_addr < self.size:
-            # First part hits, second part misses
-            msize = size - last_addr + 1
-            count = (last_addr + word_size) // word_size
-            result += (count - 1) * self.cycle_time + self.access_time
-            self.pending = self.machine.time + result
-            self.pending += max(self.cycle_time - self.access_time, 0)
-            result = base.send_request(self.mem, baddr, result,
-                                       write, addr, msize)
-        else:
-            # First part misses, second part hits
-            hsize = self.size - addr
-            offset = addr % word_size
-            count = (hsize + word_size + offset - 1) // word_size
-            result += (count - 1) * self.cycle_time + self.access_time
-            self.pending = self.machine.time + result
-            self.pending += max(self.cycle_time - self.access_time, 0)
-            result = base.send_request(self.mem, baddr, result, write,
-                                       self.size, size - hsize)
-        return result
 
 
 def _create_spm(lexer, args):

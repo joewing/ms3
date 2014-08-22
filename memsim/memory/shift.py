@@ -79,14 +79,6 @@ class Shift(transform.Transform):
             shifted = ((shift_part << count2) & mask) | (shift_part >> -count)
         return (shifted << word_bits) | word_part
 
-    def process(self, baddr, start, write, addr, size):
-        addr = self._rotate(addr, self.shift)
-        return base.send_request(self.bank, baddr, start, write, addr, size)
-
-    def forward(self, baddr, index, start, write, addr, size):
-        addr = self._rotate(addr, -self.shift)
-        return base.send_request(self.mem, baddr, start, write, addr, size)
-
 
 def _create_shift(lexer, args):
     value = parser.get_argument(lexer, args, 'value', 0)

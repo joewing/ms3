@@ -48,15 +48,6 @@ class XOR(transform.Transform):
     def get_transform_path_length(self):
         return 1
 
-    def process(self, baddr, start, write, addr, size):
-        addr ^= self.value
-        return base.send_request(self.bank, baddr, start, write, addr, size)
-
-    def forward(self, baddr, index, start, write, addr, size):
-        assert(index == 0)
-        addr ^= self.value
-        return base.send_request(self.mem, baddr, start, write, addr, size)
-
 
 def _create_xor(lexer, args):
     value = parser.get_argument(lexer, args, 'value', 0)

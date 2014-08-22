@@ -24,8 +24,6 @@ class ProcessList(object):
         self.machine = machine
         self.directory = directory
         self.processes = []
-        self.consumers = dict()
-        self.producers = dict()
         self.ml = None
 
     def add_benchmark(self, benchmark):
@@ -33,71 +31,16 @@ class ProcessList(object):
         proc = Process(self, benchmark, self.directory)
         self.processes.append(proc)
 
-    def produce(self, p, index):
-        """Produce a value on the specified FIFO (0 based).
-
-        Returns the access cycle count or -1 if full.
-        """
-        fifo = self.ml.get_fifo(index)
-        rc = fifo.produce()
-        if rc < 0:
-            self.producers[index] = p
-        elif index in self.consumers:
-            t = fifo.get_consume_time()
-            self.heap.push(t, self.consumers[index])
-            del self.consumers[index]
-        return rc
-
-    def consume(self, p, index):
-        """Consume a value from the specified FIFO (0 based).
-
-        Returns the access cycle count or -1 if empty.
-        """
-        fifo = self.ml.get_fifo(index)
-        rc = fifo.consume()
-        if rc < 0:
-            self.consumers[index] = p
-        elif index in self.producers:
-            t = fifo.get_produce_time()
-            self.heap.push(t, self.producers[index])
-            del self.producers[index]
-        return rc
-
-    def peek(self, p, index, offset):
-        """Peek at a value on the specified FIFO (0 base).
-
-        Returns the access cycle count or -1 if not available.
-        """
-        fifo = self.ml.get_fifo(index)
-        rc = fifo.peek(offset)
-        if rc < 0:
-            self.consumers[index] = p
-        elif index in self.producers:
-            t = self.machine.time + rc
-            self.heap.push(t, self.producers[index])
-            del self.producers[index]
-        return rc
-
     def reset(self, ml):
         self.ml = ml
         self.machine.reset()
-        self.producers = dict()
-        self.consumers = dict()
-        offset = 0
         for f in self.ml.all_fifos():
-            offset = util.align(f.get_word_size(), offset)
-            f.set_offset(offset)
             f.reset(self.machine)
-            offset += f.total_size()
         for p in self.processes:
             index = p.benchmark.index
             mem = ml.get_subsystem(index)
-            offset = util.align(mem.get_word_size(), offset)
-            mem.set_offset(offset)
-            p.reset(self.machine, mem, offset)
+            p.reset(self.machine, mem)
             self.heap.push(0, p)
-            offset += p.total_size(self.directory)
-        assert(offset < (1 << self.machine.addr_bits))
 
     def fastsim(self, ml, subsystem):
 

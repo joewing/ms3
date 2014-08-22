@@ -23,17 +23,6 @@ class RAM(main.MainMemory):
     def get_word_size(self):
         return self.word_size
 
-    def process(self, baddr, start, write, addr, size):
-        assert(size > 0)
-        addr = (addr + baddr) & self.machine.addr_mask
-        self.writes += 1 if write else 0
-        offset = addr % self.word_size
-        count = (size + self.word_size + offset - 1) // self.word_size
-        if self.burst == 0:
-            return start + self.latency * count
-        else:
-            return start + self.latency + self.burst * (count - 1)
-
 
 def _create_ram(lexer, args):
     word_size = parser.get_argument(lexer, args, 'word_size', 4)

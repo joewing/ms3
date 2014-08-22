@@ -1,4 +1,3 @@
-
 from memsim import lex
 from memsim.memory import base
 
@@ -41,12 +40,6 @@ class Option(base.Memory):
     def permute(self, rand):
         self.index = rand.randint(0, len(self.options) - 1)
         return True
-
-    def process(self, start, write, addr, size):
-        return self.options[self.index].process(start, write, addr, size)
-
-    def done(self):
-        return self.options[self.index].done()
 
 
 def _create_option(lexer, args):

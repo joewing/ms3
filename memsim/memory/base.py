@@ -168,47 +168,6 @@ class Memory(object):
         if self.get_next():
             self.get_next().reset(machine)
 
-    @abstractmethod
-    def process(self, baddr, start, write, addr, size):
-        """Process a memory access operation.
-            This function will return the number of cycles until the
-            access completes.
-            The start parameter is the relative start time of the access.
-            That is, adding start to self.machine.time will give the
-            absolute time of the access.
-            write is True for writes and False for reads.
-            addr is the byte address of the access.
-            size is the size of the access in bytes.
-        """
-        return start
-
-    def done(self):
-        """Finish a trace execution.
-            This will return the number of cycles to add to the
-            result for the memory subsystem.
-        """
-        return 0
-
-
-def send_request(mem, baddr, start, write, addr, size):
-    """Send a memory request to the specified memory subsystem."""
-    assert(size > 0)
-    word_size = mem.get_word_size()
-    word_mask = word_size - 1
-    addr_mask = mem.machine.addr_mask
-    offset = addr & word_mask
-    if offset:
-        first_size = min(word_size - offset, size)
-        start = mem.process(baddr, start, write, addr, first_size)
-        addr = (addr + first_size) & addr_mask
-        size -= first_size
-    while size:
-        temp_size = min(word_size, size)
-        start = mem.process(baddr, start, write, addr, temp_size)
-        addr = (addr + temp_size) & addr_mask
-        size -= temp_size
-    return start
-
 
 def parse_memory(lexer):
     return parser.parse(lexer, constructors)

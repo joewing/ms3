@@ -19,7 +19,6 @@ class Subsystem(base.Memory):
         self.word_size = util.round_power2(word_size)
         self.mem = mem
         self.depth = depth
-        self.offset = 0
         self.score = 0
 
     def __str__(self):
@@ -63,9 +62,6 @@ class Subsystem(base.Memory):
         gen.add_code(name + '_ready <= ' + oname + '_ready;')
         return name
 
-    def set_offset(self, offset):
-        self.offset = offset
-
     def set_depth(self, depth):
         self.depth = depth
 
@@ -81,21 +77,6 @@ class Subsystem(base.Memory):
         if word_size != next_word_size:
             incoming += 8
         return self.mem.get_path_length(incoming)
-
-    def reset(self, machine):
-        base.Memory.reset(self, machine)
-        self.score = 0
-
-    def process(self, baddr, start, write, addr, size):
-        result = base.send_request(self.mem, self.offset, start,
-                                   write, addr, size)
-        self.score += result
-        return result
-
-    def done(self):
-        result = self.mem.done()
-        self.score += result
-        return result
 
 
 def _create_subsystem(lexer, args):

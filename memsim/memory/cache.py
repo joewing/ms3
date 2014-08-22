@@ -48,12 +48,6 @@ def random_cache(machine, nxt, rand):
     return result
 
 
-class CacheLine(object):
-    tag = -1
-    age = 0
-    dirty = False
-
-
 class Cache(container.Container):
 
     def __init__(self, mem,
@@ -72,8 +66,6 @@ class Cache(container.Container):
         self.cycle_time = cycle_time
         self.policy = policy
         self.write_back = write_back
-        self.lines = list()
-        self.pending = 0
 
     def __str__(self):
         result = '(cache '
@@ -246,115 +238,7 @@ class Cache(container.Container):
 
     def reset(self, m):
         container.Container.reset(self, m)
-        self.pending = 0
-        self.lines = list()
-        for i in xrange(self.line_count):
-            self.lines.append(CacheLine())
         self.update_latency()
-
-    def done(self):
-        t = container.Container.done(self)
-        return max(self.pending - self.machine.time, t)
-
-    def process(self, baddr, start, write, addr, size):
-        extra = size // self.line_size
-        mask = self.machine.addr_mask
-        temp = addr
-        result = max(start, self.pending - self.machine.time)
-        for i in xrange(extra):
-            result = self._do_process(baddr, result,
-                                      write, temp, self.line_size)
-            temp = (temp + self.line_size) & mask
-        if size > extra * self.line_size:
-            result = self._do_process(baddr, result, write, temp,
-                                      size - extra * self.line_size)
-        self.pending = self.machine.time + result
-        self.pending += max(self.cycle_time - self.access_time, 0)
-        return result
-
-    def _access_line(self, baddr, write, t, addr):
-        return base.send_request(self.mem, baddr, t, write,
-                                 addr, self.line_size)
-
-    def _do_process(self, baddr, start, write, addr, size):
-        tag = addr & ~(self.line_size - 1)
-        set_size = self.line_count // self.associativity
-        line_addr = addr // self.line_size
-        first_line = line_addr % set_size
-
-        # Update ages
-        age_sum = 0
-        for i in xrange(self.associativity):
-            line_index = first_line + i * set_size
-            line = self.lines[line_index]
-            age_sum += line.age
-            if self.policy != CachePolicy.PLRU:
-                line.age += 1
-
-        # Check if this address is in the cache.
-        to_replace = self.lines[first_line]
-        age = to_replace.age
-        for i in xrange(self.associativity):
-            line_index = first_line + i * set_size
-            line = self.lines[line_index]
-            if tag == line.tag:  # Hit
-                if self.policy == CachePolicy.PLRU:
-                    if age_sum + 1 == self.associativity:
-                        for j in xrange(self.associativity):
-                            self.lines[first_line + j * set_size].age = 0
-                    line.age = 1
-                elif self.policy != CachePolicy.FIFO:
-                    line.age = 0
-                if (not write) or self.write_back:
-                    line.dirty = line.dirty or write
-                    return start + self.access_time
-                else:
-                    t = self._access_line(baddr, True, start, tag)
-                    return t + self.access_time
-            elif self.policy == CachePolicy.MRU:
-                if line.age < age:
-                    to_replace = line
-                    age = line.age
-            elif self.policy == CachePolicy.PLRU:
-                if line.age == 0:
-                    to_replace = line
-                    age = line.age
-            else:
-                if line.age > age:
-                    to_replace = line
-                    age = line.age
-
-        # If we got here we have a cache miss.
-        # to_replace will be the line we need to replace.
-        if (not write) or self.write_back:
-
-            # Evict this entry if necessary.
-            time = start + self.access_time
-            if to_replace.dirty:
-                time = self._access_line(baddr, True, time, to_replace.tag)
-                to_replace.dirty = False
-            to_replace.tag = tag
-            to_replace.dirty = write
-
-            # Update the age.
-            if self.policy == CachePolicy.PLRU:
-                if age_sum + 1 == self.associativity:
-                    for j in xrange(self.associativity):
-                        self.lines[first_line + j * set_size].age = 0
-                to_replace.age = 1
-            else:
-                to_replace.age = 0
-
-            # Read the new entry.
-            if (not write) or size != self.line_size:
-                time = self._access_line(baddr, False, time, tag)
-
-            return time
-
-        else:
-            # Write on a write-through cache.
-            t = base.send_request(self.mem, baddr, start, True, addr, size)
-            return t + self.access_time
 
 
 def _create_cache(lexer, args):

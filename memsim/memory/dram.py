@@ -1,14 +1,7 @@
-
 import math
 
 from memsim import parser
 from memsim.memory import base, main
-
-
-class DRAMBank(object):
-    page = -1          # Currently open page.
-    dirty = False      # Set if the open page is dirty.
-    time = 0           # Time of the next allowed access.
 
 
 class DRAM(main.MainMemory):
@@ -40,7 +33,6 @@ class DRAM(main.MainMemory):
         self.extra_cycles = extra_cycles
         self.open_page = open_page
         self.ddr = ddr
-        self.banks = list()
 
     def __str__(self):
         result = '(dram '
@@ -68,83 +60,6 @@ class DRAM(main.MainMemory):
 
     def get_word_size(self):
         return self.width * self.burst_size
-
-    def reset(self, machine):
-        base.Memory.reset(self, machine)
-        bank_size = self.page_size * self.page_count
-        bank_count = (machine.addr_mask + bank_size) // bank_size
-        self.banks = list()
-        for i in xrange(bank_count):
-            self.banks.append(DRAMBank())
-        self.multiplier = float(machine.frequency) / float(self.frequency)
-
-    def process(self, baddr, start, write, addr, size):
-        assert(size > 0)
-        addr = (addr + baddr) & self.machine.addr_mask
-        self.writes += 1 if write else 0
-
-        # Convert machine time to DRAM time.
-        delta = float(start) / self.multiplier
-
-        # Process each part of the request.
-        bsize = self.burst_size * self.width
-        last = addr + size - 1
-        while addr <= last:
-            temp = addr - (addr % bsize) + bsize
-            addr &= self.machine.addr_mask
-            delta = self._do_process(delta, write, addr, temp >= last)
-            addr = temp
-
-        # Convert DRAM time back to machine time.
-        return int(math.ceil(delta * self.multiplier + self.extra_cycles))
-
-    def _do_process(self, delta, write, addr, is_last):
-
-        # Get the bank.
-        bank_size = self.page_size * self.page_count
-        bank_index = addr // bank_size
-        bank = self.banks[bank_index]
-
-        # Convert machine time to DRAM time.
-        # Note that delta is already in DRAM time.
-        mtime = float(self.machine.time) / self.multiplier
-
-        # Make sure this bank is ready for another request.
-        if mtime + delta < bank.time:
-            delta = bank.time - mtime
-
-        # Determine how many cycles to use for the burst.
-        burst_cycles = float(self.burst_size)
-        if self.ddr:
-            burst_cycles /= 2.0
-
-        extra = 0.0
-        page_index = addr // self.page_size
-        if not self.open_page:
-            # Closed page mode.
-            delta += self.cas_cycles
-            delta += burst_cycles
-            delta += self.rcd_cycles
-            extra += self.rp_cycles
-            if write:
-                extra += self.wb_cycles
-        elif bank.page == page_index:
-            # Page hit.
-            delta += self.cas_cycles
-            delta += burst_cycles
-            bank.dirty = bank.dirty or write
-        else:
-            # Page miss.
-            delta += self.rp_cycles
-            delta += self.rcd_cycles
-            delta += self.cas_cycles
-            delta += burst_cycles
-            if bank.dirty:
-                delta += self.wb_cycles
-            bank.dirty = write
-        bank.time = mtime + delta + extra
-        bank.page = page_index
-        return delta
 
 
 def _create_dram(lexer, args):

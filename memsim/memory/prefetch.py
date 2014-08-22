@@ -14,7 +14,6 @@ class Prefetch(container.Container):
     def __init__(self, mem, stride):
         container.Container.__init__(self, mem)
         self.stride = stride
-        self.time = 0
 
     def __str__(self):
         result = "(prefetch "
@@ -89,22 +88,6 @@ class Prefetch(container.Container):
 
     def reset(self, m):
         container.Container.reset(self, m)
-        self.time = 0
-
-    def done(self):
-        t = container.Container.done(self)
-        return max(self.time - self.machine.time, t)
-
-    def process(self, baddr, start, write, addr, size):
-        result = max(start, self.time - self.machine.time)
-        result = self.mem.process(baddr, result, write, addr, size)
-        if not write:
-            temp = (addr + self.stride) & self.machine.addr_mask
-            t = self.mem.process(baddr, result, write, temp, 1)
-            self.time = self.machine.time + t
-        else:
-            self.time = 0
-        return result
 
 
 def _create_prefetch(lexer, args):
