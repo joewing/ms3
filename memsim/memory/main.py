@@ -20,6 +20,9 @@ class MainMemory(base.Memory):
     def can_insert(self):
         return True
 
+    def get_cost(self):
+        return self.machine.get_zero_cost()
+
     def get_main(self):
         return self
 

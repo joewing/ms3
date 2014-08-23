@@ -49,6 +49,9 @@ class Subsystem(base.Memory):
     def can_insert(self):
         return False
 
+    def get_cost(self):
+        return self.machine.get_zero_cost()
+
     def generate(self, gen, source):
         name = gen.get_name(source, self)
         oname = gen.generate_next(self, self.mem)

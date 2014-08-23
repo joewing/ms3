@@ -5,9 +5,6 @@ from memsim.memory import base, cacti, container, xilinx
 # Minimum number of words.
 MIN_SPM_WORDS = 512
 
-# Maximum word size.
-MAX_WORD_SIZE = 1024
-
 
 def random_spm(machine, nxt, rand):
     word_size = nxt.get_word_size()
@@ -122,8 +119,7 @@ class SPM(container.Container):
             self.word_size //= 2
             self.update_latency()
             return True
-        elif temp == 3 and self.size > min_size and \
-             self.word_size < MAX_WORD_SIZE:
+        elif temp == 3 and self.size > min_size:
             self.word_size *= 2
             self.update_latency()
             return True

@@ -143,11 +143,10 @@ def get_initial_memory(db, m, dist, directory):
     ml = m.memory.clone()
     best_value = get_subsystem_values(db, m, ml, directory)
     total = get_total_value(best_value)
-    ml.reset(m.machine)
-    db.insert_best(m, ml, total, ml.get_cost())
+    db.insert_best(m, ml, total, ml.get_cost(m.machine))
     if main_context.verbose:
         print('Value: {}'.format(total))
-        print('Cost: {}'.format(ml.get_cost()))
+        print('Cost: {}'.format(ml.get_cost(m.machine)))
     return get_initial_memory(db, m, dist, directory)
 
 
@@ -164,7 +163,7 @@ def optimize(db, mod, iterations, seed, directory):
     # This will gather statistics if necessary.
     last_ml, values = get_initial_memory(db, mod, dist, directory)
     last_ml.reset(mod.machine)
-    best_cost = last_ml.get_cost()
+    best_cost = last_ml.get_cost(mod.machine)
     best_value = get_total_value(values)
     result_count = db.get_result_count(mod)
     assert(best_cost.fits(mod.machine.get_max_cost()))
@@ -180,7 +179,7 @@ def optimize(db, mod, iterations, seed, directory):
         # Evaluate the current memory subsystem.
         new_values = get_subsystem_values(db, mod, ml, directory)
         total = get_total_value(new_values)
-        cost = ml.get_cost()
+        cost = ml.get_cost(mod.machine)
         assert(cost.fits(mod.machine.get_max_cost()))
 
         # Update the best.

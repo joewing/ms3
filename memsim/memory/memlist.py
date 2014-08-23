@@ -5,7 +5,8 @@ from memsim.memory.base import parse_memory
 from memsim.memory.main import MainMemory
 
 
-def _get_weight(m):
+def _get_weight(m, mach):
+    m.reset(mach)
     cost = m.get_cost()
     return (cost.cost + 1) * (m.score + 1)
 
@@ -29,8 +30,8 @@ class MemoryList(object):
         assert(lst[index] is None)
         lst[index] = value
 
-    def choice(self, rand):
-        weights = [_get_weight(m) for m in self.active_subsystems()]
+    def choice(self, rand, mach):
+        weights = [_get_weight(m, mach) for m in self.active_subsystems()]
         total_weight = sum(weights)
         if total_weight == 0:
             return rand.choice(list(self.active_subsystems()))
@@ -101,7 +102,8 @@ class MemoryList(object):
         else:
             self._insert(self.subsystems, index, mem)
 
-    def get_cost(self):
+    def get_cost(self, mach):
+        self.reset(mach)
         result = self.main_memory.machine.get_zero_cost()
         for m in self.all_memories():
             result += m.get_total_cost()
