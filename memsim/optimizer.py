@@ -41,6 +41,6 @@ class Optimizer(object):
             # Reject this state.
             self.threshold += (self.threshold + denom - 1) // denom
             self.delta -= 1
-            if random.randint(0, 7) == 0:
+            if random.randint(0, self.delta) == 0:
                 raise PendingException()
             return False
