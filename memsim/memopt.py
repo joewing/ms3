@@ -172,9 +172,10 @@ class MemoryOptimizer(Optimizer):
         """Modify the memory subsystem."""
 
         # Loop until we successfully modify the memory subsystem.
-        max_path = self.model.machine.max_path_length
-        max_cost = self.model.machine.get_max_cost()
-        assert(last.get_cost().fits(max_cost))
+        mach = self.model.machine
+        max_path = mach.max_path_length
+        max_cost = mach.get_max_cost()
+        assert(last.get_cost(mach).fits(max_cost))
         while True:
 
             # Select a memory to modify.
@@ -183,7 +184,7 @@ class MemoryOptimizer(Optimizer):
             # Distribution.is_empty.
             current = last.clone()
             while True:
-                mem = current.choice(self.rand)
+                mem = current.choice(self.rand, mach)
                 dist = self.dist.get_distribution(mem)
                 if not dist.is_empty():
                     break
@@ -211,7 +212,7 @@ class MemoryOptimizer(Optimizer):
             else:                       # Permute
                 index = self.rand.randint(0, count - 1)
                 updated = self.permute(dist, mem, index)
-            if updated and current.get_cost().fits(max_cost):
+            if updated and current.get_cost(mach).fits(max_cost):
                 if current.get_max_path_length() > max_path:
                     continue
                 return current, subsystem

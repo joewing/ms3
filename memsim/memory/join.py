@@ -23,6 +23,9 @@ class Join(base.Memory):
     def can_insert(self):
         return True
 
+    def get_cost(self):
+        return self.machine.get_zero_cost()
+
     def generate(self, gen, source):
         name = self.get_id()
         gen.declare_signals(name, self.get_word_size())

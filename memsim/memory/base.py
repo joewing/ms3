@@ -124,6 +124,7 @@ class Memory(object):
             result += n.count()
         return result
 
+    @abstractmethod
     def get_cost(self):
         """Get the cost of this memory component (shallow)."""
         return self.machine.get_zero_cost()
@@ -132,8 +133,9 @@ class Memory(object):
         """Get the total cost of the memory component and its children."""
         costs = [m.get_total_cost() for m in self.get_banks()]
         result = reduce(lambda a, b: a + b, costs, self.get_cost())
-        if self.get_next() is not None:
-            result += self.get_next().get_cost()
+        n = self.get_next()
+        if n is not None:
+            result += n.get_total_cost()
         return result
 
     def get_path_length(self, incoming):
