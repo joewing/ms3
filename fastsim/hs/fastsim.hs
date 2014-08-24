@@ -1,11 +1,7 @@
 module Main where
-
-import Control.Monad.Error
 import System.Environment
 import System.Exit
-
-import Benchmark
-import Benchmark.Trace
+import Parser
 
 parseArgument :: String -> String -> [String] -> String
 parseArgument name def (x:xs) =
@@ -24,11 +20,6 @@ main = do
     args <- getArgs
     let subsystem = parseIntArgument "-s" (-1) args
     let directory = parseArgument "-d" "/" args
-    let bm = TraceBenchmark {
-        index = 1,
-        final = True,
-        ignored = False,
-        name = "bah"
-    }
-    results <- run bm directory
-    putStrLn $ show results
+    let modelFile = parseArgument "-m" "model" args
+    model <- parseFile modelFile
+    putStrLn $ show model

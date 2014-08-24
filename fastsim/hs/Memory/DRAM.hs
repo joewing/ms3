@@ -2,7 +2,7 @@ module Memory.DRAM where
 import Data.Array
 import Data.Bits
 import Data.Maybe
-import Control.Monad.Reader
+import Control.Monad.State
 import Access
 import Model
 
@@ -70,23 +70,24 @@ instance Memory DRAMData where
     set t "ddr" value = t { ddr = (read value) }
     set t "extra" value = t { extraCycles = (read value) }
 
-    reset t model =
-        let bs = (width t) * (burstSize t) in
-        let bc = ((addressMask model) + bs) `div` bs in
-        let bl = [(i, emptyBank) | i <- [0 .. bc - 1]] in
-        t { banks = array (0, bc - 1) bl }
+    reset t = do
+        amask <- gets addressMask
+        let bs = (width t) * (burstSize t)
+        let bc = (amask + bs) `div` bs
+        let bl = [(i, emptyBank) | i <- [0 .. bc - 1]]
+        return $ t { banks = array (0, bc - 1) bl }
 
-    wordSize t = (width t) * (burstSize t)
+    wordSize t = return $ (width t) * (burstSize t)
 
-    writeCount t = (writes t)
+    writeCount t = return $ writes t
 
     process t acc = do
-        st <- lift simTime
-        m <- asks model
-        base <- asks baseAddress
+        st <- simulationTime
+        base <- baseAddress
+        amask <- gets addressMask
         let addr = accessAddress acc
         let size = accessSize acc
-        let realAddr = (addr + base) .&. (addressMask m)
+        let realAddr = (addr + base) .&. amask
         let start = max 0 $ (lastTime t) - st
         let wc = 1 + writes t
         return $ t { writes = wc }

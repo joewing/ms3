@@ -1,5 +1,4 @@
 
-
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE RankNTypes #-}
 
@@ -9,7 +8,7 @@ import Model
 import Control.Monad.Reader
 
 data SPMData = SPMData {
-    nextMemory :: forall m. Memory m => m,
+    nextMemory :: Int,
     wordBytes :: Int,
     sizeBytes :: Int,
     accessTime :: Time,
@@ -23,25 +22,22 @@ instance Memory SPMData where
     set t "access_time" value = t { accessTime = (read value) }
     set t "cycle_time" value = t { cycleTime = (read value) }
 
-    reset t model = t {
-        nextMemory = reset (nextMemory t) model,
-        pending = 0
-    }
+    reset t = return $ t { pending = 0 }
 
-    wordSize = wordBytes
+    wordSize t = return $ wordBytes t
 
-    writeCount t = 0 --writeCount $ nextMemory t
+    writeCount t = return 0
 
     process t acc = do
-        st <- lift simTime
+        st <- simulationTime
         let addr = accessAddress acc
         let size = accessSize acc
         let result = max 0 ((pending t) - st)
         if addr < (sizeBytes t) then do
             let at = max ((cycleTime t) - (accessTime t)) 0
             let nextPending = st + at
-            --advance (accessTime t)
+            advance (accessTime t)
             return $ t { pending = nextPending }
         else
             let nextPending = st + (pending t) in
-            sendRequest (nextMemory t) acc
+            sendRequest (nextMemory t) acc >> return t
