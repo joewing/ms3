@@ -1,5 +1,5 @@
 
-fastsim:
+all:
 	ghc fastsim.hs
 
 clean:
