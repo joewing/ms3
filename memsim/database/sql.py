@@ -78,9 +78,7 @@ results_table = Table(
            nullable=False, index=True),
     Column('subsystem', Integer, nullable=False),
     Column('value', BigInteger, nullable=False),
-    Column('cost', BigInteger, nullable=False),
-    Column('lut_count', BigInteger, nullable=False),
-    Column('reg_count', BigInteger, nullable=False),
+    Column('fifo_stats', Text, nullable=True),
     UniqueConstraint('model_id', 'memory_id', 'subsystem'),
     implicit_returning=False,
 )
@@ -242,7 +240,10 @@ class SQLDatabase(base.BaseDatabase):
         # Check the database.
         mod_id = self._get_model_id(mod)
         memory_id = self._get_memory_id(mem)
-        stmt = select([results_table.c.value]).where(
+        stmt = select([
+            results_table.c.value,
+            results_table.c.fifo_stats,
+        ]).where(
             and_(
                 results_table.c.model_id == mod_id,
                 results_table.c.memory_id == memory_id,
@@ -251,14 +252,14 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            value = row.value
+            value = row.value, row.fifo_stats
             self.results[result_hash] = value
             return value
         else:
             self.results[result_hash] = -1
             return None
 
-    def add_result(self, mod, mem, subsystem, value, cost):
+    def add_result(self, mod, mem, subsystem, value, fifo_stats):
         """Add a result for the specified model."""
 
         assert(value >= 0)
@@ -275,17 +276,13 @@ class SQLDatabase(base.BaseDatabase):
                 results_table.c.memory_id,
                 results_table.c.subsystem,
                 results_table.c.value,
-                results_table.c.cost,
-                results_table.c.lut_count,
-                results_table.c.reg_count,
+                results_table.c.fifo_stats,
             ], select([
                 literal(mod_id),
                 literal(mem_id),
                 literal(subsystem),
                 literal(value),
-                literal(cost.cost),
-                literal(cost.luts),
-                literal(cost.regs),
+                literal(fifo_stats),
             ]).where(
                 ~exists([results_table.c.model_id]).where(
                     and_(
