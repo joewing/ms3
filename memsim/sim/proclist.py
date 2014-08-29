@@ -7,6 +7,7 @@ import sys
 from memsim import priorityqueue, util
 from memsim.machine import GoalType
 from memsim.model import Model
+from memsim.fifostats import FIFOStats
 from .proc import Process
 
 
@@ -53,7 +54,7 @@ class ProcessList(object):
         # Run the simulation.
         total = -1
         writes = -1
-        expr = re.compile(r'([a-z]+)([0-9]*) ([0-9]+)')
+        expr = re.compile(r'([a-z]+)([0-9]*) (.+)$')
         mod = Model()
         mod.memory = ml
         mod.machine = self.machine
@@ -63,32 +64,39 @@ class ProcessList(object):
         result, _ = p.communicate(input=str(mod))
 
         # Parse the results.
+        fifo_stats = FIFOStats()
         for line in result.decode(sys.stdout.encoding).split('\n'):
             for m in expr.finditer(line):
                 name = m.group(1)
                 index = 0
                 if len(m.group(2)) > 0:
                     index = int(m.group(2))
-                result = int(m.group(3))
+                result = m.group(3)
                 if name == 'fifo':
+                    score, items, pvar, cvar = result.split(' ')
+                    score = int(score)
+                    items = int(items)
+                    pvar = float(pvar)
+                    cvar = float(cvar)
                     mem = ml.get_fifo(index)
-                    mem.score = result
+                    mem.score = score
+                    fifo_stats.update(index, items, pvar, cvar)
                 elif name == 'subsystem':
                     mem = ml.get_subsystem(index)
-                    mem.score = result
+                    mem.score = int(result)
                 elif name == 'total':
-                    total = result
+                    total = int(result)
                 elif name == 'writes':
-                    writes = result
+                    writes = int(result)
                 else:
                     print(name)
                     assert(False)
         assert(total >= 0)
         assert(writes >= 0)
         if self.machine.goal == GoalType.ACCESS_TIME:
-            return total
+            return total, fifo_stats
         elif self.machine.goal == GoalType.WRITES:
-            return writes
+            return writes, fifo_stats
         else:
             assert(False)
 

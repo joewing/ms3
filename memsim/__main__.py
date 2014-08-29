@@ -94,8 +94,9 @@ def get_subsystem_values(db, m, ml, directory):
         mem = ml.get_subsystem(subsystem)
         value = db.get_result(m, mem, subsystem)
         if value is None:
-            value = pl.run(ml, subsystem)
-            db.add_result(m, mem, subsystem, value, mem.get_total_cost())
+            value, fifo_stats = pl.run(ml, subsystem)
+            db.add_result(m, mem, subsystem, value,
+                          mem.get_total_cost(), fifo_stats)
         if value < 0:
             raise PendingException()
         result[subsystem] = value
