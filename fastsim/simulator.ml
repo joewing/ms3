@@ -140,17 +140,23 @@ let reset_simulator sim =
 ;;
 
 let get_scores sim =
+    let t = sim.model.mach.time in
     let subsystem_scores = List.map (fun m ->
         let name = "subsystem" ^ (string_of_int m#id) in
-        (name, m#score)
+        name ^ " " ^ (string_of_int m#score)
     ) sim.model.subsystems in
     let fifo_scores = List.map (fun m ->
         let name = "fifo" ^ (string_of_int m#id) in
-        (name, m#score)
+        let sstr = string_of_int m#score in
+        let istr = string_of_int m#get_item_count in
+        let pstr = string_of_float m#get_produce_variance in
+        let cstr = string_of_float m#get_consume_variance in
+        let parts = [sstr; istr; pstr; cstr] in
+        List.fold_left (fun a b -> a ^ " " ^ b) name parts
     ) sim.model.fifos in
     let totals = [
-        ("total", sim.model.mach.time);
-        ("writes", sim.model.main#writes)
+        "total " ^ (string_of_int t);
+        "writes " ^ (string_of_int sim.model.main#writes)
     ] in subsystem_scores @ fifo_scores @ totals
 ;;
 

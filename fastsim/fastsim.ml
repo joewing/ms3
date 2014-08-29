@@ -20,8 +20,8 @@ let run_experiment () =
     let m = parse_model_file !experiment !subsystem_index in
     let sim = create_simulator !directory m in
     let results = run_simulator sim in
-    List.iter (fun (name, value) ->
-        Printf.printf "%s %d\n" name value
+    List.iter (fun value ->
+        Printf.printf "%s\n" value
     ) results
 ;;
 

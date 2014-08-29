@@ -1,4 +1,5 @@
 open Fifo
+open Machine
 
 class dummy_fifo =
     object (self)
@@ -8,9 +9,13 @@ class dummy_fifo =
 
         method is_empty = false
 
-        method produce = 1
+        method produce =
+            super#register_produce;
+            1
 
-        method consume = 1
+        method consume =
+            super#register_consume;
+            1
 
         method peek offset = 1
 
