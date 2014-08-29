@@ -1,3 +1,4 @@
+(label merge-time)
 (machine
    (addr_bits  26)
    (target     fpga)
