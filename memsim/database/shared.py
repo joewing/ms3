@@ -38,7 +38,7 @@ class SharedDatabase(base.BaseDatabase):
             return self.result_cache[result_hash]
         result = self._execute('get_result', True, str(mod),
                                str(mem), subsystem)
-        if result is not None and result[0] >= 0:
+        if result[0] is not None and result[0] >= 0:
             self.result_cache[result_hash] = result
         return result
 

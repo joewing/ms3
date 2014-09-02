@@ -107,18 +107,16 @@ class Simulator(object):
 
 def simulate(mod, ml, value, fstats):
 
-    # Determine the average number of items used.
-    total = 0
-    count = 0
+    # Determine the maximum number of items used.
+    value = 0
     for fifo in ml.all_fifos():
         index = fifo.index
         items, _, _, _, _ = fstats.get_stats(index)
-        total += items
-        count += 1
+        value = max(value, items)
 
-    # Scale the number of items for an average of 1000.
-    mean = total // count
-    scale = mean // 1000 if mean > 1000 else 1
+    # Scale the number of items to process.
+    max_value = 1000
+    scale = value // max_value if value > max_value else 1
 
     # Add the FIFOs to the simulation.
     sim = Simulator()
@@ -131,9 +129,7 @@ def simulate(mod, ml, value, fstats):
 
     # Run the simulation.
     t = sim.run_multiple()
-
-    # Return the scaled result.
-    return t * scale
+    return t
 
 
 def increase_size(mod, ml, value, fstats, bytes_left):

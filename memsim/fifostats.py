@@ -2,8 +2,11 @@ import json
 
 class FIFOStats(object):
 
-    def __init__(self, s='{}'):
-        self.stats = json.loads(s)  # FIFO index -> name -> value
+    def __init__(self, s=None):
+        if s is not None:
+            self.stats = json.loads(s)
+        else:
+            self.stats = dict()
 
     def __str__(self):
         return json.dumps(self.stats)

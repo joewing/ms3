@@ -266,7 +266,7 @@ class SQLDatabase(base.BaseDatabase):
 
         # Insert to our local cache.
         result_hash = self.get_result_hash(mod, mem, subsystem)
-        self.results[result_hash] = value
+        self.results[result_hash] = value, fifo_stats
 
         # Insert to the database.
         mod_id = self._get_model_id(mod)
