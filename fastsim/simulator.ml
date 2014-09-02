@@ -149,9 +149,11 @@ let get_scores sim =
         let name = "fifo" ^ (string_of_int m#id) in
         let sstr = string_of_int m#score in
         let istr = string_of_int m#get_item_count in
-        let pstr = string_of_float m#get_produce_variance in
-        let cstr = string_of_float m#get_consume_variance in
-        let parts = [sstr; istr; pstr; cstr] in
+        let ptstr = string_of_int m#get_produce_time in
+        let pvstr = string_of_float m#get_produce_variance in
+        let ctstr = string_of_int m#get_consume_time in
+        let cvstr = string_of_float m#get_consume_variance in
+        let parts = [sstr; istr; ptstr; pvstr; ctstr; cvstr] in
         List.fold_left (fun a b -> a ^ " " ^ b) name parts
     ) sim.model.fifos in
     let totals = [

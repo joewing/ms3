@@ -38,6 +38,10 @@ class fifo =
 
         method get_item_count = max prod_count cons_count
 
+        method get_produce_time = last_prod_time
+
+        method get_consume_time = last_cons_time
+
         method get_produce_variance =
             if prod_count < 2 then 0.0
             else m2_prod_time /. (float_of_int (prod_count - 1))
@@ -51,6 +55,7 @@ class fifo =
             let t = float_of_int (mach.time - last_prod_time) in
             let n = float_of_int prod_count in
             let delta = t -. mean_prod_time in
+            last_prod_time <- mach.time;
             mean_prod_time <- mean_prod_time +. delta /. n;
             m2_prod_time <- m2_prod_time +. delta *. (t -. mean_prod_time)
 
@@ -59,6 +64,7 @@ class fifo =
             let t = float_of_int (mach.time - last_cons_time) in
             let n = float_of_int cons_count in
             let delta = t -. mean_cons_time in
+            last_cons_time <- mach.time;
             mean_cons_time <- mean_cons_time +. delta /. n;
             m2_cons_time <- m2_cons_time +. delta *. (t -. mean_cons_time)
 
