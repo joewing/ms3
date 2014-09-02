@@ -1,6 +1,3 @@
-
-from __future__ import print_function
-
 from memsim.resultcache import ResultCache
 from memsim.database import base
 

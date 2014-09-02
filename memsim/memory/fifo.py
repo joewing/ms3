@@ -52,11 +52,7 @@ class FIFO(subsystem.Subsystem):
         return self.depth * self.word_size
 
     def get_cost(self):
-        target = self.machine.target
-        if self.bram and self.depth > 1 and target == TargetType.FPGA:
-            return xilinx.get_cost(self.machine, self)
-        else:
-            return subsystem.Subsystem.get_cost(self)
+        return self.machine.get_zero_cost()
 
     def reset(self, machine):
         subsystem.Subsystem.reset(self, machine)

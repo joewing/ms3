@@ -20,6 +20,7 @@ from memsim import (
     qsim,
     sim,
 )
+from memsim.fifostats import FIFOStats
 from memsim.memopt import MemoryOptimizer
 from memsim.optimizer import PendingException
 from memsim.database.server import DatabaseServer
@@ -83,9 +84,9 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
 
 def get_total_value(mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
-    if mod.machine.goal == machine.ACCESS_TIME:
-        return qsim.simulate(mod, ml, value, fstats)
-    elif mod.machine.goal == machine.WRITES:
+    if mod.machine.goal == machine.GoalType.ACCESS_TIME:
+        return qsim.get_score(mod, ml, value, fstats)
+    elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
     else:
         assert(False)
@@ -100,11 +101,12 @@ def get_subsystem_values(db, m, ml, directory):
     for b in m.benchmarks:
         subsystem = b.index
         mem = ml.get_subsystem(subsystem)
-        value, fstats = db.get_result(m, mem, subsystem)
+        value, fs_str = db.get_result(m, mem, subsystem)
         if value is None:
             value, fstats = pl.run(ml, subsystem)
-            db.add_result(m, mem, subsystem, value,
-                          mem.get_total_cost(), fstats)
+            db.add_result(m, mem, subsystem, value, fstats)
+        else:
+            fstats = FIFOStats(fs_str)
         if value < 0:
             raise PendingException()
         result[subsystem] = value
@@ -156,8 +158,9 @@ def get_initial_memory(db, m, dist, directory):
     total = get_total_value(m, ml, best_value, fstats)
     db.insert_best(m, ml, total, ml.get_cost(m.machine))
     if main_context.verbose:
-        print('Value: {}'.format(total))
-        print('Cost: {}'.format(ml.get_cost(m.machine)))
+        print('Memory: {}'.format(ml))
+        print('Value:  {}'.format(total))
+        print('Cost:   {}'.format(ml.get_cost(m.machine)))
     return get_initial_memory(db, m, dist, directory)
 
 

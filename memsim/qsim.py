@@ -1,11 +1,13 @@
 import math
 from random import Random
 
+import cost
 from priorityqueue import PriorityQueue
 
 
-MAX_ITER_DEFAULT = 10000
-MAX_COV_DEFAULT = 1e-4
+MAX_ITER = 10000
+EPSILON = 1e-4
+BRAM_BYTES = (512 * 36) // 8
 
 
 class Queue(object):
@@ -71,9 +73,10 @@ class Simulator(object):
 
     def add_queue(self, count, depth,
                   prod_time, prod_var, cons_time, cons_var):
-        q = Queue(self.rand, count, depth,
-                  prod_time, prod_var, cons_time, cons_var)
-        self.queues.append(q)
+        if prod_time > 0 and cons_time > 0:
+            q = Queue(self.rand, count, depth,
+                      prod_time, prod_var, cons_time, cons_var)
+            self.queues.append(q)
 
     def run(self):
         pq = PriorityQueue()
@@ -89,23 +92,17 @@ class Simulator(object):
                 pq.push(next_t, q)
         return t
 
-    def run_multiple(self,
-                     max_cov=MAX_COV_DEFAULT,
-                     max_iterations=MAX_ITER_DEFAULT):
+    def run_multiple(self):
+        last_mean = 0
         total = 0
-        total2 = 0.0
-        for i in xrange(max_iterations):
+        for i in xrange(MAX_ITER):
             t = self.run()
             total += t
-            total2 += t * t
-            if i > 0:
-                n = i + 1
-                mean = total / n
-                var = total2 / n - mean * mean
-                cov = math.sqrt(var) / mean
-                if cov <= max_cov:
-                    return mean, cov
-        return mean, cov
+            mean = total // (i + 1)
+            if abs(mean - last_mean) / mean < EPSILON:
+                return mean
+            last_mean = mean
+        return mean
 
 
 def simulate(mod, ml, value, fstats):
@@ -115,9 +112,53 @@ def simulate(mod, ml, value, fstats):
         depth = fifo.depth
         items, ptime, pvar, ctime, cvar = fstats.get_stats(index)
         sim.add_queue(items, depth, ptime, pvar, ctime, cvar)
-    mean, cov = sim.run_multiple()
-    print mean, cov
-    return mean
+    return sim.run_multiple()
+
+
+def increase_size(mod, ml, value, fstats, bytes_left):
+
+    # Attempt to increase the size of each queue and increase
+    # the size of the queue that improves the performance the most.
+    best_value = simulate(mod, ml, value, fstats)
+    best_fifo = None
+    for fifo in ml.all_fifos():
+        increment = BRAM_BYTES // fifo.get_word_size()
+        assert(increment > 0)
+        bytes_left -= BRAM_BYTES
+        increment = (increment - 1) if fifo.depth == 1 else increment
+        fifo.depth += increment
+        temp = simulate(mod, ml, value, fstats)
+        fifo.depth -= increment
+        if (temp - best_value) / temp < -EPSILON:
+            best_value = temp
+            best_fifo = fifo
+    if best_fifo is not None:
+        increment = BRAM_BYTES // best_fifo.get_word_size()
+        increment = (increment - 1) if best_fifo.depth == 1 else increment
+        best_fifo.depth += increment
+        return True
+    else:
+        # Unable to improve the performance.
+        return False
+
+
+def get_score(mod, ml, value, fstats):
+
+    # Reset the sizes of all FIFOs.
+    for fifo in ml.all_fifos():
+        fifo.depth = 1
+
+    # Determine how many bytes we can give to FIFOs.
+    # Note that this assumes that we are using BRAMs of a particular size.
+    remaining = mod.machine.get_max_cost() - ml.get_cost(mod.machine)
+    remaining_bytes = remaining.cost * BRAM_BYTES
+
+    # Increasing the size of some queue until we are no longer
+    # able to do so or it no longer provides a benefit.
+    while increase_size(mod, ml, value, fstats, remaining_bytes):
+        pass
+
+    return simulate(mod, ml, value, fstats)
 
 
 if __name__ == '__main__':

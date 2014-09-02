@@ -2,22 +2,24 @@ import json
 
 class FIFOStats(object):
 
-    def __init__(self):
-        self.stats = dict()     # FIFO index -> name -> value
+    def __init__(self, s='{}'):
+        self.stats = json.loads(s)  # FIFO index -> name -> value
 
     def __str__(self):
         return json.dumps(self.stats)
 
     def get_stats(self, index):
+        index = str(index)
         data = self.stats[index]
-        items = data['items']
-        pvar = data['pvar']
-        ptime = data['ptime']
-        cvar = data['cvar']
-        ctime = data['ctime']
+        items = data.get('items', 0)
+        pvar = data.get('pvar', 0)
+        ptime = data.get('ptime', 0)
+        cvar = data.get('cvar', 0)
+        ctime = data.get('ctime', 0)
         return items, ptime, pvar, ctime, cvar
 
     def update(self, index, item_count, ptime, pvar, ctime, cvar):
+        index = str(index)
         if index in self.stats:
             data = self.stats[index]
         else:
@@ -33,10 +35,10 @@ class FIFOStats(object):
             data['cvar'] = cvar
 
     def combine(self, other):
-        for index, values in other.iteritems():
-            item_count = values['items']
-            ptime = values['ptime']
-            pvar = values['pvar']
-            ctime = values['ctime']
-            cvar = values['cvar']
+        for index, values in other.stats.iteritems():
+            item_count = values.get('items', 0)
+            ptime = values.get('ptime', 0)
+            pvar = values.get('pvar', 0)
+            ctime = values.get('ctime', 0)
+            cvar = values.get('cvar', 0)
             self.update(index, item_count, ptime, pvar, ctime, cvar)
