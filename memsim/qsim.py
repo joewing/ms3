@@ -106,13 +106,34 @@ class Simulator(object):
 
 
 def simulate(mod, ml, value, fstats):
+
+    # Determine the average number of items used.
+    total = 0
+    count = 0
+    for fifo in ml.all_fifos():
+        index = fifo.index
+        items, _, _, _, _ = fstats.get_stats(index)
+        total += items
+        count += 1
+
+    # Scale the number of items for an average of 1000.
+    mean = total // count
+    scale = mean // 1000 if mean > 1000 else 1
+
+    # Add the FIFOs to the simulation.
     sim = Simulator()
     for fifo in ml.all_fifos():
         index = fifo.index
         depth = fifo.depth
         items, ptime, pvar, ctime, cvar = fstats.get_stats(index)
+        items = (items + scale - 1) // scale
         sim.add_queue(items, depth, ptime, pvar, ctime, cvar)
-    return sim.run_multiple()
+
+    # Run the simulation.
+    t = sim.run_multiple()
+
+    # Return the scaled result.
+    return t * scale
 
 
 def increase_size(mod, ml, value, fstats, bytes_left):
