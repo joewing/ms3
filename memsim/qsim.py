@@ -4,17 +4,21 @@ from random import Random
 from priorityqueue import PriorityQueue
 
 
+MAX_ITER_DEFAULT = 10000
+MAX_COV_DEFAULT = 1e-4
+
+
 class Queue(object):
 
-    def __init__(self, rand, count, k,
+    def __init__(self, rand, count, depth,
                  prod_time, prod_var, cons_time, cons_var):
-        assert(k > 0)
+        assert(depth > 0)
         assert(count > 0)
         assert(prod_time > 0)
         assert(cons_time > 0)
         self.rand = rand
         self.count = count
-        self.k = k
+        self.depth = depth
         self.prod_mean = float(prod_time) / count
         self.prod_std = math.sqrt(prod_var)
         self.cons_mean = float(cons_time) / count
@@ -40,7 +44,7 @@ class Queue(object):
 
     def process(self, t):
         if t >= self.next_prod:
-            if self.size < self.k:
+            if self.size < self.depth:
                 self.size += 1
                 self.next_prod = self._get_next_prod(t)
             else:
@@ -65,9 +69,9 @@ class Simulator(object):
         self.queues = []
         self.rand = Random(seed)
 
-    def add_queue(self, count, size,
+    def add_queue(self, count, depth,
                   prod_time, prod_var, cons_time, cons_var):
-        q = Queue(self.rand, count, size,
+        q = Queue(self.rand, count, depth,
                   prod_time, prod_var, cons_time, cons_var)
         self.queues.append(q)
 
@@ -85,7 +89,9 @@ class Simulator(object):
                 pq.push(next_t, q)
         return t
 
-    def run_multiple(self, max_cov, max_iterations=10000):
+    def run_multiple(self,
+                     max_cov=MAX_COV_DEFAULT,
+                     max_iterations=MAX_ITER_DEFAULT):
         total = 0
         total2 = 0.0
         for i in xrange(max_iterations):
@@ -100,6 +106,18 @@ class Simulator(object):
                 if cov <= max_cov:
                     return mean, cov
         return mean, cov
+
+
+def simulate(mod, ml, value, fstats):
+    sim = Simulator()
+    for fifo in ml.all_fifos():
+        index = fifo.index
+        depth = fifo.depth
+        items, ptime, pvar, ctime, cvar = fstats.get_stats(index)
+        sim.add_queue(items, depth, ptime, pvar, ctime, cvar)
+    mean, cov = sim.run_multiple()
+    print mean, cov
+    return mean
 
 
 if __name__ == '__main__':

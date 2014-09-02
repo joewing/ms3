@@ -73,14 +73,16 @@ class ProcessList(object):
                     index = int(m.group(2))
                 result = m.group(3)
                 if name == 'fifo':
-                    score, items, pvar, cvar = result.split(' ')
+                    score, items, ptime, pvar, ctime, cvar = result.split(' ')
                     score = int(score)
                     items = int(items)
+                    ptime = int(ptime)
                     pvar = float(pvar)
+                    ctime = int(ctime)
                     cvar = float(cvar)
                     mem = ml.get_fifo(index)
                     mem.score = score
-                    fifo_stats.update(index, items, pvar, cvar)
+                    fifo_stats.update(index, items, ptime, pvar, ctime, cvar)
                 elif name == 'subsystem':
                     mem = ml.get_subsystem(index)
                     mem.score = int(result)

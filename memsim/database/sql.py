@@ -256,8 +256,8 @@ class SQLDatabase(base.BaseDatabase):
             self.results[result_hash] = value
             return value
         else:
-            self.results[result_hash] = -1
-            return None
+            self.results[result_hash] = -1, None
+            return None, None
 
     def add_result(self, mod, mem, subsystem, value, fifo_stats):
         """Add a result for the specified model."""

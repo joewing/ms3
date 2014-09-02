@@ -14,8 +14,10 @@ import threading
 from memsim import (
     database,
     lex,
+    machine,
     memory,
     model,
+    qsim,
     sim,
 )
 from memsim.memopt import MemoryOptimizer
@@ -79,9 +81,14 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
-def get_total_value(value):
+def get_total_value(mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
-    return sum(value.values())
+    if mod.machine.goal == machine.ACCESS_TIME:
+        return qsim.simulate(mod, ml, value, fstats)
+    elif mod.machine.goal == machine.WRITES:
+        return sum(value.values())
+    else:
+        assert(False)
 
 
 def get_subsystem_values(db, m, ml, directory):
@@ -89,18 +96,20 @@ def get_subsystem_values(db, m, ml, directory):
     for b in m.benchmarks:
         pl.add_benchmark(b)
     result = dict()
+    fifo_stats = FIFOStats()
     for b in m.benchmarks:
         subsystem = b.index
         mem = ml.get_subsystem(subsystem)
-        value = db.get_result(m, mem, subsystem)
+        value, fstats = db.get_result(m, mem, subsystem)
         if value is None:
-            value, fifo_stats = pl.run(ml, subsystem)
+            value, fstats = pl.run(ml, subsystem)
             db.add_result(m, mem, subsystem, value,
-                          mem.get_total_cost(), fifo_stats)
+                          mem.get_total_cost(), fstats)
         if value < 0:
             raise PendingException()
         result[subsystem] = value
-    return result
+        fifo_stats.combine(fstats)
+    return result, fifo_stats
 
 
 def get_initial_memory(db, m, dist, directory):
@@ -136,14 +145,15 @@ def get_initial_memory(db, m, dist, directory):
         ml = memory.parse_memory_list(lexer)
 
         # Load the values for each subsystem.
-        return ml, get_subsystem_values(db, m, ml, directory)
+        values, fstats = get_subsystem_values(db, m, ml, directory)
+        return ml, values, fstats
 
     # Get the current value.
     if main_context.verbose:
         print('Initial Memory: {}'.format(m.memory))
     ml = m.memory.clone()
-    best_value = get_subsystem_values(db, m, ml, directory)
-    total = get_total_value(best_value)
+    best_value, fstats = get_subsystem_values(db, m, ml, directory)
+    total = get_total_value(m, ml, best_value, fstats)
     db.insert_best(m, ml, total, ml.get_cost(m.machine))
     if main_context.verbose:
         print('Value: {}'.format(total))
@@ -162,10 +172,10 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    last_ml, values = get_initial_memory(db, mod, dist, directory)
+    last_ml, values, fstats = get_initial_memory(db, mod, dist, directory)
     last_ml.reset(mod.machine)
     best_cost = last_ml.get_cost(mod.machine)
-    best_value = get_total_value(values)
+    best_value = get_total_value(mod, last_ml, values, fstats)
     result_count = db.get_result_count(mod)
     assert(best_cost.fits(mod.machine.get_max_cost()))
 
@@ -178,8 +188,8 @@ def optimize(db, mod, iterations, seed, directory):
         ml, subsystem = o.get_next(last_ml)
 
         # Evaluate the current memory subsystem.
-        new_values = get_subsystem_values(db, mod, ml, directory)
-        total = get_total_value(new_values)
+        new_values, fstats = get_subsystem_values(db, mod, ml, directory)
+        total = get_total_value(mod, ml, new_values, fstats)
         cost = ml.get_cost(mod.machine)
         assert(cost.fits(mod.machine.get_max_cost()))
 
