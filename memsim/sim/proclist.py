@@ -99,6 +99,8 @@ class ProcessList(object):
             return total, fifo_stats
         elif self.machine.goal == GoalType.WRITES:
             return writes, fifo_stats
+        elif self.machine.goal == GoalType.ENERGY:
+            return total, fifo_stats
         else:
             assert(False)
 

@@ -88,6 +88,8 @@ def get_total_value(mod, ml, value, fstats):
         return qsim.get_score(mod, ml, value, fstats)
     elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
+    elif mod.machine.goal == machine.GoalType.ENERGY:
+        return sum(value.values())
     else:
         assert(False)
 

@@ -10,6 +10,7 @@ class TargetType(object):
 class GoalType(object):
     ACCESS_TIME = 0
     WRITES = 1
+    ENERGY = 2
 
 
 def parse_target(s):
@@ -39,6 +40,8 @@ def parse_goal(s):
         return GoalType.ACCESS_TIME
     elif s == 'writes':
         return GoalType.WRITES
+    elif s == 'energy':
+        return GoalType.ENERGY
     else:
         assert(False)
 
@@ -48,6 +51,8 @@ def show_goal(t):
         return 'acccess_time'
     elif t == GoalType.WRITES:
         return 'writes'
+    elif t == GoalType.ENERGY:
+        return 'energy'
     else:
         return '<{}>'.format(t)
 
