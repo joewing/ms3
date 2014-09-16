@@ -13,10 +13,13 @@ class ram =
             | "latency" -> latency <- int_of_string value
             | _ -> super#set name value
 
+        method energy (t : int) = 0.0
+
         method word_size = word_size
 
         method private process base start write addr size =
             writes <- writes + (if write then 1 else 0);
+            reads <- reads + (if write then 0 else 1);
             start + latency
 
     end

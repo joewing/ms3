@@ -1,5 +1,6 @@
 open Lex
 open Base_memory
+open Main_memory
 open Machine
 open Model
 
@@ -101,7 +102,8 @@ and create_memory name =
     match name with
     | "main" -> (None, set_none)
     | "spm" -> let m = new Spm.spm in (wrap m, set_container m)
-    | "dram" -> let m = new Dram.dram in (wrap m, set_main m)
+    | "dram" -> let m = new Dram.dram in (wrap m, set_main (m :> main_memory))
+    | "pcm" -> let m = new Pcm.pcm in (wrap m, set_main (m :> main_memory))
     | "cache" -> let m = new Cache.cache in (wrap m, set_container m)
     | "offset" -> let m = new Offset.offset in (wrap m, set_transform m)
     | "xor" -> let m = new Xor.xor in (wrap m, set_transform m)
@@ -109,7 +111,7 @@ and create_memory name =
     | "split" -> let m = new Split.split in (wrap m, set_split m)
     | "join" -> let m = new join in (wrap m, set_none)
     | "prefetch" -> let m = new Prefetch.prefetch in (wrap m, set_container m)
-    | "ram" -> let m = new Ram.ram in (wrap m, set_main m)
+    | "ram" -> let m = new Ram.ram in (wrap m, set_main (m :> main_memory))
     | name -> parse_error [] ("invalid memory: " ^ name)
 
 and match_memory token_list =

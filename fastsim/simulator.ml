@@ -158,7 +158,8 @@ let get_scores sim =
     ) sim.model.fifos in
     let totals = [
         "total " ^ (string_of_int t);
-        "writes " ^ (string_of_int sim.model.main#writes)
+        "writes " ^ (string_of_int sim.model.main#writes);
+        "energy " ^ (string_of_float @@ sim.model.main#energy t)
     ] in subsystem_scores @ fifo_scores @ totals
 ;;
 

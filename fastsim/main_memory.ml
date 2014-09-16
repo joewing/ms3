@@ -6,10 +6,15 @@ class virtual main_memory =
 
         val mutable writes = 0
 
+        val mutable reads = 0
+
         method writes = writes
+
+        method virtual energy : int -> float
 
         method reset m main =
             super#reset m main;
-            writes <- 0
+            writes <- 0;
+            reads <- 0
 
     end

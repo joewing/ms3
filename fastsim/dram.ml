@@ -27,6 +27,21 @@ class dram =
             page = -1; dirty = false; time = 0.0
         }
 
+        method nj_per_write = 14.48
+
+        method nj_per_read = 12.17
+
+        method nj_static t =
+            let base = self#nj_per_read *. (float_of_int t) in
+            base *. (float_of_int page_count)
+
+        method energy t =
+            let write_energy = self#nj_per_write *. (float_of_int writes) in
+            let read_energy = self#nj_per_read *. (float_of_int reads) in
+            let static_energy = self#nj_static t in
+            let total = write_energy +. read_energy +. static_energy in
+            total /. 1000000000.0
+
         method private bank_size = page_size * page_count
 
         method set name value =
@@ -59,6 +74,7 @@ class dram =
             let start = max start (last_time - mach.time) in
             let addr = (addr + base) land mach.addr_mask in
             writes <- writes + (if write then 1 else 0);
+            reads <- reads + (if write then 0 else 1);
             let mult = mach.frequency /. frequency in
             let start = ((float_of_int start) /. mult) in
 
