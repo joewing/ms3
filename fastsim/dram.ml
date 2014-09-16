@@ -32,7 +32,7 @@ class dram =
         method nj_per_read = 12.17
 
         method nj_static t =
-            let base = self#nj_per_read *. (float_of_int t) in
+            let base = self#nj_per_read *. t in
             base *. (float_of_int page_count)
 
         method energy t =

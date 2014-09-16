@@ -10,7 +10,7 @@ class virtual main_memory =
 
         method writes = writes
 
-        method virtual energy : int -> float
+        method virtual energy : float -> float
 
         method reset m main =
             super#reset m main;

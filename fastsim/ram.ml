@@ -13,7 +13,7 @@ class ram =
             | "latency" -> latency <- int_of_string value
             | _ -> super#set name value
 
-        method energy (t : int) = 0.0
+        method energy t = 0.0
 
         method word_size = word_size
 

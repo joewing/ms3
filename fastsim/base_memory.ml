@@ -13,7 +13,7 @@ class virtual base_memory =
 
         method virtual writes : int
 
-        method energy (t : int) = 0.0
+        method energy (t : float) = 0.0
 
         method private virtual process : int -> int -> bool -> int -> int -> int
 

@@ -156,10 +156,11 @@ let get_scores sim =
         let parts = [sstr; istr; ptstr; pvstr; ctstr; cvstr] in
         List.fold_left (fun a b -> a ^ " " ^ b) name parts
     ) sim.model.fifos in
+    let time_seconds = (float_of_int t) /. sim.model.mach.frequency in
     let totals = [
         "total " ^ (string_of_int t);
         "writes " ^ (string_of_int sim.model.main#writes);
-        "energy " ^ (string_of_float @@ sim.model.main#energy t)
+        "energy " ^ (string_of_float @@ sim.model.main#energy time_seconds)
     ] in subsystem_scores @ fifo_scores @ totals
 ;;
 
