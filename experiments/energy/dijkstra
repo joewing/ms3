@@ -11,7 +11,7 @@
 (memory
     (main (memory
         (option
-            (memory
+            (memory0
                 (pcm
                     (frequency 100000000)
                     (cas_cycles 3)
@@ -25,7 +25,7 @@
                     (ddr true)
                 )
             )
-            (memory
+            (memory1
                 (dram
                     (frequency 100000000)
                     (cas_cycles 3)
@@ -39,6 +39,7 @@
                     (ddr true)
                 )
             )
+        )
       ))
     (subsystem (id 1)(depth 0)(word_size 4)
         (memory (main))

@@ -1,16 +1,19 @@
 from memsim import lex
-from memsim.memory import base
+from memsim.memory import base, main
 
 
-class Option(base.Memory):
+class Option(main.MainMemory):
 
     def __init__(self):
-        base.Memory.__init__(self)
+        main.MainMemory.__init__(self)
         self.options = []
         self.index = 0
 
     def __str__(self):
         return str(self.options[self.index])
+
+    def get_parameter_count(self):
+        return 1
 
     def can_remove(self):
         return False
@@ -34,7 +37,7 @@ class Option(base.Memory):
         return self.options[self.index].get_cost()
 
     def reset(self, machine):
-        base.Memory.reset(self, machine)
+        main.MainMemory.reset(self, machine)
         self.options[self.index].reset(machine)
 
     def permute(self, rand):
