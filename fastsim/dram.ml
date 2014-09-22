@@ -32,8 +32,11 @@ class dram =
         method nj_per_read = 12.17
 
         method nj_static t =
-            let base = self#nj_per_read *. t in
-            base *. (float_of_int page_count)
+            (* Each page must be refreshed once every 64 ms. *)
+            let refreshes_per_second = 1.0 /. 0.064 in
+            let base = (self#nj_per_write *. t) /. refreshes_per_second in
+            let total_pages = page_count * self#bank_count in
+            base *. (float_of_int total_pages)
 
         method energy t =
             let write_energy = self#nj_per_write *. (float_of_int writes) in
@@ -43,6 +46,10 @@ class dram =
             total /. 1000000000.0
 
         method private bank_size = page_size * page_count
+
+        method private bank_count =
+            let bank_size = self#bank_size in
+            (mach.addr_mask + bank_size) / bank_size
 
         method set name value =
             match name with
@@ -64,9 +71,7 @@ class dram =
 
         method reset m main =
             super#reset m main;
-            let bank_size = self#bank_size in
-            let bank_count = (mach.addr_mask + bank_size) / bank_size in
-            banks <- Array.init bank_count (fun _ ->
+            banks <- Array.init self#bank_count (fun _ ->
                 { page = -1; dirty = false; time = 0.0 }
             )
 
