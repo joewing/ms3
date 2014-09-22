@@ -27,9 +27,9 @@ class dram =
             page = -1; dirty = false; time = 0.0
         }
 
-        method nj_per_write = 14.48
+        method nj_per_write = 0.000392 *. (float_of_int page_size)
 
-        method nj_per_read = 12.17
+        method nj_per_read = 0.0012 *. (float_of_int page_size)
 
         method nj_static t =
             (* Each page must be refreshed once every 64 ms. *)
