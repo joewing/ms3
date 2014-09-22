@@ -1,33 +1,11 @@
+from memsim import parser
+from memsim.memory import base
 from memsim.memory.dram import DRAM
 
 class PCM(DRAM):
 
-    def __init__(self,
-                 frequency,     # Frequency of the device
-                 cas_cycles,    # CAS cycles
-                 rcd_cycles,    # RAS-CAS cycles
-                 rp_cycles,     # Precharge cycles
-                 wb_cycles,     # Extra cycles for write-back
-                 page_size,     # Size of a page in bytes
-                 page_count,    # Number of pages per bank
-                 width,         # Width of the channel in bytes
-                 burst_size,    # Size of a burst in transfers
-                 extra_cycles,  # Extra cycles per access
-                 open_page,     # True for open-page, False for closed-page
-                 ddr):          # True for DDR, False for SDR.
-        main.MainMemory.__init__(self)
-        self.frequency = frequency
-        self.cas_cycles = cas_cycles
-        self.rcd_cycles = rcd_cycles
-        self.rp_cycles = rp_cycles
-        self.wb_cycles = wb_cycles
-        self.page_size = page_size
-        self.page_count = page_count
-        self.width = width
-        self.burst_size = burst_size
-        self.extra_cycles = extra_cycles
-        self.open_page = open_page
-        self.ddr = ddr
+    def __init__(self, **kwargs):
+        DRAM.__init__(self, **kwargs)
 
     def __str__(self):
         result = '(pcm '
@@ -67,16 +45,16 @@ def _create_pcm(lexer, args):
     extra_cycles = parser.get_argument(lexer, args, 'extra', 1.0)
     open_page = parser.get_argument(lexer, args, 'open_page', True)
     ddr = parser.get_argument(lexer, args, 'ddr', True)
-    return DRAM(frequency=frequency,
-                cas_cycles=cas_cycles,
-                rcd_cycles=rcd_cycles,
-                rp_cycles=rp_cycles,
-                wb_cycles=wb_cycles,
-                page_size=page_size,
-                page_count=page_count,
-                width=width,
-                burst_size=burst_size,
-                extra_cycles=extra_cycles,
-                open_page=open_page,
-                ddr=ddr)
-base.constructors['dram'] = _create_dram
+    return PCM(frequency=frequency,
+               cas_cycles=cas_cycles,
+               rcd_cycles=rcd_cycles,
+               rp_cycles=rp_cycles,
+               wb_cycles=wb_cycles,
+               page_size=page_size,
+               page_count=page_count,
+               width=width,
+               burst_size=burst_size,
+               extra_cycles=extra_cycles,
+               open_page=open_page,
+               ddr=ddr)
+base.constructors['pcm'] = _create_pcm

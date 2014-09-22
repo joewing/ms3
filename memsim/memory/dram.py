@@ -1,5 +1,3 @@
-import math
-
 from memsim import parser
 from memsim.memory import base, main
 
