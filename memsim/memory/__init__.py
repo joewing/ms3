@@ -45,3 +45,6 @@ assert subsystem
 
 from memsim.memory import fifo
 assert fifo
+
+from memsim.memory import pcm
+assert pcm
