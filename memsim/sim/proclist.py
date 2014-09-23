@@ -54,6 +54,7 @@ class ProcessList(object):
         # Run the simulation.
         total = -1
         writes = -1
+        energy = -1
         expr = re.compile(r'([a-z]+)([0-9]*) (.+)$')
         mod = Model()
         mod.memory = ml
@@ -61,7 +62,7 @@ class ProcessList(object):
         mod.benchmarks = [p.benchmark for p in self.processes]
         args = [cmd, '-d', self.directory, '-s', str(subsystem)]
         p = Popen(args, stdin=PIPE, stdout=PIPE)
-        result, _ = p.communicate(input=str(mod))
+        result, _ = p.communicate(input=mod.get_name())
 
         # Parse the results.
         fifo_stats = FIFOStats()
@@ -90,17 +91,20 @@ class ProcessList(object):
                     total = int(result)
                 elif name == 'writes':
                     writes = int(result)
+                elif name == 'energy':
+                    energy = int(float(result))
                 else:
                     print(name)
                     assert(False)
         assert(total >= 0)
+        assert(energy >= 0)
         assert(writes >= 0)
         if self.machine.goal == GoalType.ACCESS_TIME:
             return total, fifo_stats
         elif self.machine.goal == GoalType.WRITES:
             return writes, fifo_stats
         elif self.machine.goal == GoalType.ENERGY:
-            return total, fifo_stats
+            return energy, fifo_stats
         else:
             assert(False)
 

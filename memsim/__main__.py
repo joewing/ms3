@@ -82,6 +82,12 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
+def get_memory_name(mod, mem):
+    result = mod.memory.main_memory.get_name()
+    result += mem.get_name()
+    return result
+
+
 def get_total_value(mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
     if mod.machine.goal == machine.GoalType.ACCESS_TIME:
@@ -103,10 +109,11 @@ def get_subsystem_values(db, m, ml, directory):
     for b in m.benchmarks:
         subsystem = b.index
         mem = ml.get_subsystem(subsystem)
-        value, fs_str = db.get_result(m, mem, subsystem)
+        mem_name = get_memory_name(m, mem)
+        value, fs_str = db.get_result(m, mem_name, subsystem)
         if value is None:
             value, fstats = pl.run(ml, subsystem)
-            db.add_result(m, mem, subsystem, value, fstats)
+            db.add_result(m, mem_name, subsystem, value, fstats)
         else:
             fstats = FIFOStats(fs_str)
         if value < 0:

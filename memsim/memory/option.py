@@ -9,9 +9,6 @@ class Option(main.MainMemory):
         self.options = []
         self.index = 0
 
-    def __str__(self):
-        return str(self.options[self.index])
-
     def get_parameter_count(self):
         return 1
 
@@ -29,6 +26,13 @@ class Option(main.MainMemory):
 
     def get_name(self):
         return self.options[self.index].get_name()
+
+    def get_full_name(self):
+        result = '(option '
+        for index, mem in enumerate(self.options):
+            result += '(memory{} {})'.format(index, mem)
+        result += ')'
+        return result
 
     def add_option(self, m):
         self.options.append(m)

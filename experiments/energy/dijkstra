@@ -7,6 +7,7 @@
     (max_cost   92)
     (max_luts   12000)
     (max_regs   36000)
+    (goal       energy)
 )
 (memory
     (main (memory
@@ -41,7 +42,7 @@
             )
         )
       ))
-    (subsystem (id 1)(depth 0)(word_size 4)
+    (subsystem (id 1)(depth 1073741824)(word_size 4)
         (memory (main))
     )
 )

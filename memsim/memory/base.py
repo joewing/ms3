@@ -30,6 +30,10 @@ class Memory(object):
         self.memory_id = next_memory_id
         next_memory_id += 1
 
+    def get_full_name(self):
+        """Get the full name of this memory subsystem."""
+        return self.get_name()
+
     def get_name(self):
         """Get the name of this memory subsystem."""
         return str(self)

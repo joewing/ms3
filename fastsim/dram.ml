@@ -43,7 +43,7 @@ class dram =
             let read_energy = self#nj_per_read *. (float_of_int reads) in
             let static_energy = self#nj_static t in
             let total = write_energy +. read_energy +. static_energy in
-            total /. 1000000000.0
+            total
 
         method private bank_size = page_size * page_count
 

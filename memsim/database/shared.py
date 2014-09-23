@@ -37,7 +37,7 @@ class SharedDatabase(base.BaseDatabase):
         if result_hash in self.result_cache:
             return self.result_cache[result_hash]
         result = self._execute('get_result', True, str(mod),
-                               str(mem), subsystem)
+                               mem, subsystem)
         if result[0] is not None and result[0] >= 0:
             self.result_cache[result_hash] = result
         return result
@@ -45,16 +45,16 @@ class SharedDatabase(base.BaseDatabase):
     def add_result(self, mod, mem, subsystem, value, fifo_stats):
         result_hash = self.get_result_hash(mod, mem, subsystem)
         self.result_cache[result_hash] = value, str(fifo_stats)
-        return self._execute('add_result', False, str(mod), str(mem),
+        return self._execute('add_result', False, str(mod), mem,
                              subsystem, value, str(fifo_stats))
 
     def insert_best(self, mod, mem, value, cost):
         return self._execute('insert_best', False, str(mod),
-                             str(mem), value, cost)
+                             mem, value, cost)
 
     def update_best(self, mod, mem, value, cost):
         return self._execute('update_best', False, str(mod),
-                             str(mem), value, cost)
+                             mem, value, cost)
 
     def get_best(self, mod):
         return self._execute('get_best', True, str(mod))

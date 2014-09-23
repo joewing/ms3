@@ -205,7 +205,7 @@ class SQLDatabase(base.BaseDatabase):
                 memories_table.c.name,
             ], select([
                 literal(mem_hash),
-                literal(str(mem)),
+                literal(mem),
             ]).where(
                 ~exists([memories_table.c.id]).where(
                     memories_table.c.name_hash == mem_hash
@@ -308,7 +308,7 @@ class SQLDatabase(base.BaseDatabase):
             best_table.c.reg_count,
         ], select([
             literal(mod_id),
-            literal(str(mem)),
+            literal(mem),
             literal(value),
             literal(cost.cost),
             literal(cost.luts),
@@ -348,7 +348,7 @@ class SQLDatabase(base.BaseDatabase):
                 best_table.c.lut_count == cost.luts,
                 best_table.c.reg_count == cost.regs,
                 func.char_length(best_table.c.name) >
-                    func.char_length(literal(str(mem))),
+                    func.char_length(literal(mem)),
             ),
         )
         stmt = best_table.update().where(
@@ -357,7 +357,7 @@ class SQLDatabase(base.BaseDatabase):
                 better_filter,
             )
         ).values(
-            name=literal(str(mem)),
+            name=literal(mem),
             value=literal(value),
             cost=literal(cost.cost),
             lut_count=literal(cost.luts),
