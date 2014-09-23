@@ -85,6 +85,7 @@ class MemoryOptimizer(Optimizer):
         """
         assert(index >= 0)
         if index == 0:
+            print('permute {}'.format(mem))
             return mem.permute(dist)
         n = mem.get_next()
         nc = n.count()

@@ -32,7 +32,9 @@ class DRAM(main.MainMemory):
         self.open_page = open_page
         self.ddr = ddr
 
-    def __str__(self):
+    def get_name(self, full):
+        if not full:
+            return main.MainMemory.get_name(self, full)
         result = '(dram '
         result += '(frequency ' + str(self.frequency) + ')'
         result += '(cas_cycles ' + str(self.cas_cycles) + ')'

@@ -8,7 +8,7 @@ class Join(base.Memory):
         self.index = index
         self.parent = None
 
-    def __str__(self):
+    def get_name(self, full):
         return '(join)'
 
     def get_parameter_count(self):

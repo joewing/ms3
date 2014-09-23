@@ -21,12 +21,12 @@ class Split(container.Container):
         join.set_parent(bank0, self)
         join.set_parent(bank1, self)
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(split '
         result += '(offset ' + str(self.offset) + ')'
-        result += '(bank0 ' + str(self.bank0.get_name()) + ')'
-        result += '(bank1 ' + str(self.bank1.get_name()) + ')'
-        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += '(bank0 ' + str(self.bank0.get_name(full)) + ')'
+        result += '(bank1 ' + str(self.bank1.get_name(full)) + ')'
+        result += '(memory ' + str(self.mem.get_name(full)) + ')'
         result += ')'
         return result
 

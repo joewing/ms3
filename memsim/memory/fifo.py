@@ -22,7 +22,7 @@ class FIFO(subsystem.Subsystem):
         self.min_depth = min_depth
         self.bram = bram
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(fifo '
         result += '(id ' + str(self.index) + ')'
         result += '(depth ' + str(self.depth) + ')'
@@ -31,7 +31,7 @@ class FIFO(subsystem.Subsystem):
         if self.min_depth > 1:
             result += '(min_depth ' + str(self.min_depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
-        result += '(memory ' + self.get_next().get_name() + ')'
+        result += '(memory ' + self.get_next().get_name(full) + ')'
         result += ')'
         return result
 

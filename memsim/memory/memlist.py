@@ -18,28 +18,15 @@ class MemoryList(object):
         self.subsystems = []    # Mapping of id -> subsystem
         self.fifos = []         # Mapping of id -> fifo
 
-    def get_main_name(self, full):
-        result = '(main (memory '
-        if full:
-            result += self.main_memory.get_full_name()
-        else:
-            result += str(self.main_memory)
-        result += '))'
-        return result
-
     def __str__(self):
-        return self.get_name()
+        return self.get_name(False)
 
-    def get_name(self):
-        result = self.get_main_name(False)
+    def get_name(self, full):
+        result = '(main (memory '
+        result += self.main_memory.get_name(True)
+        result += '))'
         for m in self.all_memories():
-            result += ' ' + m.get_name()
-        return result
-
-    def get_full_name(self):
-        result = self.get_main_name(True)
-        for m in self.all_memories():
-            result += ' ' + m.get_full_name()
+            result += ' ' + m.get_name(full)
         return result
 
     def _insert(self, lst, index, value):

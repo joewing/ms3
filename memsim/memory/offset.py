@@ -19,11 +19,11 @@ class Offset(transform.Transform):
         transform.Transform.__init__(self, bank, mem)
         self.offset = offset
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(offset '
         result += '(value ' + str(self.offset) + ')'
-        result += '(bank ' + str(self.bank.get_name()) + ')'
-        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += '(bank ' + str(self.bank.get_name(full)) + ')'
+        result += '(memory ' + str(self.mem.get_name(full)) + ')'
         result += ')'
         return result
 

@@ -3,6 +3,7 @@ open Base_memory
 open Main_memory
 open Machine
 open Model
+open Opt
 
 let parse_string token_list = fst @@ match_string token_list;;
 
@@ -82,15 +83,15 @@ and set_container mem name = function
 
 and set_main mem name = function
     | [Literal (s, _)] -> mem#set name s
-    | t -> parse_error t ("invalid argument" ^ name)
+    | t -> parse_error t ("invalid argument: " ^ name)
 
 and set_opt mem name = function
     | [Literal (s, _)] -> mem#set name s
     | v when (String.length name) > 6 && (String.sub name 0 6) = "memory" ->
         let name_length = String.length name in
-        let index = int_of_string @@ String.sub name 6 name_length in
+        let index = int_of_string @@ String.sub name 6 (name_length - 6) in
         mem#set_memory index @@ parse_memory v
-    | t -> parse_error t ("invalid argument" ^ name)
+    | t -> parse_error t ("invalid argument: " ^ name)
 
 and set_transform mem name = function
     | [Literal (s, _)] -> mem#set name s
@@ -120,7 +121,7 @@ and create_memory name =
     | "join" -> let m = new join in (wrap m, set_none)
     | "prefetch" -> let m = new Prefetch.prefetch in (wrap m, set_container m)
     | "ram" -> let m = new Ram.ram in (wrap m, set_main (m :> main_memory))
-    | "option" -> let m = new Opt.opt in (wrap m, set_main (m :> main_memory))
+    | "option" -> let m = new Opt.opt in (wrap m, set_opt (m :> opt))
     | name -> parse_error [] ("invalid memory: " ^ name)
 
 and match_memory token_list =

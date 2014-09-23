@@ -62,8 +62,9 @@ class ProcessList(object):
         print('memory: {}'.format(ml))
         mod.benchmarks = [p.benchmark for p in self.processes]
         args = [cmd, '-d', self.directory, '-s', str(subsystem)]
+        print('model: {}'.format(mod))
         p = Popen(args, stdin=PIPE, stdout=PIPE)
-        result, _ = p.communicate(input=mod.get_name())
+        result, _ = p.communicate(input=str(mod))
 
         # Parse the results.
         fifo_stats = FIFOStats()

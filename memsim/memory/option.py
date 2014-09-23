@@ -21,19 +21,22 @@ class Option(main.MainMemory):
     def get_word_size(self):
         return self.options[self.index].get_word_size()
 
+    def get_next(self):
+        return self.options[self.index]
+
     def generate(self, gen, source):
         return self.options[self.index].generate(gen, source)
 
-    def __str__(self):
-        return str(self.options[self.index])
-
-    def get_full_name(self):
-        result = '(option '
-        result += '(index {})'.format(self.index)
-        for index, mem in enumerate(self.options):
-            result += '(memory{} {})'.format(index, mem)
-        result += ')'
-        return result
+    def get_name(self, full):
+        if full:
+            result = '(option '
+            result += '(index {})'.format(self.index)
+            for index, mem in enumerate(self.options):
+                result += '(memory{} {})'.format(index, mem.get_name(full))
+            result += ')'
+            return result
+        else:
+            return self.options[self.index].get_name(False)
 
     def add_option(self, m):
         self.options.append(m)

@@ -10,20 +10,6 @@ class Model(object):
         self.benchmarks = []
 
     def __str__(self):
-        return self.get_full_name()
-
-    def get_full_name(self):
-        result = []
-        result += '(label ' + str(self.label) + ')'
-        result += '(machine ' + str(self.machine) + ')'
-        result += '(memory ' + self.memory.get_full_name() + ')'
-        result += '(benchmarks '
-        for b in self.benchmarks:
-            result += str(b)
-        result += ')'
-        return ''.join(result)
-
-    def get_name(self):
         result = []
         result += '(label ' + str(self.label) + ')'
         result += '(machine ' + str(self.machine) + ')'

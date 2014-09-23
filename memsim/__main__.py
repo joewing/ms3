@@ -82,12 +82,6 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
-def get_memory_name(mod, mem):
-    result = mod.memory.main_memory.get_name()
-    result += mem.get_name()
-    return result
-
-
 def get_total_value(mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
     if mod.machine.goal == machine.GoalType.ACCESS_TIME:
@@ -109,7 +103,7 @@ def get_subsystem_values(db, m, ml, directory):
     for b in m.benchmarks:
         subsystem = b.index
         mem = ml.get_subsystem(subsystem)
-        mem_name = get_memory_name(m, mem)
+        mem_name = mem.get_name(True)
         value, fs_str = db.get_result(m, mem_name, subsystem)
         if value is None:
             value, fstats = pl.run(ml, subsystem)
@@ -165,7 +159,7 @@ def get_initial_memory(db, m, dist, directory):
     ml = m.memory.clone()
     best_value, fstats = get_subsystem_values(db, m, ml, directory)
     total = get_total_value(m, ml, best_value, fstats)
-    db.insert_best(m, ml, total, ml.get_cost(m.machine))
+    db.insert_best(m, str(ml), total, ml.get_cost(m.machine))
     if main_context.verbose:
         print('Memory: {}'.format(ml))
         print('Value:  {}'.format(total))
@@ -211,7 +205,7 @@ def optimize(db, mod, iterations, seed, directory):
         if total < best_value or (total == best_value and lower_cost):
             best_value = total
             best_cost = cost
-            db.update_best(mod, ml, total, cost)
+            db.update_best(mod, str(ml), total, cost)
             updated = True
 
         # Request the best and result count only after evaluating

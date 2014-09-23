@@ -10,7 +10,9 @@ class RAM(main.MainMemory):
         self.latency = latency
         self.burst = burst
 
-    def __str__(self):
+    def get_name(self, full):
+        if not full:
+            return main.MainMemory.get_name(self, full)
         result = '(ram '
         result += '(word_size ' + str(self.word_size) + ')'
         if self.latency > 0:

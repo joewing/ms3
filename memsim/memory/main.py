@@ -8,7 +8,8 @@ class MainMemory(base.Memory):
     def __init__(self):
         base.Memory.__init__(self)
 
-    def get_name(self):
+    def get_name(self, full):
+        assert(full == False)
         return '(main)'
 
     def get_parameter_count(self):

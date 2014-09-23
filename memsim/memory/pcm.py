@@ -7,7 +7,9 @@ class PCM(DRAM):
     def __init__(self, **kwargs):
         DRAM.__init__(self, **kwargs)
 
-    def __str__(self):
+    def get_name(self, full):
+        if not full:
+            return DRAM.get_name(self, full)
         result = '(pcm '
         result += '(frequency ' + str(self.frequency) + ')'
         result += '(cas_cycles ' + str(self.cas_cycles) + ')'

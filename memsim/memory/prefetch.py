@@ -15,10 +15,10 @@ class Prefetch(container.Container):
         container.Container.__init__(self, mem)
         self.stride = stride
 
-    def __str__(self):
+    def get_name(self, full):
         result = "(prefetch "
         result += "(stride " + str(self.stride) + ")"
-        result += "(memory " + str(self.mem.get_name()) + ")"
+        result += "(memory " + str(self.mem.get_name(full)) + ")"
         result += ")"
         return result
 

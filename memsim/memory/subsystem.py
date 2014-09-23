@@ -21,13 +21,13 @@ class Subsystem(base.Memory):
         self.depth = depth
         self.score = 0
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(subsystem '
         result += '(id ' + str(self.index) + ')'
         if self.depth >= 0:
             result += '(depth ' + str(self.depth) + ')'
         result += '(word_size ' + str(self.word_size) + ')'
-        result += '(memory ' + self.get_next().get_name() + ')'
+        result += '(memory ' + self.get_next().get_name(full) + ')'
         result += ')'
         return result
 

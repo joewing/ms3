@@ -67,7 +67,7 @@ class Cache(container.Container):
         self.policy = policy
         self.write_back = write_back
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(cache '
         result += '(line_count ' + str(self.line_count) + ')'
         result += '(line_size ' + str(self.line_size) + ')'
@@ -82,7 +82,7 @@ class Cache(container.Container):
             result += '(write_back true)'
         else:
             result += '(write_back false)'
-        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += '(memory ' + str(self.mem.get_name(full)) + ')'
         result += ')'
         return result
 

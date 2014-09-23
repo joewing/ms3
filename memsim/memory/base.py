@@ -30,13 +30,13 @@ class Memory(object):
         self.memory_id = next_memory_id
         next_memory_id += 1
 
-    def get_full_name(self):
-        """Get the full name of this memory subsystem."""
-        return self.get_name()
+    def __str__(self):
+        return self.get_name(False)
 
-    def get_name(self):
+    @abstractmethod
+    def get_name(self, full):
         """Get the name of this memory subsystem."""
-        return str(self)
+        return ''
 
     @abstractmethod
     def get_parameter_count(self):
@@ -79,10 +79,7 @@ class Memory(object):
     def get_main(self):
         """Return the main memory."""
         n = self.get_next()
-        if n is not None:
-            return n.get_main()
-        else:
-            return None
+        return None if n is None else n.get_main()
 
     def set_main(self, mem):
         """Set the main memory.
@@ -124,7 +121,7 @@ class Memory(object):
         """Count the total number of components that make up this memory."""
         result = 1 + sum([m.count() for m in self.get_banks()])
         n = self.get_next()
-        if n:
+        if n is not None:
             result += n.count()
         return result
 

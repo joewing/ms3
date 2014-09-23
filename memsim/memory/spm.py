@@ -24,7 +24,7 @@ class SPM(container.Container):
         self.access_time = access_time
         self.cycle_time = cycle_time
 
-    def __str__(self):
+    def get_name(self, full):
         result = '(spm '
         result += '(word_size ' + str(self.word_size) + ')'
         result += '(size ' + str(self.size) + ')'
@@ -32,7 +32,7 @@ class SPM(container.Container):
             result += '(access_time ' + str(self.access_time) + ')'
         if self.cycle_time > 0:
             result += '(cycle_time ' + str(self.cycle_time) + ')'
-        result += '(memory ' + str(self.mem.get_name()) + ')'
+        result += '(memory ' + str(self.mem.get_name(full)) + ')'
         result += ')'
         return result
 
