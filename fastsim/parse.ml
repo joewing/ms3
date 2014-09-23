@@ -84,6 +84,14 @@ and set_main mem name = function
     | [Literal (s, _)] -> mem#set name s
     | t -> parse_error t ("invalid argument" ^ name)
 
+and set_opt mem name = function
+    | [Literal (s, _)] -> mem#set name s
+    | v when (String.length name) > 6 && (String.sub name 0 6) = "memory" ->
+        let name_length = String.length name in
+        let index = int_of_string @@ String.sub name 6 name_length in
+        mem#set_memory index @@ parse_memory v
+    | t -> parse_error t ("invalid argument" ^ name)
+
 and set_transform mem name = function
     | [Literal (s, _)] -> mem#set name s
     | v when name = "memory" -> mem#set_next @@ parse_memory v
@@ -112,6 +120,7 @@ and create_memory name =
     | "join" -> let m = new join in (wrap m, set_none)
     | "prefetch" -> let m = new Prefetch.prefetch in (wrap m, set_container m)
     | "ram" -> let m = new Ram.ram in (wrap m, set_main (m :> main_memory))
+    | "option" -> let m = new Opt.opt in (wrap m, set_main (m :> main_memory))
     | name -> parse_error [] ("invalid memory: " ^ name)
 
 and match_memory token_list =

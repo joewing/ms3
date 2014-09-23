@@ -1,13 +1,13 @@
-from memsim import lex
+from memsim import lex, parser
 from memsim.memory import base, main
 
 
 class Option(main.MainMemory):
 
-    def __init__(self):
+    def __init__(self, index):
         main.MainMemory.__init__(self)
         self.options = []
-        self.index = 0
+        self.index = index
 
     def get_parameter_count(self):
         return 1
@@ -24,11 +24,12 @@ class Option(main.MainMemory):
     def generate(self, gen, source):
         return self.options[self.index].generate(gen, source)
 
-    def get_name(self):
-        return self.options[self.index].get_name()
+    def __str__(self):
+        return str(self.options[self.index])
 
     def get_full_name(self):
         result = '(option '
+        result += '(index {})'.format(self.index)
         for index, mem in enumerate(self.options):
             result += '(memory{} {})'.format(index, mem)
         result += ')'
@@ -50,7 +51,8 @@ class Option(main.MainMemory):
 
 
 def _create_option(lexer, args):
-    result = Option()
+    index = parser.get_argument(lexer, args, 'index', 0)
+    result = Option(index=index)
     i = 0
     while ('memory' + str(i)) in args:
         result.add_option(args['memory' + str(i)])

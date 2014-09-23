@@ -126,5 +126,4 @@ class dram =
             last_time <- mach.time + result;
             result
 
-
     end

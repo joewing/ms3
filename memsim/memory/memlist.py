@@ -23,11 +23,14 @@ class MemoryList(object):
         if full:
             result += self.main_memory.get_full_name()
         else:
-            result += self.main_memory.get_name()
+            result += str(self.main_memory)
         result += '))'
         return result
 
     def __str__(self):
+        return self.get_name()
+
+    def get_name(self):
         result = self.get_main_name(False)
         for m in self.all_memories():
             result += ' ' + m.get_name()
