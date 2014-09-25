@@ -61,16 +61,22 @@ def dump_spec(db, experiments):
 
 def show_pending(db, experiments):
     names = get_name_map(db, experiments)
-    for mname, evals, value in db.get_status():
+    for mname, label, evals in db.get_status():
         key = db.get_hash(mname)
         if key in names:
+            best_name, best_value, best_cost = db.get_best(mname)
             name = names[key]
-            pad1 = max(20 - len(name), 0)
+            pad1 = max(32 - len(name), 0)
             pad2 = max(8 - len(str(evals)), 0)
-            print("{}: {}{}{}{}"
-                  .format(name, " " * pad1,
-                          evals, " " * pad2,
-                          value))
+            strs = [
+                name,
+                ':',
+                ' ' * pad1,
+                str(evals),
+                ' ' * pad2,
+                str(best_value),
+            ]
+            print(''.join(strs))
 
 
 def main():
