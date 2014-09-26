@@ -7,6 +7,7 @@ from memsim import lex, memory
 from memsim.memory import (
     cache,
     offset,
+    main,
     prefetch,
     spm,
     shift,
@@ -116,6 +117,8 @@ class MemoryOptimizer(Optimizer):
             else:
                 return mem
         n = mem.get_next()
+        if isinstance(n, main.MainMemory):
+            return mem
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
