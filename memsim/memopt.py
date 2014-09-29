@@ -165,7 +165,7 @@ class MemoryOptimizer(Optimizer):
             index -= c
 
         # In the next component.
-        if n is not None and not isinstance(mem, mainMemory):
+        if n is not None and not isinstance(mem, main.MainMemory):
             mem.push_transform(-1, dist)
             mem.set_next(self.remove(dist, n, index))
             mem.pop_transform(dist)
