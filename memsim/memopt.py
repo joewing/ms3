@@ -116,9 +116,9 @@ class MemoryOptimizer(Optimizer):
                 return self.create_memory(dist, mem, False)
             else:
                 return mem
-        n = mem.get_next()
-        if isinstance(n, main.MainMemory):
+        if isinstance(mem, main.MainMemory):
             return mem
+        n = mem.get_next()
         nc = n.count()
         if index <= nc:
             mem.push_transform(-1, dist)
