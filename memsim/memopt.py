@@ -116,11 +116,11 @@ class MemoryOptimizer(Optimizer):
                 return self.create_memory(dist, mem, False)
             else:
                 return mem
-        if isinstance(mem, main.MainMemory):
-            return mem
         n = mem.get_next()
         nc = n.count()
         if index <= nc:
+            if isinstance(mem, main.MainMemory):
+                return mem
             mem.push_transform(-1, dist)
             mem.set_next(self.insert(dist, n, index - 1))
             mem.pop_transform(dist)
@@ -165,7 +165,7 @@ class MemoryOptimizer(Optimizer):
             index -= c
 
         # In the next component.
-        if n is not None:
+        if n is not None and not isinstance(mem, mainMemory):
             mem.push_transform(-1, dist)
             mem.set_next(self.remove(dist, n, index))
             mem.pop_transform(dist)
