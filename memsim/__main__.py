@@ -85,7 +85,10 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
 def get_total_value(mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
     if mod.machine.goal == machine.GoalType.ACCESS_TIME:
-        return qsim.get_score(mod, ml, value, fstats)
+        if len(value) == 1:
+            return value.values()[0]
+        else:
+            return qsim.get_score(mod, ml, value, fstats)
     elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
     elif mod.machine.goal == machine.GoalType.ENERGY:
