@@ -12,7 +12,9 @@ class Optimizer(object):
     def __init__(self, value):
         self.last_value = value
         self.threshold = 1 + value // 8
-        self.delta = random.randint(1, 16)
+        self.delta = 1
+        while self.delta < 256 and random.randint(0, 1) == 0:
+            self.delta += 1
 
     def __str__(self):
         """Get a string to represent the current status."""
