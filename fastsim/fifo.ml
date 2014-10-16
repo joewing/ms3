@@ -52,21 +52,29 @@ class fifo =
 
         method register_produce =
             prod_count <- prod_count + 1;
-            let t = float_of_int (mach.time - last_prod_time) in
+            let it = mach.time - last_prod_time in
+            let t = float_of_int it in
             let n = float_of_int prod_count in
             let delta = t -. mean_prod_time in
             last_prod_time <- mach.time;
             mean_prod_time <- mean_prod_time +. delta /. n;
-            m2_prod_time <- m2_prod_time +. delta *. (t -. mean_prod_time)
+            m2_prod_time <- m2_prod_time +. delta *. (t -. mean_prod_time);
+            if mach.channel_index = index then
+                Printf.printf "%d\n" it
+            else ()
 
         method register_consume =
             cons_count <- cons_count + 1;
-            let t = float_of_int (mach.time - last_cons_time) in
+            let it = mach.time - last_cons_time in
+            let t = float_of_int it in
             let n = float_of_int cons_count in
             let delta = t -. mean_cons_time in
             last_cons_time <- mach.time;
             mean_cons_time <- mean_cons_time +. delta /. n;
-            m2_cons_time <- m2_cons_time +. delta *. (t -. mean_cons_time)
+            m2_cons_time <- m2_cons_time +. delta *. (t -. mean_cons_time);
+            if mach.channel_index = index then
+                Printf.printf "%d\n" it
+            else ()
 
         method reset m main =
             super#reset m main;

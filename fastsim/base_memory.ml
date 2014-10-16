@@ -2,7 +2,7 @@ open Machine
 
 class virtual base_memory =
     object (self)
-        val mutable mach : machine = create_machine ()
+        val mutable mach : machine = create_machine (-1)
 
         method set (name : string) (value : string) : unit =
             failwith @@ "invalid argument: (" ^ name ^ " " ^ value ^ ")"

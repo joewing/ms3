@@ -4,7 +4,7 @@ open Machine
 class subsystem =
     object (self)
 
-        val mutable mach : machine = create_machine ()
+        val mutable mach : machine = create_machine (-1)
         val mutable index : int = 0
         val mutable word_size : int = 4
         val mutable depth : int = 0

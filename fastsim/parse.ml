@@ -62,9 +62,9 @@ let set_mach mach name = function
     | t -> parse_error t ("invalid machine argument: " ^ name)
 ;;
 
-let match_machine token_list =
+let match_machine token_list chan =
     let token_list = match_open token_list in
-    let mach = create_machine () in
+    let mach = create_machine chan in
     match match_string token_list with
     | ("machine", token_list) ->
             let setter = set_mach mach in
@@ -247,15 +247,15 @@ let match_benchmarks token_list sub =
     (result, match_close token_list)
 ;;
 
-let parse_model token_list sub : Model.model =
+let parse_model token_list sub chan : Model.model =
     let token_list = match_label token_list in
-    let (mach, token_list) = match_machine token_list in
+    let (mach, token_list) = match_machine token_list chan in
     let (main, subsystems, fifos, token_list)
         = match_memory_list sub token_list in
     let (benchmarks, token_list) = match_benchmarks token_list sub in
     { mach; main; subsystems; fifos; benchmarks }
 ;;
 
-let parse_model_file file_name subsystem_index =
-    parse_model (tokenize file_name) subsystem_index
+let parse_model_file file_name subsystem_index channel_index =
+    parse_model (tokenize file_name) subsystem_index channel_index
 ;;

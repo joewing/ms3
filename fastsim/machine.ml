@@ -4,16 +4,18 @@ type machine = {
     mutable addr_bits : int;
     mutable addr_mask : int;
     mutable frequency : float;
+    channel_index : int;
 }
 
-let create_machine () =
+let create_machine chan =
     let default_bits = 32 in
     let default_freq = 1000000000.0 in
     {
         time = 0;
         addr_bits = default_bits;
         addr_mask = (1 lsl default_bits) - 1;
-        frequency = default_freq
+        frequency = default_freq;
+        channel_index = chan
     }
 ;;
 

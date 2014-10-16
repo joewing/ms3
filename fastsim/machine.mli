@@ -3,9 +3,10 @@ type machine = {
     mutable addr_bits : int;
     mutable addr_mask : int;
     mutable frequency : float;
+    channel_index : int
 }
 
-val create_machine : unit -> machine
+val create_machine : int -> machine
 
 val set_machine : machine -> string -> string -> unit
 
