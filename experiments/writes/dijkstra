@@ -1,6 +1,6 @@
-(label dijkstra)
+(label dijkstra-writes)
 (machine
-    (addr_bits  30)
+    (addr_bits  32)
     (target     fpga)
     (part       xc6slx45)
     (frequency  100000000)
