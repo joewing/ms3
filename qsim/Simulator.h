@@ -139,7 +139,6 @@ private:
                 }
             }
         }
-        std::cout << mean << ", " << n << "\n";
         return (uint64_t)mean;
     }
 
