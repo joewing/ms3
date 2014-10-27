@@ -5,7 +5,6 @@ import cost
 from priorityqueue import PriorityQueue
 
 
-MAX_ITER = 10000
 EPSILON = 1e-4
 BRAM_BYTES = (512 * 36) // 8
 
@@ -92,16 +91,21 @@ class Simulator(object):
                 pq.push(next_t, q)
         return t
 
-    def run_multiple(self):
-        last_mean = 0
-        total = 0
-        for i in xrange(MAX_ITER):
+    def run_multiple(self, confidence=0.95):
+        n, mean, m2 = 0, 0, 0
+        while True:
             t = self.run()
-            total += t
-            mean = total // (i + 1)
-            if abs(mean - last_mean) / mean < EPSILON:
-                return mean
-            last_mean = mean
+            n += 1
+            delta = t - mean
+            mean += delta / n
+            m2 += delta * (t - mean)
+            if n > 2:
+                var = m2 / (n - 1)
+                std = math.sqrt(var)
+                interval = confidence * std / math.sqrt(n)
+                if interval / mean < EPSILON:
+                    break
+        print mean, n
         return mean
 
 
@@ -128,8 +132,7 @@ def simulate(mod, ml, value, fstats):
         sim.add_queue(items, depth, ptime, pvar, ctime, cvar)
 
     # Run the simulation.
-    t = sim.run_multiple()
-    return t
+    return sim.run_multiple()
 
 
 def increase_size(mod, ml, value, fstats, bytes_left):
