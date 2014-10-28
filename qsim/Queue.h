@@ -1,13 +1,13 @@
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
-#include "Random.h"
+#include "Normal.h"
 #include <stdint.h>
 
 class Queue {
 public:
 
-    Queue(Random *r,
+    Queue(Normal *r,
           uint32_t count, uint32_t word_size,
           double ptime, double pvar,
           double ctime, double cvar) :
@@ -15,9 +15,9 @@ public:
         m_count(count),
         m_word_size(word_size),
         m_pmean(ptime / (double)count),
-        m_pvar(pvar),
+        m_pstd(sqrt(pvar)),
         m_cmean(ctime / (double)count),
-        m_cvar(cvar)
+        m_cstd(sqrt(cvar))
     {
         Reset(1);
     }
@@ -97,27 +97,26 @@ public:
 
 private:
 
-    uint64_t GetRand(double mean, double var) const
+    uint64_t GetRand(double mean, double std) const
     {
-        const double temp = m_random->normal_double(mean, var);
-        if(temp <= 0.0) {
+        const double temp = m_random->normal_double(mean, std);
+        if(temp <= 1.0) {
             return 1;
         }
-        const uint64_t result = (uint64_t)(temp + 0.5);
-        return result > 1 ? result : 1;
+        return (uint64_t)(temp + 0.5);
     }
 
     uint64_t GetNextProd(uint64_t t) const
     {
-        return t + GetRand(m_pmean, m_pvar);
+        return t + GetRand(m_pmean, m_pstd);
     }
 
     uint64_t GetNextCons(uint64_t t) const
     {
-        return t + GetRand(m_cmean, m_cvar);
+        return t + GetRand(m_cmean, m_cstd);
     }
 
-    Random *m_random;
+    Normal *m_random;
     uint64_t m_total;
     uint64_t m_blocked;
     uint64_t m_blocked_start;
@@ -126,9 +125,9 @@ private:
     uint32_t m_depth;
     uint32_t m_size;
     const double m_pmean;
-    const double m_pvar;
+    const double m_pstd;
     const double m_cmean;
-    const double m_cvar;
+    const double m_cstd;
 
     uint64_t m_next_prod;
     uint64_t m_next_cons;

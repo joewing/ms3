@@ -3,7 +3,7 @@
 
 #include <queue>
 
-#include "Random.h"
+#include "Normal.h"
 #include "Queue.h"
 
 #define BRAM_BYTES ((512 * 72) / 8)
@@ -42,7 +42,7 @@ public:
         }
 
         // Scale the queue run counts.
-        const uint32_t max_value = 1000;
+        const uint32_t max_value = 1e4;
         const uint32_t scale = max_count > max_value ?
                                max_count / max_value : 1;
         for(size_t i = 0; i < m_queues.size(); i++) {
@@ -76,7 +76,7 @@ public:
                 m_depths[bottleneck] += increment;
             }
             const uint64_t t = SimulateMultiple();
-            const int64_t delta = (int64_t)t - (int64_t)best_value;
+            const int64_t delta = (int64_t)best_value - (int64_t)t;
             if(delta <= 0) {
                 // No improvement.
                 m_depths[bottleneck] = old_depth;
@@ -170,7 +170,7 @@ private:
         return Round((uint64_t)mean);
     }
 
-    Random m_random;
+    Normal m_random;
     const double m_epsilon;
     std::vector<Queue*> m_queues;
     std::vector<uint32_t> m_depths;
