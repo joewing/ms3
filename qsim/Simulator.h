@@ -12,7 +12,9 @@ class Simulator
 {
 public:
 
-    Simulator(uint32_t seed) : m_random(seed)
+    Simulator(uint32_t seed, double epsilon = 1e-3) :
+        m_random(seed),
+        m_epsilon(epsilon)
     {
     }
 
@@ -32,9 +34,21 @@ public:
     {
 
         // Start all queues with a depth of 1.
+        uint32_t max_count = 0;
         for(size_t i = 0; i < m_queues.size(); i++) {
             m_depths[i] = 1;
-            m_queues[i]->Reset(1);
+            const uint32_t count = m_queues[i]->GetCount();
+            max_count = count > max_count ? count : max_count;
+        }
+
+        // Scale the queue run counts.
+        const uint32_t max_value = 1000;
+        const uint32_t scale = max_count > max_value ?
+                               max_count / max_value : 1;
+        for(size_t i = 0; i < m_queues.size(); i++) {
+            uint32_t count = m_queues[i]->GetCount();
+            count = (count + scale - 1) / scale;
+            m_queues[i]->SetCount(count);
         }
 
         // Increase the size of the bottleneck queue until
@@ -62,7 +76,8 @@ public:
                 m_depths[bottleneck] += increment;
             }
             const uint64_t t = SimulateMultiple();
-            if(t >= best_value) {
+            const int64_t delta = (int64_t)t - (int64_t)best_value;
+            if(delta <= 0) {
                 // No improvement.
                 m_depths[bottleneck] = old_depth;
                 break;
@@ -71,7 +86,7 @@ public:
 
         }
 
-        return best_value;
+        return Round(best_value);
 
     }
 
@@ -119,7 +134,20 @@ private:
         return t;
     }
 
-    uint64_t SimulateMultiple(double confidence = 0.95, double epsilon = 1e-4)
+    uint64_t Round(uint64_t t) const
+    {
+        const int64_t min_delta = (int64_t)(1.0 / m_epsilon);
+        const uint32_t sfigs = (uint32_t)(ceil(log10((double)min_delta)));
+        const uint32_t figs = (uint32_t)(ceil(log10((double)t)));
+        if(figs > sfigs) {
+            const uint64_t div = (uint64_t)round(pow(10.0, figs - sfigs));
+            t /= div;
+            t *= div;
+        }
+        return t;
+    }
+
+    uint64_t SimulateMultiple(double confidence = 0.95)
     {
         double n = 0.0;
         double mean = 0.0;
@@ -134,15 +162,16 @@ private:
                 const double var = m2 / (n - 1.0);
                 const double std = sqrt(var);
                 const double interval = confidence * std / sqrt(n);
-                if(interval / mean < epsilon) {
+                if(interval / mean < m_epsilon) {
                     break;
                 }
             }
         }
-        return (uint64_t)mean;
+        return Round((uint64_t)mean);
     }
 
     Random m_random;
+    const double m_epsilon;
     std::vector<Queue*> m_queues;
     std::vector<uint32_t> m_depths;
 

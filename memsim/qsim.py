@@ -1,5 +1,7 @@
 import math
 from random import Random
+from subprocess import Popen, PIPE
+import json
 
 import cost
 from priorityqueue import PriorityQueue
@@ -168,18 +170,34 @@ def get_score(mod, ml, value, fstats):
     for fifo in ml.all_fifos():
         fifo.depth = 1
 
-    # Determine how many bytes we can give to FIFOs.
-    # Note that this assumes that we are using BRAMs of a particular size.
+    # Determine how many BRAMs we can give to FIFOs.
     remaining = mod.machine.get_max_cost() - ml.get_cost(mod.machine)
-    remaining_bytes = remaining.cost * BRAM_BYTES
 
-    # Increasing the size of some queue until we are no longer
-    # able to do so or it no longer provides a benefit.
-    while increase_size(mod, ml, value, fstats, remaining_bytes):
-        pass
+    sim_data = {}
+    sim_data['bram_count'] = remaining.cost
+    fifo_data = []
+    for fifo in ml.all_fifos():
+        item = {}
+        item['depth'] = fifo.depth
+        count, ptime, pvar, ctime, cvar = fstats.get_stats(fifo.index)
+        item['count'] = count
+        item['ptime'] = ptime
+        item['pvar'] = pvar
+        item['ctime'] = ctime
+        item['cvar'] = cvar
+        fifo_data.append(item)
+    sim_data['queues'] = fifo_data
 
-    return simulate(mod, ml, value, fstats)
+    args = ['qsim/qsim']
+    p = Popen(args, stdin=PIPE, stdout=PIPE)
+    result, _ = p.communicate(input=json.dumps(sim_data))
+    result = json.loads(result)
 
+    t = result['total']
+    for fifo, d in zip(ml.all_fifos(), result['depths']):
+        fifo.depth = d
+    print t
+    return t
 
 if __name__ == '__main__':
     sim = Simulator()

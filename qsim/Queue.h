@@ -85,6 +85,16 @@ public:
         return m_word_size;
     }
 
+    uint32_t GetCount() const
+    {
+        return m_count;
+    }
+
+    void SetCount(uint32_t count)
+    {
+        m_count = count;
+    }
+
 private:
 
     uint64_t GetRand(double mean, double var) const
@@ -111,7 +121,7 @@ private:
     uint64_t m_total;
     uint64_t m_blocked;
     uint64_t m_blocked_start;
-    const uint32_t m_count;
+    uint32_t m_count;
     const uint32_t m_word_size;
     uint32_t m_depth;
     uint32_t m_size;
