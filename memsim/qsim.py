@@ -185,6 +185,7 @@ def get_score(mod, ml, value, fstats):
         item['pvar'] = pvar
         item['ctime'] = ctime
         item['cvar'] = cvar
+        item['word_size'] = fifo.get_word_size()
         fifo_data.append(item)
     sim_data['queues'] = fifo_data
 
@@ -196,7 +197,6 @@ def get_score(mod, ml, value, fstats):
     t = result['total']
     for fifo, d in zip(ml.all_fifos(), result['depths']):
         fifo.depth = d
-    print t
     return t
 
 if __name__ == '__main__':
