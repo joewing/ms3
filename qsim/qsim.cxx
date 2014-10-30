@@ -35,10 +35,10 @@ int main(int argc, char *argv[])
         const Json::Value queue = queues[i];
         const uint32_t count = queue["count"].asUInt();
         const uint32_t word_size = queue["word_size"].asUInt();
-        const double ptime = queue["ptime"].asDouble();
-        const double pvar = queue["pvar"].asDouble();
-        const double ctime = queue["ctime"].asDouble();
-        const double cvar = queue["cvar"].asDouble();
+        const float ptime = queue["ptime"].asFloat();
+        const float pvar = queue["pvar"].asFloat();
+        const float ctime = queue["ctime"].asFloat();
+        const float cvar = queue["cvar"].asFloat();
         sim.AddQueue(count, word_size, ptime, pvar, ctime, cvar);
     }
 

@@ -1,28 +1,31 @@
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
-#include "Normal.h"
+#include "Random.h"
+#include "qsim.h"
+
 #include <stdint.h>
+#include <algorithm>
 
 class Queue {
 public:
 
-    Queue(Normal *r,
-          uint32_t count, uint32_t word_size,
-          double ptime, double pvar,
-          double ctime, double cvar) :
+    Queue(Random *const r,
+          const uint32_t count, const uint32_t word_size,
+          const float ptime, const float pvar,
+          const float ctime, const float cvar) :
         m_random(r),
         m_count(count),
         m_word_size(word_size),
-        m_pmean(ptime / (double)count),
+        m_pmean(ptime / (float)count),
         m_pstd(sqrt(pvar)),
-        m_cmean(ctime / (double)count),
+        m_cmean(ctime / (float)count),
         m_cstd(sqrt(cvar))
     {
         Reset(1);
     }
 
-    uint64_t Reset(uint64_t depth)
+    uint64_t Reset(const uint32_t depth)
     {
         m_depth = depth;
         m_size = 0;
@@ -30,14 +33,10 @@ public:
         m_blocked_start = 0;
         m_next_prod = GetNextProd(0);
         m_next_cons = GetNextCons(0);
-        if(m_next_prod < m_next_cons) {
-            return m_next_prod;
-        } else {
-            return m_next_cons;
-        }
+        return std::min(m_next_prod, m_next_cons);
     }
 
-    uint64_t Process(uint64_t t)
+    uint64_t Process(const uint64_t t)
     {
         if(m_blocked_start > 0) {
             // Currently blocked, update the amount of time we
@@ -66,12 +65,10 @@ public:
                 m_next_cons = m_next_prod;
             }
         }
-        if(m_total >= m_count) {
+        if(unlikely(m_total >= m_count)) {
             return 0;
-        } else if(m_next_prod < m_next_cons) {
-            return m_next_prod;
         } else {
-            return m_next_cons;
+            return std::min(m_next_prod, m_next_cons);
         }
     }
 
@@ -90,33 +87,33 @@ public:
         return m_count;
     }
 
-    void SetCount(uint32_t count)
+    void SetCount(const uint32_t count)
     {
         m_count = count;
     }
 
 private:
 
-    uint64_t GetRand(double mean, double std) const
+    uint64_t GetRand(const float mean, const float std) const
     {
-        const double temp = m_random->normal_double(mean, std);
+        const float temp = m_random->Draw(mean, std);
         if(temp <= 1.0) {
             return 1;
         }
         return (uint64_t)(temp + 0.5);
     }
 
-    uint64_t GetNextProd(uint64_t t) const
+    uint64_t GetNextProd(const uint64_t t) const
     {
         return t + GetRand(m_pmean, m_pstd);
     }
 
-    uint64_t GetNextCons(uint64_t t) const
+    uint64_t GetNextCons(const uint64_t t) const
     {
         return t + GetRand(m_cmean, m_cstd);
     }
 
-    Normal *m_random;
+    Random * const m_random;
     uint64_t m_total;
     uint64_t m_blocked;
     uint64_t m_blocked_start;
@@ -124,10 +121,10 @@ private:
     const uint32_t m_word_size;
     uint32_t m_depth;
     uint32_t m_size;
-    const double m_pmean;
-    const double m_pstd;
-    const double m_cmean;
-    const double m_cstd;
+    const float m_pmean;
+    const float m_pstd;
+    const float m_cmean;
+    const float m_cstd;
 
     uint64_t m_next_prod;
     uint64_t m_next_cons;

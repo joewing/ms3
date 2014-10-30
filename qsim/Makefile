@@ -1,5 +1,5 @@
 
-CXXFLAGS = -O2 -Wall -g --std=c++11
+CXXFLAGS = -O3 -Wall -g --std=c++11
 LDFLAGS = -g -static
 CXX = g++
 

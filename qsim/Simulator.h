@@ -1,10 +1,12 @@
 #ifndef SIMULATOR_H_
 #define SIMULATOR_H_
 
-#include <queue>
-
-#include "Normal.h"
+#include "Random.h"
 #include "Queue.h"
+#include "PriorityQueue.h"
+#include "qsim.h"
+
+#include <algorithm>
 
 #define BRAM_BYTES ((512 * 72) / 8)
 
@@ -18,9 +20,16 @@ public:
     {
     }
 
-    void AddQueue(uint32_t count, uint32_t word_size,
-                  double ptime, double pvar,
-                  double ctime, double cvar)
+    ~Simulator()
+    {
+        for(size_t i = 0; i < m_queues.size(); i++) {
+            delete m_queues[i];
+        }
+    }
+
+    void AddQueue(const uint32_t count, const uint32_t word_size,
+                  const float ptime, const float pvar,
+                  const float ctime, const float cvar)
     {
         if(ptime > 0.0 && ctime > 0.0) {
             Queue *q = new Queue(&m_random, count, word_size,
@@ -86,7 +95,7 @@ public:
 
         }
 
-        return Round(best_value);
+        return best_value;
 
     }
 
@@ -97,38 +106,23 @@ public:
 
 private:
 
-    struct Node
+    uint64_t Simulate() const
     {
-
-        Node(Queue *q, uint64_t t) : m_q(q), m_t(t)
-        {
-        }
-
-        Queue *m_q;
-        uint64_t m_t;
-
-        bool operator<(const Node &other) const
-        {
-            return m_t < other.m_t;
-        }
-
-    };
-
-    uint64_t Simulate() {
-        std::priority_queue<Node> pq;
-        for(size_t i = 0; i < m_queues.size(); i++) {
-            Queue *q = m_queues[i];
+        const size_t queue_count = m_queues.size();
+        PriorityQueue<uint64_t, Queue*> pq(queue_count);
+        for(size_t i = 0; i < queue_count; i++) {
+            Queue * const q = m_queues[i];
             const uint64_t t = q->Reset(m_depths[i]);
-            pq.push(Node(q, t));
+            pq.Push(t, q);
         }
         uint64_t t = 0;
-        while(!pq.empty()) {
-            Node n = pq.top();
-            pq.pop();
-            t = t > n.m_t ? t : n.m_t;
-            const uint64_t next_t = n.m_q->Process(t);
-            if(next_t > 0) {
-                pq.push(Node(n.m_q, next_t));
+        while(likely(!pq.IsEmpty())) {
+            Queue * const q = pq.GetValue();
+            t = pq.GetKey();
+            pq.Pop();
+            const uint64_t next_t = q->Process(t);
+            if(likely(next_t != 0)) {
+                pq.Push(next_t, q);
             }
         }
         return t;
@@ -147,22 +141,21 @@ private:
         return t;
     }
 
-    uint64_t SimulateMultiple(double confidence = 0.95)
+    uint64_t SimulateMultiple(const double confidence = 0.95) const
     {
         double n = 0.0;
         double mean = 0.0;
         double m2 = 0.0;
         for(;;) {
             const uint64_t t = Simulate();
-            n += 1.0;
             const double delta = (double)t - mean;
+            n += 1.0;
             mean += delta / n;
             m2 += delta * ((double)t - mean);
-            if(n > 2.0) {
+            if(likely(n > 2.0)) {
                 const double var = m2 / (n - 1.0);
-                const double std = sqrt(var);
-                const double interval = confidence * std / sqrt(n);
-                if(interval / mean < m_epsilon) {
+                const double interval = confidence * sqrt(var / n);
+                if(unlikely(interval / mean < m_epsilon)) {
                     break;
                 }
             }
@@ -170,7 +163,7 @@ private:
         return Round((uint64_t)mean);
     }
 
-    Normal m_random;
+    Random m_random;
     const double m_epsilon;
     std::vector<Queue*> m_queues;
     std::vector<uint32_t> m_depths;
