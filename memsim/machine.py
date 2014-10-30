@@ -11,6 +11,19 @@ class GoalType(object):
     ACCESS_TIME = 0
     WRITES = 1
     ENERGY = 2
+    MIX25 = 3
+    MIX50 = 4
+    MIX75 = 5
+
+
+goals = [
+    ('access_time', GoalType.ACCESS_TIME),
+    ('writes', GoalType.WRITES),
+    ('energy', GoalType.ENERGY),
+    ('mix25', GoalType.MIX25),
+    ('mix50', GoalType.MIX50),
+    ('mix75', GoalType.MIX75),
+]
 
 
 def parse_target(s):
@@ -36,25 +49,17 @@ def show_target(t):
 
 
 def parse_goal(s):
-    if s == 'access_time':
-        return GoalType.ACCESS_TIME
-    elif s == 'writes':
-        return GoalType.WRITES
-    elif s == 'energy':
-        return GoalType.ENERGY
-    else:
-        assert(False)
+    for name, value in goals:
+        if name == s:
+            return value
+    assert(False)
 
 
 def show_goal(t):
-    if t == GoalType.ACCESS_TIME:
-        return 'acccess_time'
-    elif t == GoalType.WRITES:
-        return 'writes'
-    elif t == GoalType.ENERGY:
-        return 'energy'
-    else:
-        return '<{}>'.format(t)
+    for name, value in goals:
+        if value == t:
+            return name
+    return '<{}>'.format(t)
 
 
 class MachineType(object):
