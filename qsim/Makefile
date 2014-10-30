@@ -5,7 +5,7 @@ CXX = g++
 
 OBJECTS = qsim.o
 
-.SUFFIXES: .cxx .o .h
+.SUFFIXES: .cxx .o .hh
 
 all: qsim
 
@@ -15,7 +15,7 @@ qsim: $(OBJECTS)
 .cxx.o: $<
 	$(CXX) -c $(CXXFLAGS) $<
 
-$(OBJECTS): *.h
+$(OBJECTS): *.hh *.h
 
 clean:
 	rm -f $(OBJECTS) qsim

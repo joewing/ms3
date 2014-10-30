@@ -2,7 +2,7 @@
 #include <iostream>
 #include <jsoncpp/json/json.h>
 
-#include "Simulator.h"
+#include "Simulator.hh"
 
 int main(int argc, char *argv[])
 {

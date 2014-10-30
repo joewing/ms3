@@ -1,7 +1,7 @@
-#ifndef QUEUE_H_
-#define QUEUE_H_
+#ifndef QUEUE_HH_
+#define QUEUE_HH_
 
-#include "Random.h"
+#include "Random.hh"
 #include "qsim.h"
 
 #include <stdint.h>

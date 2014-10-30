@@ -1,9 +1,9 @@
-#ifndef SIMULATOR_H_
-#define SIMULATOR_H_
+#ifndef SIMULATOR_HH_
+#define SIMULATOR_HH_
 
-#include "Random.h"
-#include "Queue.h"
-#include "PriorityQueue.h"
+#include "Random.hh"
+#include "Queue.hh"
+#include "PriorityQueue.hh"
 #include "qsim.h"
 
 #include <algorithm>
