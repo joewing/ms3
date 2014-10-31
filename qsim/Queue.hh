@@ -97,10 +97,7 @@ private:
     uint64_t GetRand(const float mean, const float std) const
     {
         const float temp = m_random->Draw(mean, std);
-        if(temp <= 1.0) {
-            return 1;
-        }
-        return (uint64_t)(temp + 0.5);
+        return (uint64_t)std::max((int64_t)1, (int64_t)(temp + 0.5));
     }
 
     uint64_t GetNextProd(const uint64_t t) const
