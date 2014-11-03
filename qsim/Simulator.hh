@@ -43,21 +43,8 @@ public:
     {
 
         // Start all queues with a depth of 1.
-        uint32_t max_count = 0;
         for(size_t i = 0; i < m_queues.size(); i++) {
             m_depths[i] = 1;
-            const uint32_t count = m_queues[i]->GetCount();
-            max_count = count > max_count ? count : max_count;
-        }
-
-        // Scale the queue run counts.
-        const uint32_t max_value = 1e4;
-        const uint32_t scale = max_count > max_value ?
-                               max_count / max_value : 1;
-        for(size_t i = 0; i < m_queues.size(); i++) {
-            uint32_t count = m_queues[i]->GetCount();
-            count = (count + scale - 1) / scale;
-            m_queues[i]->SetCount(count);
         }
 
         // Increase the size of the bottleneck queue until
@@ -85,12 +72,13 @@ public:
                 m_depths[bottleneck] += increment;
             }
             const uint64_t t = SimulateMultiple();
-            const int64_t delta = (int64_t)best_value - (int64_t)t;
+            const int64_t delta = int64_t(best_value) - int64_t(t);
             if(delta <= 0) {
                 // No improvement.
                 m_depths[bottleneck] = old_depth;
                 break;
             }
+            best_value = t;
             bram_count -= 1;
 
         }
@@ -128,39 +116,37 @@ private:
         return t;
     }
 
-    uint64_t Round(uint64_t t) const
+    uint64_t Round(double t) const
     {
-        const int64_t min_delta = (int64_t)(1.0 / m_epsilon);
-        const uint32_t sfigs = (uint32_t)(ceil(log10((double)min_delta)));
-        const uint32_t figs = (uint32_t)(ceil(log10((double)t)));
+        const int64_t min_delta = int64_t(1.0 / m_epsilon);
+        const uint32_t sfigs = uint32_t(ceil(log10(double(min_delta))));
+        const uint32_t figs = uint32_t(ceil(log10(t)));
+        uint64_t result = uint64_t(t);
         if(figs > sfigs) {
-            const uint64_t div = (uint64_t)round(pow(10.0, figs - sfigs));
-            t /= div;
-            t *= div;
+            const uint64_t div = uint64_t(round(pow(10.0, figs - sfigs)));
+            result = (result + div / 2) / div;
+            result *= div;
         }
-        return t;
+        return result;
     }
 
-    uint64_t SimulateMultiple(const double confidence = 0.9) const
+    uint64_t SimulateMultiple() const
     {
         double n = 0.0;
         double mean = 0.0;
-        double m2 = 0.0;
-        const double threshold = m_epsilon / confidence;
         for(;;) {
-            const double t = (double)Simulate();
+            const double t = double(Simulate());
             const double delta = t - mean;
+            const double old_mean = mean;
             n += 1.0;
             mean += delta / n;
-            m2 += delta * (t - mean);
-            if(likely(n > 2.0)) {
-                const double temp = threshold * mean;
-                if(unlikely(m2 < temp * temp * n * (n - 1.0))) {
+            if(n > 1.0) {
+                if(Round(mean) == Round(old_mean)) {
                     break;
                 }
             }
         }
-        return Round((uint64_t)mean);
+        return Round(mean);
     }
 
     Random m_random;
