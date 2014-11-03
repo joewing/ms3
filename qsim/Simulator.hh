@@ -141,21 +141,21 @@ private:
         return t;
     }
 
-    uint64_t SimulateMultiple(const double confidence = 0.95) const
+    uint64_t SimulateMultiple(const double confidence = 0.9) const
     {
         double n = 0.0;
         double mean = 0.0;
         double m2 = 0.0;
+        const double threshold = m_epsilon / confidence;
         for(;;) {
-            const uint64_t t = Simulate();
-            const double delta = (double)t - mean;
+            const double t = (double)Simulate();
+            const double delta = t - mean;
             n += 1.0;
             mean += delta / n;
-            m2 += delta * ((double)t - mean);
+            m2 += delta * (t - mean);
             if(likely(n > 2.0)) {
-                const double var = m2 / (n - 1.0);
-                const double interval = confidence * sqrt(var / n);
-                if(unlikely(interval / mean < m_epsilon)) {
+                const double temp = threshold * mean;
+                if(unlikely(m2 < temp * temp * n * (n - 1.0))) {
                     break;
                 }
             }

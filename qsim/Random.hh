@@ -1,8 +1,8 @@
 #ifndef RANDOM_HH_
 #define RANDOM_HH_
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 
 class Random
 {

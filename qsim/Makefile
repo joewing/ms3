@@ -1,6 +1,6 @@
 
-CXXFLAGS = -O3 -Wall -g --std=c++11
-LDFLAGS = -g -static
+CXXFLAGS = -O3 -march=native -Wall --std=c++11
+LDFLAGS = -static
 CXX = g++
 
 OBJECTS = qsim.o

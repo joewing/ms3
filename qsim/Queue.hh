@@ -4,7 +4,7 @@
 #include "Random.hh"
 #include "qsim.h"
 
-#include <stdint.h>
+#include <cstdint>
 #include <algorithm>
 
 class Queue {
@@ -38,37 +38,36 @@ public:
 
     uint64_t Process(const uint64_t t)
     {
-        if(m_blocked_start > 0) {
-            // Currently blocked, update the amount of time we
-            // have been blocked.
-            m_blocked += t - m_blocked_start;
-            m_blocked_start = t;
-        }
         if(t >= m_next_prod) {
             if(m_size < m_depth) {
                 // Not blocked.
                 m_size += 1;
                 m_next_prod = GetNextProd(t);
-                m_blocked_start = 0;
             } else {
                 // Blocked.
-                m_blocked_start = t;
-                m_next_prod = m_next_cons;
+                if(m_blocked_start == 0) {
+                    m_blocked_start = t;
+                }
+                m_next_prod = m_next_cons + 1;
             }
         }
         if(t >= m_next_cons) {
-            if(m_size > 0) {
+            if(m_size != 0) {
                 m_size -= 1;
                 m_total += 1;
                 m_next_cons = GetNextCons(t);
+                if(m_blocked_start != 0) {
+                    m_blocked += t - m_blocked_start;
+                    m_blocked_start = 0;
+                }
             } else {
-                m_next_cons = m_next_prod;
+                m_next_cons = m_next_prod + 1;
             }
         }
-        if(unlikely(m_total >= m_count)) {
-            return 0;
-        } else {
+        if(likely(m_total < m_count)) {
             return std::min(m_next_prod, m_next_cons);
+        } else {
+            return 0;
         }
     }
 
