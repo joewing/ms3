@@ -14,7 +14,7 @@ class Simulator
 {
 public:
 
-    Simulator(uint32_t seed, double epsilon = 1e-3) :
+    Simulator(uint32_t seed, double epsilon = 1e-6) :
         m_random(seed),
         m_epsilon(epsilon)
     {
@@ -41,6 +41,22 @@ public:
 
     uint64_t Run(uint32_t bram_count)
     {
+
+        // Scale down the item counts.
+        uint32_t max_count = 0;
+        for(size_t i = 0; i < m_queues.size(); i++) {
+            max_count = std::max(max_count, m_queues[i]->GetCount());
+        }
+        const uint32_t count_limit = 10000;
+        if(max_count > count_limit) {
+            const double scale = double(count_limit) / double(max_count);
+            for(size_t i = 0; i < m_queues.size(); i++) {
+                uint32_t count = m_queues[i]->GetCount();
+                count = uint32_t(double(count) * scale + 0.5);
+                count = std::max(uint32_t(1), count);
+                m_queues[i]->SetCount(count);
+            }
+        }
 
         // Start all queues with a depth of 1.
         for(size_t i = 0; i < m_queues.size(); i++) {

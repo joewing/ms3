@@ -10,6 +10,16 @@ int main(int argc, char *argv[])
     std::string str;
     std::getline(std::cin, str, '\0');
 
+    Json::Reader reader;
+    Json::Value root;
+    if(!reader.parse(str, root)) {
+        std::cerr << "error: could not parse JSON\n";
+        return -1;
+    }
+
+    Simulator sim(5);
+
+    // Parse the input.
     /* Input JSON format:
         {
             "bram_count": bram_count,
@@ -20,14 +30,6 @@ int main(int argc, char *argv[])
             ]
         }
      */
-    Json::Reader reader;
-    Json::Value root;
-    if(!reader.parse(str, root)) {
-        std::cerr << "error: could not parse JSON\n";
-        return -1;
-    }
-
-    Simulator sim(5);
     const uint32_t bram_count = root["bram_count"].asUInt();
     const Json::Value queues = root["queues"];
     const Json::ArrayIndex size = queues.size();
@@ -42,13 +44,16 @@ int main(int argc, char *argv[])
         sim.AddQueue(count, word_size, ptime, pvar, ctime, cvar);
     }
 
+    // Perform the simulation.
+    const uint64_t t = sim.Run(bram_count);
+
+    // Output the results.
     /* Output JSON format:
         {
             "total": total,
             "depths": [ depth, ... ]
         }
      */
-    const uint64_t t = sim.Run(bram_count);
     std::cout << "{\"total\": " << t << ",\n";
     std::cout << "\"depths\": [";
     std::vector<uint32_t> depths = sim.GetDepths();

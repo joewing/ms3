@@ -16,14 +16,24 @@ public:
           const float ptime, const float pvar,
           const float ctime, const float cvar) :
         m_random(r),
-        m_count(count),
         m_word_size(word_size),
+        m_count(count),
         m_pmean(ptime / float(count)),
         m_pstd(sqrt(pvar)),
         m_cmean(ctime / float(count)),
         m_cstd(sqrt(cvar))
     {
         Reset(1);
+    }
+
+    uint32_t GetCount() const
+    {
+        return m_count;
+    }
+
+    void SetCount(const uint32_t count)
+    {
+        m_count = count;
     }
 
     uint64_t Reset(const uint32_t depth)
@@ -100,8 +110,8 @@ private:
     }
 
     Random * const m_random;
-    const uint32_t m_count;
     const uint32_t m_word_size;
+    uint32_t m_count;
     const float m_pmean;
     const float m_pstd;
     const float m_cmean;
