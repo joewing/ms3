@@ -139,29 +139,26 @@ let reset_simulator sim =
     ) sim.processes
 ;;
 
-let get_scores sim =
+let print_scores sim =
+    List.iter (fun m ->
+        Printf.printf "subsystem%d %d\n" m#id m#score
+    ) sim.model.subsystems;
+    List.iter (fun m ->
+        Printf.printf "fifo%d %d [" m#id m#score;
+        List.iter (fun i ->
+            Printf.printf "%d " i
+        ) m#get_produce_trace;
+        Printf.printf "] [";
+        List.iter (fun i ->
+            Printf.printf "%d " i
+        ) m#get_consume_trace;
+        Printf.printf "]\n"
+    ) sim.model.fifos;
     let t = sim.model.mach.time in
-    let subsystem_scores = List.map (fun m ->
-        let name = "subsystem" ^ (string_of_int m#id) in
-        name ^ " " ^ (string_of_int m#score)
-    ) sim.model.subsystems in
-    let fifo_scores = List.map (fun m ->
-        let name = "fifo" ^ (string_of_int m#id) in
-        let sstr = string_of_int m#score in
-        let istr = string_of_int m#get_item_count in
-        let ptstr = string_of_int m#get_produce_time in
-        let pvstr = string_of_float m#get_produce_variance in
-        let ctstr = string_of_int m#get_consume_time in
-        let cvstr = string_of_float m#get_consume_variance in
-        let parts = [sstr; istr; ptstr; pvstr; ctstr; cvstr] in
-        List.fold_left (fun a b -> a ^ " " ^ b) name parts
-    ) sim.model.fifos in
     let time_seconds = (float_of_int t) /. sim.model.mach.frequency in
-    let totals = [
-        "total " ^ (string_of_int t);
-        "writes " ^ (string_of_int sim.model.main#writes);
-        "energy " ^ (string_of_float @@ sim.model.main#energy time_seconds)
-    ] in subsystem_scores @ fifo_scores @ totals
+    Printf.printf "total %d\n" t;
+    Printf.printf "writes %d\n" sim.model.main#writes;
+    Printf.printf "energy %g\n" (sim.model.main#energy time_seconds)
 ;;
 
 let run_simulator sim =
@@ -180,5 +177,5 @@ let run_simulator sim =
         with
             End_simulation -> ()
     end;
-    get_scores sim
+    print_scores sim
 ;;

@@ -22,10 +22,7 @@ let opts = [
 let run_experiment () =
     let m = parse_model_file !experiment !subsystem_index !channel_index in
     let sim = create_simulator !directory m in
-    let results = run_simulator sim in
-    List.iter (fun value ->
-        Printf.printf "%s\n" value
-    ) results
+    run_simulator sim
 ;;
 
 let main () =

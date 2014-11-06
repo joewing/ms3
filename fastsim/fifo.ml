@@ -13,15 +13,10 @@ class fifo =
         val mutable min_produce_time : int = 0
         val mutable min_consume_time : int = 0
 
-        val mutable prod_count : int = 0
+        val prod_trace = new Compress.compress
+        val cons_trace = new Compress.compress
         val mutable last_prod_time : int = 0
-        val mutable mean_prod_time : float = 0.0
-        val mutable m2_prod_time : float = 0.0
-
-        val mutable cons_count : int = 0
         val mutable last_cons_time : int = 0
-        val mutable mean_cons_time : float = 0.0
-        val mutable m2_cons_time : float = 0.0
 
         method total_size = depth * word_size
 
@@ -36,44 +31,28 @@ class fifo =
                 depth <- max depth min_depth
             | _ -> super#set name value
 
-        method get_item_count = max prod_count cons_count
-
         method get_produce_time = last_prod_time
 
         method get_consume_time = last_cons_time
 
-        method get_produce_variance =
-            if prod_count < 2 then 0.0
-            else m2_prod_time /. (float_of_int (prod_count - 1))
+        method get_produce_trace = prod_trace#get_output
 
-        method get_consume_variance =
-            if cons_count < 2 then 0.0
-            else m2_cons_time /. (float_of_int (cons_count - 1))
+        method get_consume_trace = prod_trace#get_output
 
-        method register_produce =
-            prod_count <- prod_count + 1;
-            let it = mach.time - last_prod_time in
-            let t = float_of_int it in
-            let n = float_of_int prod_count in
-            let delta = t -. mean_prod_time in
+        method private register_produce =
+            let t = mach.time - last_prod_time in
+            prod_trace#trace t;
             last_prod_time <- mach.time;
-            mean_prod_time <- mean_prod_time +. delta /. n;
-            m2_prod_time <- m2_prod_time +. delta *. (t -. mean_prod_time);
             if mach.channel_index = index then
-                Printf.printf "%d\n" it
+                Printf.printf "%d\n" t
             else ()
 
-        method register_consume =
-            cons_count <- cons_count + 1;
-            let it = mach.time - last_cons_time in
-            let t = float_of_int it in
-            let n = float_of_int cons_count in
-            let delta = t -. mean_cons_time in
+        method private register_consume =
+            let t = mach.time - last_cons_time in
+            cons_trace#trace t;
             last_cons_time <- mach.time;
-            mean_cons_time <- mean_cons_time +. delta /. n;
-            m2_cons_time <- m2_cons_time +. delta *. (t -. mean_cons_time);
             if mach.channel_index = index then
-                Printf.printf "%d\n" it
+                Printf.printf "%d\n" t
             else ()
 
         method reset m main =
@@ -83,14 +62,8 @@ class fifo =
             used <- 0;
             min_produce_time <- 0;
             min_consume_time <- 0;
-            prod_count <- 0;
             last_prod_time <- 0;
-            mean_prod_time <- 0.0;
-            m2_prod_time <- 0.0;
-            cons_count <- 0;
-            last_cons_time <- 0;
-            mean_cons_time <- 0.0;
-            m2_cons_time <- 0.0
+            last_cons_time <- 0
 
         method consume_time = max mach.time min_consume_time
 
