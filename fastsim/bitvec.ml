@@ -1,20 +1,19 @@
 
 type t = bool array;;
 
+(* Create a bit vector of length n. *)
 let make n = Array.make n false;;
 
-let intersect a b =
-    Array.iteri (fun i v ->
-        a.(i) <- a.(i) && v
-    ) b
-;;
-
+(* Clear all bits of a. *)
 let clear a = Array.fill a 0 (Array.length a) false;;
 
+(* Get bit i of a. *)
 let get a i = a.(i);;
 
+(* Set a bit in a to either true or false. *)
 let set a i v = a.(i) <- v;;
 
+(* Return true if no bits are set in a. *)
 let is_empty a =
     let alen = Array.length a in
     let rec helper i =
@@ -24,13 +23,16 @@ let is_empty a =
     in helper 0
 ;;
 
-let choose a =
+(* Return the index of the first set bit. *)
+let first a =
     let rec helper i =
         if a.(i) then i
         else helper (i + 1)
     in helper 0
 ;;
 
+(* Check if there exists a bit in a that is true for which f is
+ * also true. *)
 let exists f a =
     let alen = Array.length a in
     let rec helper i =
@@ -40,13 +42,21 @@ let exists f a =
     in helper 0
 ;;
 
+(* Update a with the intersection of a and the result of f. *)
 let update a f =
     let alen = Array.length a in
     let rec helper i =
         if i = alen then ()
-        else if a.(i) then a.(i) <- f i
-        else ()
+        else
+            begin
+                a.(i) <- a.(i) && f i;
+                helper (i + 1)
+            end
     in helper 0
 ;;
 
-let copy a = Array.copy a;;
+(* Copy the contents of b to a. *)
+let copy a b =
+    let alen = Array.length a in
+    Array.blit b 0 a 0 alen
+;;

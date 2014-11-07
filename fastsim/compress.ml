@@ -23,12 +23,15 @@ class compress =
          *)
         val mutable output : int list = []
 
+        (* Last time sent, used for produce/consume traces. *)
+        val mutable last_time : int = 0
+
         method private start_run value =
             buffer.(0) <- value;
             buffer_offset <- 1;
             try
                 let starts = Hashtbl.find value_map value in
-                buffer_starts <- Bitvec.copy starts
+                Bitvec.copy buffer_starts starts
             with Not_found -> self#finish_run
 
         method private finish_run =
@@ -36,7 +39,7 @@ class compress =
                 begin
 
                     (* Output the run and new value. *)
-                    let index = Bitvec.choose buffer_starts in
+                    let index = Bitvec.first buffer_starts in
                     let last = buffer_offset - 1 in
                     let temp1 = (index lsl dict_size_bits) lor last in
                     let new_value = buffer.(last) in
@@ -83,15 +86,16 @@ class compress =
             buffer_offset <- 0
 
         method private update_run value =
-            let f = (fun pos ->
-                let i = (buffer_offset + pos) mod dict_size in
+            let f offset pos = 
+                let i = (offset + pos) mod dict_size in
                 value = dictionary.(i)
-            ) in
-            let finished = not (Bitvec.exists f buffer_starts) in
+            in
+            let g = f buffer_offset in
+            let found = Bitvec.exists g buffer_starts in
             buffer.(buffer_offset) <- value;
             buffer_offset <- buffer_offset + 1;
-            if finished then self#finish_run
-            else Bitvec.update buffer_starts f
+            if found then Bitvec.update buffer_starts g
+            else self#finish_run
 
         method trace value =
             if buffer_offset = 0 then
@@ -103,6 +107,20 @@ class compress =
                     self#finish_run;
                     self#start_run value
                 end
+
+        method private get_value is_prod chan time =
+            let delta = time - last_time in
+            let max_time = (1 lsl 24) - 1 in
+            let t = if delta > max_time then max_time else delta in
+            last_time <- time;
+            if is_prod then (1 lsl 31) lor (chan lsl 24) lor t
+            else (chan lsl 24) lor t
+
+        method trace_produce chan time =
+            self#trace (self#get_value true chan time)
+
+        method trace_consume chan time =
+            self#trace (self#get_value false chan time)
 
         method get_output =
             self#finish_run;
