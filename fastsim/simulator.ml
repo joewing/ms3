@@ -16,6 +16,7 @@ type simulator = {
     model : model;
     directory : string;
     mutable processes : process list;
+    proc_map : (int, process) Hashtbl.t;
     consumers : (int, process) Hashtbl.t;
     producers : (int, process) Hashtbl.t;
     heap : process Pq.t;
@@ -38,6 +39,7 @@ let create_simulator directory model =
         processes = [];
         consumers = Hashtbl.create subsystem_count;
         producers = Hashtbl.create subsystem_count;
+        proc_map = Hashtbl.create subsystem_count;
         heap = Pq.create (subsystem_count + fifo_count);
         subsystem_map = subsystem_map;
         fifo_map = fifo_map;
@@ -76,6 +78,7 @@ let produce sim proc (index : int) =
             Hashtbl.replace sim.producers index proc
         else
             try
+                trace_produce proc index sim.model.mach.time;
                 let c = Hashtbl.find sim.consumers index in
                 let t = fifo#consume_time in
                 Pq.push sim.heap t c;
@@ -92,6 +95,7 @@ let consume sim proc (index : int) =
             Hashtbl.replace sim.consumers index proc
         else
             try
+                trace_consume proc index sim.model.mach.time;
                 let p = Hashtbl.find sim.producers index in
                 let t = fifo#produce_time in
                 Pq.push sim.heap t p;
@@ -115,6 +119,7 @@ let add_benchmark sim b =
     let peek = peek sim in
     let run = b#run in
     let proc = create_process produce consume peek run sim.directory mem in
+    Hashtbl.add sim.proc_map b#id proc;
     if not b#is_ignored then
         sim.processes <- proc :: sim.processes
     else ()
@@ -141,19 +146,11 @@ let reset_simulator sim =
 
 let print_scores sim =
     List.iter (fun m ->
-        Printf.printf "subsystem%d %d\n" m#id m#score
-    ) sim.model.subsystems;
-    List.iter (fun m ->
-        Printf.printf "fifo%d %d [" m#id m#score;
-        List.iter (fun i ->
-            Printf.printf "%d " i
-        ) m#get_produce_trace;
-        Printf.printf "] [";
-        List.iter (fun i ->
-            Printf.printf "%d " i
-        ) m#get_consume_trace;
+        let proc = Hashtbl.find sim.proc_map m#id in
+        Printf.printf "subsystem%d %d [" m#id m#score;
+        List.iter (Printf.printf "%d ") @@ get_trace proc;
         Printf.printf "]\n"
-    ) sim.model.fifos;
+    ) sim.model.subsystems;
     let t = sim.model.mach.time in
     let time_seconds = (float_of_int t) /. sim.model.mach.frequency in
     Printf.printf "total %d\n" t;

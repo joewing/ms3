@@ -13,11 +13,6 @@ class fifo =
         val mutable min_produce_time : int = 0
         val mutable min_consume_time : int = 0
 
-        val prod_trace = new Compress.compress
-        val cons_trace = new Compress.compress
-        val mutable last_prod_time : int = 0
-        val mutable last_cons_time : int = 0
-
         method total_size = depth * word_size
 
         method set name value =
@@ -31,39 +26,13 @@ class fifo =
                 depth <- max depth min_depth
             | _ -> super#set name value
 
-        method get_produce_time = last_prod_time
-
-        method get_consume_time = last_cons_time
-
-        method get_produce_trace = prod_trace#get_output
-
-        method get_consume_trace = prod_trace#get_output
-
-        method private register_produce =
-            let t = mach.time - last_prod_time in
-            prod_trace#trace t;
-            last_prod_time <- mach.time;
-            if mach.channel_index = index then
-                Printf.printf "%d\n" t
-            else ()
-
-        method private register_consume =
-            let t = mach.time - last_cons_time in
-            cons_trace#trace t;
-            last_cons_time <- mach.time;
-            if mach.channel_index = index then
-                Printf.printf "%d\n" t
-            else ()
-
         method reset m main =
             super#reset m main;
             read_ptr <- 0;
             write_ptr <- 0;
             used <- 0;
             min_produce_time <- 0;
-            min_consume_time <- 0;
-            last_prod_time <- 0;
-            last_cons_time <- 0
+            min_consume_time <- 0
 
         method consume_time = max mach.time min_consume_time
 
@@ -102,7 +71,6 @@ class fifo =
                     else ();
                     let result = max 1 start in
                     score <- score + result;
-                    self#register_produce;
                     result
                 end
 
@@ -117,7 +85,6 @@ class fifo =
                     else ();
                     used <- used - 1;
                     score <- score + result;
-                    self#register_consume;
                     result
                 end
 

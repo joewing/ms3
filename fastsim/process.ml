@@ -8,6 +8,7 @@ type process = {
     run : string -> access stream;
     directory : string;
     mem : subsystem;
+    output : Compress.compress;
     mutable accesses : access stream;
     mutable pending_access : access option;
 }
@@ -30,10 +31,21 @@ let create_process produce consume peek run directory mem =
         run = run;
         directory = directory;
         mem = mem;
+        output = new Compress.compress;
         accesses = SNil;
         pending_access = None;
     }
 ;;
+
+let trace_produce proc addr t =
+    proc.output#trace_produce addr t
+;;
+
+let trace_consume proc addr t =
+    proc.output#trace_consume addr t
+;;
+
+let get_trace proc = proc.output#get_output;;
 
 let process_produce proc addr =
     let result = proc.produce proc addr in
