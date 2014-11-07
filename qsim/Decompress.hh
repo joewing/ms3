@@ -14,15 +14,17 @@ public:
     Decompress(const std::vector<uint32_t> &data) : m_data(data)
     {
         m_dictionary = new uint32_t[DICT_SIZE];
-        m_index = m_data[0] >> 16;
-        m_count = m_data[0] & 0xFFFF;
-        m_value = m_data[1];
-        m_position = m_data.size() > 2 ? 2 : 0;
+        Reset();
     }
 
     ~Decompress()
     {
         delete [] m_dictionary;
+    }
+
+    bool HasNext() const
+    {
+        return !m_eod;
     }
 
     uint32_t GetNext()
@@ -40,11 +42,18 @@ public:
         m_count = m_data[m_position] & 0xFFFF;
         m_value = m_data[m_position + 1];
         m_position += 2;
-        if(m_position >= m_data.size())
-        {
-            m_position = 0;
-        }
+        m_eod = m_count == 0 && m_position < m_data.size();
         return result;
+    }
+
+    void Reset()
+    {
+        m_position = 0;
+        m_index = m_data[0] >> 16;
+        m_count = m_data[0] & 0xFFFF;
+        m_value = m_data[1];
+        m_position = 2;
+        m_eod = false;
     }
 
 private:
@@ -55,6 +64,7 @@ private:
     uint32_t m_count;           // Number of outputs remaining.
     uint32_t m_index;           // Index into the dictionary.
     uint32_t m_value;           // Next value to add to the dictionary.
+    bool m_eod;
 
 };
 

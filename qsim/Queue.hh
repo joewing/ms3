@@ -1,50 +1,37 @@
 #ifndef QUEUE_HH_
 #define QUEUE_HH_
 
-#include "Random.hh"
+#include "Decompress.hh"
 #include "qsim.h"
 
 #include <cstdint>
 #include <algorithm>
+#include <vector>
 
 class Queue
 {
 public:
 
-    Queue(Random *const r,
-          const uint32_t count, const uint32_t word_size,
-          const float ptime, const float pvar,
-          const float ctime, const float cvar) :
-        m_random(r),
-        m_word_size(word_size),
-        m_count(count),
-        m_pmean(ptime / float(count)),
-        m_pstd(sqrt(pvar)),
-        m_cmean(ctime / float(count)),
-        m_cstd(sqrt(cvar))
+    Queue(const uint32_t word_size,
+          const std::vector<uint32_t> prod_data,
+          const std::vector<uint32_t> cons_data) :
+        m_prod(prod_data),
+        m_cons(cons_data),
+        m_word_size(word_size)
     {
         Reset(1);
-    }
-
-    uint32_t GetCount() const
-    {
-        return m_count;
-    }
-
-    void SetCount(const uint32_t count)
-    {
-        m_count = count;
     }
 
     uint64_t Reset(const uint32_t depth)
     {
         m_max_depth = depth;
         m_depth = 0;
-        m_total = 0;
         m_blocked = 0;
         m_blocked_start = 0;
-        m_next_prod = GetNextProd(0);
-        m_next_cons = GetNextCons(0);
+        m_prod.Reset();
+        m_cons.Reset();
+        m_next_prod = m_prod.GetNext();
+        m_next_cons = std::max(uint64_t(1), uint64_t(m_cons.GetNext()));
         return std::min(m_next_prod, m_next_cons);
     }
 
@@ -54,7 +41,11 @@ public:
             if(m_depth < m_max_depth) {
                 // Not blocked.
                 m_depth += 1;
-                m_next_prod = GetNextProd(t);
+                if(m_prod.HasNext()) {
+                    m_next_prod = t + m_prod.GetNext();
+                } else {
+                    m_next_prod = UINT64_MAX;
+                }
             } else {
                 // Blocked.
                 m_blocked_start = std::max(t, m_blocked_start);
@@ -65,7 +56,11 @@ public:
             if(m_depth != 0) {
                 m_depth -= 1;
                 m_total += 1;
-                m_next_cons = GetNextCons(t);
+                if(m_cons.HasNext()) {
+                    m_next_cons = t + m_cons.GetNext();
+                } else {
+                    m_next_cons = 0;
+                }
                 if(m_blocked_start != 0) {
                     m_blocked += t - m_blocked_start;
                     m_blocked_start = 0;
@@ -74,11 +69,7 @@ public:
                 m_next_cons = m_next_prod + 1;
             }
         }
-        if(likely(m_total < m_count)) {
-            return std::min(m_next_prod, m_next_cons);
-        } else {
-            return 0;
-        }
+        return std::min(m_next_prod, m_next_cons);
     }
 
     uint64_t GetBlocked() const
@@ -93,29 +84,9 @@ public:
 
 private:
 
-    uint64_t GetRand(const float mean, const float std) const
-    {
-        const float temp = m_random->Draw(mean, std) + 0.5;
-        return uint64_t(std::max(int64_t(1), int64_t(temp)));
-    }
-
-    uint64_t GetNextProd(const uint64_t t) const
-    {
-        return t + GetRand(m_pmean, m_pstd);
-    }
-
-    uint64_t GetNextCons(const uint64_t t) const
-    {
-        return t + GetRand(m_cmean, m_cstd);
-    }
-
-    Random * const m_random;
+    Decompress m_prod;
+    Decompress m_cons;
     const uint32_t m_word_size;
-    uint32_t m_count;
-    const float m_pmean;
-    const float m_pstd;
-    const float m_cmean;
-    const float m_cstd;
 
     uint64_t m_total;
     uint64_t m_blocked;

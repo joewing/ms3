@@ -17,16 +17,16 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    Simulator sim(5);
+    Simulator sim;
 
     // Parse the input.
     /* Input JSON format:
         {
             "bram_count": bram_count,
             "queues": [
-                { "count": count, "word_size": word_size,
-                  "ptime": ptime, "pvar": pvar,
-                  "ctime": ctime, "cvar": cvar }, ...
+                { "word_size": word_size,
+                  "pdata": [ ... ],
+                  "cdata": [ ... ] }, ...
             ]
         }
      */
@@ -35,13 +35,19 @@ int main(int argc, char *argv[])
     const Json::ArrayIndex size = queues.size();
     for(Json::ArrayIndex i = 0; i < size; i++) {
         const Json::Value queue = queues[i];
-        const uint32_t count = queue["count"].asUInt();
         const uint32_t word_size = queue["word_size"].asUInt();
-        const float ptime = queue["ptime"].asFloat();
-        const float pvar = queue["pvar"].asFloat();
-        const float ctime = queue["ctime"].asFloat();
-        const float cvar = queue["cvar"].asFloat();
-        sim.AddQueue(count, word_size, ptime, pvar, ctime, cvar);
+        std::vector<uint32_t> pdata, cdata;
+        const Json::Value pvalues = queue["pdata"];
+        const Json::ArrayIndex pcount = pvalues.size();
+        for(Json::ArrayIndex j = 0; j < pcount; j++) {
+            pdata.push_back(pvalues[j].asUInt());
+        }
+        const Json::Value cvalues = queue["cdata"];
+        const Json::ArrayIndex ccount = cvalues.size();
+        for(Json::ArrayIndex j = 0; j < ccount; j++) {
+            cdata.push_back(cvalues[j].asUInt());
+        }
+        sim.AddQueue(word_size, pdata, cdata);
     }
 
     // Perform the simulation.
