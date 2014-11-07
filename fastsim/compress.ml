@@ -1,12 +1,6 @@
 
-let dict_size = 65536;;
-
-module Int = struct
-    type t = int
-    let compare = compare
-end
-
-module IntSet = Set.Make(Int)
+let dict_size_bits = 16;;
+let dict_size = 1 lsl dict_size_bits;;
 
 class compress =
     object (self)
@@ -16,23 +10,25 @@ class compress =
         val mutable cursor = 0
 
         (* Mapping of values to positions in the dictionary. *)
-        val value_map : (int, IntSet.t) Hashtbl.t = Hashtbl.create dict_size
+        val value_map : (int, Bitvec.t) Hashtbl.t = Hashtbl.create dict_size
 
         (* The current input buffer. *)
         val buffer = Array.make dict_size 0
         val mutable buffer_offset = 0
-        val mutable buffer_starts = IntSet.empty
+        val mutable buffer_starts = Bitvec.make dict_size
 
         (* The output.
          * Reprsentation is:
-         *      [index:16][count:16], [value:32], ...
+         *      [index:n][count:n], [value:32], ...
          *)
         val mutable output : int list = []
 
         method private start_run value =
             buffer.(0) <- value;
             buffer_offset <- 1;
-            try buffer_starts <- Hashtbl.find value_map value
+            try
+                let starts = Hashtbl.find value_map value in
+                buffer_starts <- Bitvec.copy starts
             with Not_found -> self#finish_run
 
         method private finish_run =
@@ -40,9 +36,9 @@ class compress =
                 begin
 
                     (* Output the run and new value. *)
-                    let index = IntSet.choose buffer_starts in
+                    let index = Bitvec.choose buffer_starts in
                     let last = buffer_offset - 1 in
-                    let temp1 = (index lsl 16) lor last in
+                    let temp1 = (index lsl dict_size_bits) lor last in
                     let new_value = buffer.(last) in
                     output <- new_value :: temp1 :: output;
 
@@ -54,46 +50,48 @@ class compress =
 
                     (* Remove the old value from the map. *)
                     try
-                        let old_set = Hashtbl.find value_map old_value in
-                        let new_set = IntSet.filter (fun i ->
-                            i != updated
-                        ) old_set in
-                        if IntSet.is_empty new_set then
+                        let bvec = Hashtbl.find value_map old_value in
+                        Bitvec.set bvec updated false;
+                        if Bitvec.is_empty bvec then
                             Hashtbl.remove value_map old_value
-                        else Hashtbl.replace value_map old_value new_set
+                        else ()
                     with Not_found -> ();
 
                     (* Add the new value to the map. *)
                     try
-                        let old_set = Hashtbl.find value_map new_value in
-                        let new_set = IntSet.add updated old_set in
-                        Hashtbl.replace value_map new_value new_set
+                        let bvec = Hashtbl.find value_map new_value in
+                        Bitvec.set bvec updated true
                     with Not_found ->
-                        let new_set = IntSet.singleton updated in
-                        Hashtbl.add value_map new_value new_set
+                        begin
+                            let bvec = Bitvec.make dict_size in
+                            Bitvec.set bvec updated true;
+                            Hashtbl.add value_map new_value bvec
+                        end
 
                 end
             else if buffer_offset = 1 then (* Empty run *)
                 begin
-                    let temp = cursor lsl 16 in
+                    let temp = cursor lsl dict_size_bits in
                     output <- buffer.(0) :: temp :: output;
                     dictionary.(cursor) <- buffer.(0);
-                    let new_set = IntSet.singleton cursor in
-                    Hashtbl.add value_map buffer.(0) new_set;
+                    let bvec = Bitvec.make dict_size in
+                    Bitvec.set bvec cursor true;
+                    Hashtbl.add value_map buffer.(0) bvec;
                     cursor <- (cursor + 1) mod dict_size
                 end
             else ();
             buffer_offset <- 0
 
         method private update_run value =
-            let updated = IntSet.filter (fun pos ->
+            let f = (fun pos ->
                 let i = (buffer_offset + pos) mod dict_size in
                 value = dictionary.(i)
-            ) buffer_starts in
+            ) in
+            let finished = not (Bitvec.exists f buffer_starts) in
             buffer.(buffer_offset) <- value;
             buffer_offset <- buffer_offset + 1;
-            if IntSet.is_empty updated then self#finish_run
-            else buffer_starts <- updated
+            if finished then self#finish_run
+            else Bitvec.update buffer_starts f
 
         method trace value =
             if buffer_offset = 0 then
