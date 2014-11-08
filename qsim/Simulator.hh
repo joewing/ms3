@@ -1,15 +1,17 @@
 #ifndef SIMULATOR_HH_
 #define SIMULATOR_HH_
 
-#include "Queue.hh"
+#include "QueueNetwork.hh"
+#include "Kernel.hh"
 #include "PriorityQueue.hh"
+#include "Observer.hh"
 #include "qsim.h"
 
 #include <algorithm>
 
 #define BRAM_BYTES ((512 * 72) / 8)
 
-class Simulator
+class Simulator : public Observer
 {
 public:
 
@@ -19,29 +21,29 @@ public:
 
     ~Simulator()
     {
-        for(size_t i = 0; i < m_queues.size(); i++) {
-            delete m_queues[i];
+        for(size_t i = 0; i < m_kernels.size(); i++) {
+            delete m_kernels[i];
         }
     }
 
-    void AddQueue(const uint32_t word_size,
-                  const std::vector<uint32_t> pdata,
-                  const std::vector<uint32_t> cdata)
+    void AddKernel(const std::vector<uint32_t> &data)
     {
-        if(!pdata.empty() && !cdata.empty()) {
-            Queue *q = new Queue(word_size, pdata, cdata);
-            m_queues.push_back(q);
-            m_depths.push_back(1);
-        }
+        Kernel * const k = new Kernel(&m_network, data);
+        m_kernels.push_back(k);
+    }
+
+    void AddQueue(const uint32_t id, const uint32_t word_size)
+    {
+        Queue * const q = new Queue(word_size);
+        m_network.AddQueue(id, q);
+        m_network.SetDepth(id, 1);
     }
 
     uint64_t Run(uint32_t bram_count)
     {
 
         // Start all queues with a depth of 1.
-        for(size_t i = 0; i < m_queues.size(); i++) {
-            m_depths[i] = 1;
-        }
+        m_network.ResetDepths();
 
         // Increase the size of the bottleneck queue until
         // performance no longer improves.
@@ -49,29 +51,22 @@ public:
         while(bram_count > 0) {
 
             // Find the bottleneck.
-            size_t bottleneck = 0;
-            for(size_t i = 1; i < m_queues.size(); i++) {
-                const uint64_t bt = m_queues[bottleneck]->GetBlocked();
-                const uint64_t t = m_queues[i]->GetBlocked();
-                if(t > bt) {
-                    bottleneck = i;
-                }
-            }
+            const size_t bottleneck = m_network.GetBottleneck();
 
             // Increase the size of the bottleneck queue.
-            const uint32_t word_size = m_queues[bottleneck]->GetWordSize();
+            const uint32_t word_size = m_network.GetWordSize(bottleneck);
             uint32_t increment = BRAM_BYTES / word_size;
-            const uint32_t old_depth = m_depths[bottleneck];
+            const uint32_t old_depth = m_network.GetDepth(bottleneck);
             if(old_depth == 1) {
-                m_depths[bottleneck] = increment;
+                m_network.SetDepth(bottleneck, increment);
             } else {
-                m_depths[bottleneck] += increment;
+                m_network.SetDepth(bottleneck, old_depth + increment);
             }
             const uint64_t t = Simulate();
             const int64_t delta = int64_t(best_value) - int64_t(t);
             if(delta <= 0) {
                 // No improvement.
-                m_depths[bottleneck] = old_depth;
+                m_network.SetDepth(bottleneck, old_depth);
                 break;
             }
             best_value = t;
@@ -83,37 +78,50 @@ public:
 
     }
 
-    std::vector<uint32_t> GetDepths() const
+    std::vector<std::pair<uint32_t, uint32_t> > GetDepths() const
     {
-        return m_depths;
+        return m_network.GetDepths();
+    }
+
+    virtual void Notify(void *arg)
+    {
+        Kernel * const k = reinterpret_cast<Kernel*>(arg);
+        m_pq->Push(m_t, k);
     }
 
 private:
 
-    uint64_t Simulate() const
+    uint64_t Simulate()
     {
-        const size_t queue_count = m_queues.size();
-        PriorityQueue<uint64_t, Queue*> pq(queue_count);
-        for(size_t i = 0; i < queue_count; i++) {
-            Queue * const q = m_queues[i];
-            const uint64_t t = q->Reset(m_depths[i]);
-            pq.Push(t, q);
+        const size_t kernel_count = m_kernels.size();
+        m_pq = new PriorityQueue<uint64_t, Kernel*>(kernel_count);
+        for(size_t i = 0; i < kernel_count; i++) {
+            Kernel * const k = m_kernels[i];
+            k->Reset();
+            m_pq->Push(0, k);
         }
-        uint64_t t = 0;
-        while(likely(!pq.IsEmpty())) {
-            Queue * const q = pq.GetValue();
-            t = pq.GetKey();
-            pq.Pop();
-            const uint64_t next_t = q->Process(t);
-            if(likely(next_t != 0)) {
-                pq.Push(next_t, q);
+        m_network.Reset();
+        m_t = 0;
+        while(likely(!m_pq->IsEmpty())) {
+            Kernel * const k = m_pq->GetValue();
+            m_t = m_pq->GetKey();
+            m_pq->Pop();
+            const uint64_t next_t = k->Process(m_t);
+            if(next_t != 0) {
+                m_pq->Push(next_t, k);
+            } else if(k->IsBlocked()) {
+                const uint32_t channel = k->GetBlockingChannel();
+                m_network.RegisterNotification(channel, this, k);
             }
         }
-        return t;
+        delete m_pq;
+        return m_t;
     }
 
-    std::vector<Queue*> m_queues;
-    std::vector<uint32_t> m_depths;
+    QueueNetwork m_network;
+    std::vector<Kernel*> m_kernels;
+    PriorityQueue<uint64_t, Kernel*> *m_pq;
+    uint64_t m_t;
 
 };
 

@@ -23,31 +23,35 @@ int main(int argc, char *argv[])
     /* Input JSON format:
         {
             "bram_count": bram_count,
+            "kernels": [
+                { "data": [ ... ] }, ...
+            ],
             "queues": [
-                { "word_size": word_size,
-                  "pdata": [ ... ],
-                  "cdata": [ ... ] }, ...
+                { "id": id,
+                  "word_size": word_size }, ...
             ]
         }
      */
     const uint32_t bram_count = root["bram_count"].asUInt();
+    const Json::Value kernels = root["kernels"];
+    const Json::ArrayIndex kernel_count = kernels.size();
+    for(Json::ArrayIndex i = 0; i < kernel_count; i++) {
+        const Json::Value kernel = kernels[i];
+        const Json::Value data = kernel["data"];
+        const Json::ArrayIndex dcount = data.size();
+        std::vector<uint32_t> values;
+        for(Json::ArrayIndex j = 0; j < dcount; j++) {
+            values.push_back(data[j].asUInt());
+        }
+        sim.AddKernel(values);
+    }
     const Json::Value queues = root["queues"];
-    const Json::ArrayIndex size = queues.size();
-    for(Json::ArrayIndex i = 0; i < size; i++) {
+    const Json::ArrayIndex queue_count = queues.size();
+    for(Json::ArrayIndex i = 0; i < queue_count; i++) {
         const Json::Value queue = queues[i];
+        const uint32_t id = queue["id"].asUInt();
         const uint32_t word_size = queue["word_size"].asUInt();
-        std::vector<uint32_t> pdata, cdata;
-        const Json::Value pvalues = queue["pdata"];
-        const Json::ArrayIndex pcount = pvalues.size();
-        for(Json::ArrayIndex j = 0; j < pcount; j++) {
-            pdata.push_back(pvalues[j].asUInt());
-        }
-        const Json::Value cvalues = queue["cdata"];
-        const Json::ArrayIndex ccount = cvalues.size();
-        for(Json::ArrayIndex j = 0; j < ccount; j++) {
-            cdata.push_back(cvalues[j].asUInt());
-        }
-        sim.AddQueue(word_size, pdata, cdata);
+        sim.AddQueue(id, word_size);
     }
 
     // Perform the simulation.
@@ -57,14 +61,18 @@ int main(int argc, char *argv[])
     /* Output JSON format:
         {
             "total": total,
-            "depths": [ depth, ... ]
+            "queues": [
+                { "id": id, "depth": depth }, ...
+            ]
         }
      */
     std::cout << "{\"total\": " << t << ",\n";
-    std::cout << "\"depths\": [";
-    std::vector<uint32_t> depths = sim.GetDepths();
+    std::cout << "\"queues\": [";
+    std::vector<std::pair<uint32_t, uint32_t> > depths = sim.GetDepths();
     for(size_t i = 0; i < depths.size(); i++) {
-        std::cout << depths[i];
+        const std::pair<uint32_t, uint32_t> p = depths[i];
+        std::cout << "{\"id\": " << p.first << ", ";
+        std::cout << "\"depth\": " << p.second << "}";
         if(i + 1 < depths.size()) {
             std::cout << ", ";
         }
