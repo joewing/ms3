@@ -89,8 +89,8 @@ public:
         for(uint32_t i = 0; i < m_queues.size(); i++) {
             const Queue * const q = m_queues[i];
             if(q != nullptr) {
-                if(q->GetBlocked() > blocked) {
-                    blocked = q->GetBlocked();
+                if(q->GetBlockedTime() > blocked) {
+                    blocked = q->GetBlockedTime();
                     bottleneck = i;
                 }
             }

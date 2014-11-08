@@ -72,13 +72,14 @@ memories_table = Table(
 )
 results_table = Table(
     'results', metadata,
+    Column('id', Integer, primary_key=True),
     Column('model_id', None, ForeignKey('models.id'),
            nullable=False, index=True),
     Column('memory_id', None, ForeignKey('memories.id'),
            nullable=False, index=True),
     Column('subsystem', Integer, nullable=False),
     Column('value', BigInteger, nullable=False),
-    Column('fifo_stats', Text, nullable=True),
+    Column('trace_id', Integer, nullable=True),
     UniqueConstraint('model_id', 'memory_id', 'subsystem'),
     implicit_returning=False,
 )
@@ -91,6 +92,13 @@ best_table = Table(
     Column('cost', BigInteger, nullable=False),
     Column('lut_count', BigInteger, nullable=False),
     Column('reg_count', BigInteger, nullable=False),
+    implicit_returning=False,
+)
+traces_table = Table(
+    'traces', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('trace_hash', String(64), nullable=False, unique=True),
+    Column('data', Text, nullable=False),
     implicit_returning=False,
 )
 
@@ -223,6 +231,35 @@ class SQLDatabase(base.BaseDatabase):
         self.memories[mem_hash] = ident
         return ident
 
+    def _get_trace_id(self, trace):
+
+        # Get the hash.
+        trace_hash = self.get_hash(trace)
+
+        # Check the database.
+        stmt = select([traces_table.c.id]).where(
+            traces_table.c.trace_hash == trace_hash
+        )
+        row = self._execute(stmt).first()
+        if row:
+            return row.id
+
+        # Attempt to insert a new trace.
+        stmt = traces_table.insert().from_select([
+            traces_table.c.trace_hash,
+            traces_table.c.data,
+        ], select([
+            literal(trace_hash),
+            literal(str(trace)),
+        ]).where(
+            ~exists([traces_table.c.id]).where(
+                traces_table.c.trace_hash == trace_hash
+            )
+        ))
+        self._execute(stmt)
+
+        return self._get_trace_id(trace)
+
     def get_result(self, mod, mem, subsystem):
         """Look up the result for the specified model.
 
@@ -242,8 +279,12 @@ class SQLDatabase(base.BaseDatabase):
         memory_id = self._get_memory_id(mem)
         stmt = select([
             results_table.c.value,
-            results_table.c.fifo_stats,
-        ]).where(
+            traces_table.c.data,
+        ]).select_from(
+            results_table.outerjoin(traces_table,
+                traces_table.c.id == results_table.c.trace_id
+            )
+        ).where(
             and_(
                 results_table.c.model_id == mod_id,
                 results_table.c.memory_id == memory_id,
@@ -252,23 +293,24 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            value = row.value, row.fifo_stats
+            value = row.value, row.data
             self.results[result_hash] = value
             return value
         else:
             self.results[result_hash] = -1, None
             return None, None
 
-    def add_result(self, mod, mem, subsystem, value, fifo_stats):
+    def add_result(self, mod, mem, subsystem, value, trace):
         """Add a result for the specified model."""
 
         assert(value >= 0)
 
         # Insert to our local cache.
         result_hash = self.get_result_hash(mod, mem, subsystem)
-        self.results[result_hash] = value, fifo_stats
+        self.results[result_hash] = value, trace
 
         # Insert to the database.
+        trace_id = self._get_trace_id(trace)
         mod_id = self._get_model_id(mod)
         mem_id = self._get_memory_id(mem)
         stmt = results_table.insert().from_select([
@@ -276,13 +318,13 @@ class SQLDatabase(base.BaseDatabase):
                 results_table.c.memory_id,
                 results_table.c.subsystem,
                 results_table.c.value,
-                results_table.c.fifo_stats,
+                results_table.c.trace_id,
             ], select([
                 literal(mod_id),
                 literal(mem_id),
                 literal(subsystem),
                 literal(value),
-                literal(fifo_stats),
+                literal(trace_id),
             ]).where(
                 ~exists([results_table.c.model_id]).where(
                     and_(

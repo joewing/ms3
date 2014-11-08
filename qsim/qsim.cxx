@@ -83,17 +83,14 @@ int main(int argc, char *argv[])
 
     // Parse input.
     Simulator sim;
-    std::cout << "Reading input ... \n";
     if(!ParseInput(&sim)) {
         return -1;
     }
 
     // Perform the simulation.
-    std::cout << "Running ... \n";
     const uint64_t t = sim.Run();
 
     // Output the results.
-    std::cout << "Outputting results ... \n";
     OutputResults(sim, t);
 
     return 0;

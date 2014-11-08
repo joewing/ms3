@@ -11,6 +11,15 @@ from memsim.fifostats import FIFOStats
 from .proc import Process
 
 
+def _parse_fifo_data(data):
+    expr = re.compile(r'\[(.*)\] \[(.*)\]')
+    m = expr.search(data)
+    g1, g2 = m.group(1).split(' '), m.group(2).split(' ')
+    pdata = [int(i) for i in g1 if len(i) > 0]
+    cdata = [int(i) for i in g2 if len(i) > 0]
+    return pdata, cdata
+
+
 class ProcessList(object):
     """Class to schedule a list of processes on a machine."""
 
@@ -74,16 +83,11 @@ class ProcessList(object):
                     index = int(m.group(2))
                 result = m.group(3)
                 if name == 'fifo':
-                    score, items, ptime, pvar, ctime, cvar = result.split(' ')
-                    score = int(score)
-                    items = int(items)
-                    ptime = int(ptime)
-                    pvar = float(pvar)
-                    ctime = int(ctime)
-                    cvar = float(cvar)
+                    score, fifo_data = result.split(' ', 1)
+                    pdata, cdata = _parse_fifo_data(fifo_data)
                     mem = ml.get_fifo(index)
                     mem.score = score
-                    fifo_stats.update(index, items, ptime, pvar, ctime, cvar)
+                    fifo_stats.update(index, pdata, cdata)
                 elif name == 'subsystem':
                     mem = ml.get_subsystem(index)
                     mem.score = int(result)
@@ -96,6 +100,9 @@ class ProcessList(object):
                 else:
                     print(name)
                     assert(False)
+        if total < 0:
+            print('subsystem: {}'.format(subsystem))
+            print('model: {}'.format(mod))
         assert(total >= 0)
         assert(energy >= 0)
         assert(writes >= 0)

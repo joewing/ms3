@@ -39,7 +39,7 @@ public:
 
     void AddQueue(const uint32_t id, const uint32_t word_size)
     {
-        Queue * const q = new Queue(word_size);
+        Queue * const q = new Queue(id, word_size);
         m_network.AddQueue(id, q);
         m_network.SetDepth(id, 1);
     }
@@ -91,8 +91,7 @@ public:
 
     virtual void Notify(void *arg)
     {
-        Kernel * const k = reinterpret_cast<Kernel*>(arg);
-        m_pq->Push(m_t, k);
+        m_pq->Push(0, reinterpret_cast<Kernel*>(arg));
     }
 
 private:
@@ -107,27 +106,28 @@ private:
             m_pq->Push(0, k);
         }
         m_network.Reset();
-        m_t = 0;
+        uint64_t t = 0;
         while(likely(!m_pq->IsEmpty())) {
             Kernel * const k = m_pq->GetValue();
-            m_t = m_pq->GetKey();
+            t = std::max(t, m_pq->GetKey());
             m_pq->Pop();
-            const uint64_t next_t = k->Process(m_t);
+            const uint64_t next_t = k->Process(t);
             if(next_t != 0) {
                 m_pq->Push(next_t, k);
             } else if(k->IsBlocked()) {
                 const uint32_t channel = k->GetBlockingChannel();
                 m_network.RegisterNotification(channel, this, k);
+            } else {
+                std::cout << "end\n";
             }
         }
         delete m_pq;
-        return m_t;
+        return t;
     }
 
     QueueNetwork m_network;
     std::vector<Kernel*> m_kernels;
     PriorityQueue<uint64_t, Kernel*> *m_pq;
-    uint64_t m_t;
     uint32_t m_bram_count;
 
 };

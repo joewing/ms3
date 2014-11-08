@@ -107,7 +107,6 @@ class Simulator(object):
                 interval = confidence * std / math.sqrt(n)
                 if interval / mean < EPSILON:
                     break
-        print mean, n
         return mean
 
 
@@ -129,7 +128,7 @@ def simulate(mod, ml, value, fstats):
     for fifo in ml.all_fifos():
         index = fifo.index
         depth = fifo.depth
-        items, ptime, pvar, ctime, cvar = fstats.get_stats(index)
+        items, pdata, cdata = fstats.get_stats(index)
         items = (items + scale - 1) // scale
         sim.add_queue(items, depth, ptime, pvar, ctime, cvar)
 
@@ -179,12 +178,9 @@ def get_score(mod, ml, value, fstats):
     for fifo in ml.all_fifos():
         item = {}
         item['depth'] = fifo.depth
-        count, ptime, pvar, ctime, cvar = fstats.get_stats(fifo.index)
-        item['count'] = count
-        item['ptime'] = ptime
-        item['pvar'] = pvar
-        item['ctime'] = ctime
-        item['cvar'] = cvar
+        pdata, cdata = fstats.get_stats(fifo.index)
+        item['pdata'] = pdata
+        item['cdata'] = cdata
         item['word_size'] = fifo.get_word_size()
         fifo_data.append(item)
     sim_data['queues'] = fifo_data
