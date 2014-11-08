@@ -15,7 +15,7 @@ class Simulator : public Observer
 {
 public:
 
-    Simulator()
+    Simulator() : m_bram_count(0)
     {
     }
 
@@ -24,6 +24,11 @@ public:
         for(size_t i = 0; i < m_kernels.size(); i++) {
             delete m_kernels[i];
         }
+    }
+
+    void SetBRAMCount(const uint32_t bram_count)
+    {
+        m_bram_count = bram_count;
     }
 
     void AddKernel(const std::vector<uint32_t> &data)
@@ -39,8 +44,9 @@ public:
         m_network.SetDepth(id, 1);
     }
 
-    uint64_t Run(uint32_t bram_count)
+    uint64_t Run()
     {
+        uint32_t bram_count = m_bram_count;
 
         // Start all queues with a depth of 1.
         m_network.ResetDepths();
@@ -122,6 +128,7 @@ private:
     std::vector<Kernel*> m_kernels;
     PriorityQueue<uint64_t, Kernel*> *m_pq;
     uint64_t m_t;
+    uint32_t m_bram_count;
 
 };
 

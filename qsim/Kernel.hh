@@ -41,10 +41,12 @@ public:
         }
         if(m_pending_access.is_produce) {
             if(m_network->Push(m_pending_access.channel, t)) {
+                m_is_pending = false;
                 return t + m_pending_access.delay;
             }
         } else {
             if(m_network->Pop(m_pending_access.channel, t)) {
+                m_is_pending = false;
                 return t + m_pending_access.delay;
             }
         }
