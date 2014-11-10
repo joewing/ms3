@@ -147,9 +147,11 @@ let reset_simulator sim =
 
 let print_scores sim =
     Printf.printf "{\"kernels\": [\n";
-    List.iter (fun m ->
+    List.iteri (fun ki m ->
         let (proc, bm) = Hashtbl.find sim.proc_map m#id in
-        Printf.printf "{\"id\": %d," m#id;
+        if ki = 0 then Printf.printf "{"
+        else Printf.printf ",{";
+        Printf.printf "\"id\": %d," m#id;
         Printf.printf "\"score\": %d," m#score;
         Printf.printf "\"type\": \"%s\"," bm#name;
         if bm#synthetic then
