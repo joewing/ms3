@@ -13,7 +13,7 @@ class compress =
     object (self)
 
         (* Sliding window dictionary. *)
-        val dictionary = Array.make dict_size 0
+        val dictionary = Array.make dict_size (-1)
         val mutable cursor = 0
 
         (* Mapping of values to positions in the dictionary. *)
@@ -47,42 +47,67 @@ class compress =
                     (* Output the run and new value. *)
                     let index = IntSet.choose buffer_starts in
                     let last = buffer_offset - 1 in
+                    assert(last < (1 lsl dict_size_bits));
                     let temp1 = (index lsl dict_size_bits) lor last in
                     let new_value = buffer.(last) in
                     output <- new_value :: temp1 :: output;
 
                     (* Update the dictionary. *)
-                    let updated = (index + buffer_offset - 1) mod dict_size in
+                    let updated = (index + last) mod dict_size in
                     let old_value = dictionary.(updated) in
                     dictionary.(updated) <- new_value;
                     cursor <- (updated + 1) mod dict_size;
 
                     (* Remove the old value from the map. *)
-                    try
-                        let old_set = Hashtbl.find value_map old_value in
-                        let new_set = IntSet.remove updated old_set in
-                        if IntSet.is_empty new_set then
-                            Hashtbl.remove value_map old_value
-                        else Hashtbl.replace value_map old_value new_set
-                    with Not_found -> ();
+                    begin
+                        try
+                            let old_set = Hashtbl.find value_map old_value in
+                            let new_set = IntSet.remove updated old_set in
+                            if IntSet.is_empty new_set then
+                                Hashtbl.remove value_map old_value
+                            else Hashtbl.replace value_map old_value new_set
+                        with Not_found -> ()
+                    end;
 
                     (* Add the new value to the map. *)
-                    try
-                        let old_set = Hashtbl.find value_map new_value in
-                        let new_set = IntSet.add updated old_set in
-                        Hashtbl.replace value_map new_value new_set
-                    with Not_found ->
-                        let new_set = IntSet.singleton updated in
-                        Hashtbl.add value_map new_value new_set
+                    begin
+                        try
+                            let old_set = Hashtbl.find value_map new_value in
+                            let new_set = IntSet.add updated old_set in
+                            Hashtbl.replace value_map new_value new_set
+                        with Not_found ->
+                            let new_set = IntSet.singleton updated in
+                            Hashtbl.add value_map new_value new_set
+                    end
 
                 end
             else if buffer_offset = 1 then (* Empty run *)
                 begin
                     let temp = cursor lsl dict_size_bits in
                     output <- buffer.(0) :: temp :: output;
+
+                    begin
+                        try (* Remove the old value from the map. *)
+                            let old_value = dictionary.(cursor) in
+                            let old_set = Hashtbl.find value_map old_value in
+                            let new_set = IntSet.remove cursor old_set in
+                            if IntSet.is_empty new_set then
+                                Hashtbl.remove value_map old_value
+                            else Hashtbl.replace value_map old_value new_set
+                        with Not_found -> ()
+                    end;
+
+                    (* Update the dictionary. *)
                     dictionary.(cursor) <- buffer.(0);
+
+                    (* Add the new value.
+                     * Note that the value can't already exist since
+                     * we would have had a run in that case.
+                     *)
                     let new_set = IntSet.singleton cursor in
                     Hashtbl.add value_map buffer.(0) new_set;
+
+                    (* Update the cursor. *)
                     cursor <- (cursor + 1) mod dict_size
                 end
             else ();
@@ -100,9 +125,10 @@ class compress =
             else buffer_starts <- updated
 
         method trace value =
+            assert(value < (1 lsl 32));
             if buffer_offset = 0 then
                 self#start_run value
-            else if buffer_offset < dict_size - 1 then
+            else if buffer_offset != dict_size then
                 self#update_run value
             else
                 begin
@@ -111,6 +137,7 @@ class compress =
                 end
 
         method private get_value is_prod chan time =
+            assert(chan < 128);
             let delta = time - last_time in
             let max_time = (1 lsl 24) - 1 in
             let t = if delta > max_time then max_time else delta in
