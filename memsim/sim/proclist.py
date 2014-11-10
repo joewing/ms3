@@ -61,10 +61,6 @@ class ProcessList(object):
             assert(False)
 
         # Run the simulation.
-        total = -1
-        writes = -1
-        energy = -1
-        expr = re.compile(r'([a-z]+)([0-9]*) (.+)$')
         mod = Model()
         mod.memory = ml
         mod.machine = self.machine
@@ -75,31 +71,17 @@ class ProcessList(object):
 
         # Parse the results.
         fifo_stats = FIFOStats()
-        for line in result.decode(sys.stdout.encoding).split('\n'):
-            for m in expr.finditer(line):
-                name = m.group(1)
-                index = 0
-                if len(m.group(2)) > 0:
-                    index = int(m.group(2))
-                result = m.group(3)
-                if name == 'fifo':
-                    score, fifo_data = result.split(' ', 1)
-                    pdata, cdata = _parse_fifo_data(fifo_data)
-                    mem = ml.get_fifo(index)
-                    mem.score = score
-                    fifo_stats.update(index, pdata, cdata)
-                elif name == 'subsystem':
-                    mem = ml.get_subsystem(index)
-                    mem.score = int(result)
-                elif name == 'total':
-                    total = int(result)
-                elif name == 'writes':
-                    writes = int(result)
-                elif name == 'energy':
-                    energy = int(float(result))
-                else:
-                    print(name)
-                    assert(False)
+        result = json.loads(result)
+        total = result['total']
+        writes = result['writes']
+        energy = result['energy']
+        for kernel in result['kernels']:
+            index = kernel['id']
+            if index == subsystem:
+                fifo_stats.update(subsystem, kernel)
+                mem = ml.get_subsystem(index)
+                mem.score = kernel['score']
+
         if total < 0:
             print('subsystem: {}'.format(subsystem))
             print('model: {}'.format(mod))
