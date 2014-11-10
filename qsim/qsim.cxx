@@ -9,7 +9,7 @@
  *  {
  *      "bram_count": bram_count,
  *      "kernels": [
- *          { "data": [ ... ] }, ...
+ *          { "type": type, ... }, ...
  *      ],
  *      "queues": [
  *          { "id": id,
@@ -33,13 +33,24 @@ static bool ParseInput(Simulator *sim)
     const Json::ArrayIndex kernel_count = kernels.size();
     for(Json::ArrayIndex i = 0; i < kernel_count; i++) {
         const Json::Value kernel = kernels[i];
-        const Json::Value data = kernel["data"];
-        const Json::ArrayIndex dcount = data.size();
-        std::vector<uint32_t> values(dcount);
-        for(Json::ArrayIndex j = 0; j < dcount; j++) {
-            values[j] = data[j].asUInt();
+        const std::string t = kernel["type"].asString();
+        if(t == "trace") {
+            const Json::Value data = kernel["data"];
+            const Json::ArrayIndex dcount = data.size();
+            std::vector<uint32_t> values(dcount);
+            for(Json::ArrayIndex j = 0; j < dcount; j++) {
+                values[j] = data[j].asUInt();
+            }
+            sim->AddTrace(values);
+        } else if(t == "split") {
+            const uint32_t in = kernel["in"].asUInt();
+            const uint32_t out0 = kernel["out0"].asUInt();
+            const uint32_t out1 = kernel["out1"].asUInt();
+            sim->AddSplit(in, out0, out1);
+        } else {
+            std::cerr << "error: invalid kernel type: " << t << "\n";
+            return false;
         }
-        sim->AddKernel(values);
     }
     const Json::Value queues = root["queues"];
     const Json::ArrayIndex queue_count = queues.size();

@@ -95,7 +95,7 @@ public:
     void RegisterNotification(Observer * const obs,
                               void * const arg)
     {
-        assert(m_observer == nullptr);
+        assert(m_observer == nullptr || m_observer == obs);
         assert(m_push_blocked || m_pop_blocked);
         m_observer = obs;
         m_observer_arg = arg;

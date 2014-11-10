@@ -2,7 +2,8 @@
 #define SIMULATOR_HH_
 
 #include "QueueNetwork.hh"
-#include "Kernel.hh"
+#include "SplitKernel.hh"
+#include "TraceKernel.hh"
 #include "PriorityQueue.hh"
 #include "Observer.hh"
 #include "qsim.h"
@@ -31,9 +32,17 @@ public:
         m_bram_count = bram_count;
     }
 
-    void AddKernel(const std::vector<uint32_t> &data)
+    void AddSplit(const uint32_t in,
+                  const uint32_t out0,
+                  const uint32_t out1)
     {
-        Kernel * const k = new Kernel(&m_network, data);
+        SplitKernel * const k = new SplitKernel(&m_network, in, out0, out1);
+        m_kernels.push_back(k);
+    }
+
+    void AddTrace(const std::vector<uint32_t> &data)
+    {
+        TraceKernel * const k = new TraceKernel(&m_network, data);
         m_kernels.push_back(k);
     }
 
@@ -115,8 +124,11 @@ private:
             if(next_t != 0) {
                 m_pq->Push(next_t, k);
             } else if(k->IsBlocked()) {
-                const uint32_t channel = k->GetBlockingChannel();
-                m_network.RegisterNotification(channel, this, k);
+                uint32_t i = 0;
+                while(const uint32_t channel = k->GetBlockingChannel(i)) {
+                    m_network.RegisterNotification(channel, this, k);
+                    i += 1;
+                }
             } else {
                 std::cout << "end\n";
             }
