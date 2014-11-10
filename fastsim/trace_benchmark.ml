@@ -26,6 +26,10 @@ class trace_benchmark =
 
         val mutable file_name : string = "trace"
 
+        method name = "trace"
+
+        method synthetic = false
+
         method set name value =
             match name with
             | "name" -> file_name <- value ^ ".trace"

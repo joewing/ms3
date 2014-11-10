@@ -9,6 +9,7 @@ type process = {
     directory : string;
     mem : subsystem;
     output : Compress.compress;
+    synthetic : bool;
     mutable accesses : access stream;
     mutable pending_access : access option;
 }
@@ -23,7 +24,7 @@ type peeker = process -> int -> int -> int
 
 type runner = string -> access stream
 
-let create_process produce consume peek run directory mem =
+let create_process produce consume peek run directory mem synthetic =
     {
         produce = produce;
         consume = consume;
@@ -32,17 +33,22 @@ let create_process produce consume peek run directory mem =
         directory = directory;
         mem = mem;
         output = new Compress.compress;
+        synthetic = synthetic;
         accesses = SNil;
         pending_access = None;
     }
 ;;
 
 let trace_produce proc addr t =
-    proc.output#trace_produce addr t
+    if not proc.synthetic then
+        proc.output#trace_produce addr t
+    else ()
 ;;
 
 let trace_consume proc addr t =
-    proc.output#trace_consume addr t
+    if not proc.synthetic then
+        proc.output#trace_consume addr t
+    else ()
 ;;
 
 let get_trace proc = proc.output#get_output;;

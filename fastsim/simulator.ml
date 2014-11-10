@@ -16,7 +16,7 @@ type simulator = {
     model : model;
     directory : string;
     mutable processes : process list;
-    proc_map : (int, process) Hashtbl.t;
+    proc_map : (int, process * Benchmark.benchmark) Hashtbl.t;
     consumers : (int, process) Hashtbl.t;
     producers : (int, process) Hashtbl.t;
     heap : process Pq.t;
@@ -118,8 +118,9 @@ let add_benchmark sim b =
     let consume = consume sim in
     let peek = peek sim in
     let run = b#run in
-    let proc = create_process produce consume peek run sim.directory mem in
-    Hashtbl.add sim.proc_map b#id proc;
+    let syn = b#synthetic in
+    let proc = create_process produce consume peek run sim.directory mem syn in
+    Hashtbl.add sim.proc_map b#id (proc, b);
     if not b#is_ignored then
         sim.processes <- proc :: sim.processes
     else ()
@@ -146,8 +147,8 @@ let reset_simulator sim =
 
 let print_scores sim =
     List.iter (fun m ->
-        let proc = Hashtbl.find sim.proc_map m#id in
-        Printf.printf "subsystem%d %d [" m#id m#score;
+        let (proc, bm) = Hashtbl.find sim.proc_map m#id in
+        Printf.printf "subsystem%d %d %s [" m#id m#score bm#name;
         List.iter (Printf.printf "%d ") @@ get_trace proc;
         Printf.printf "]\n"
     ) sim.model.subsystems;

@@ -9,6 +9,10 @@ class virtual benchmark =
         val mutable last : bool = false
         val mutable ignore : bool = false
 
+        method virtual name : string
+
+        method synthetic = true
+
         method id = index
 
         method is_last = last
