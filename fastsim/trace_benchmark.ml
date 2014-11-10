@@ -44,14 +44,9 @@ class trace_benchmark =
                         let result = read_access inc in
                         SCons (result, process_file)
                     with End_of_file ->
-                        if super#is_last then
-                            begin
-                                Printf.printf "EOF %s\n" file_name;
-                                SNil
-                            end
+                        if super#is_last then SNil
                         else
                             begin
-                                Printf.printf "rewind %s\n" file_name;
                                 seek_in inc 0;
                                 process_file ()
                             end

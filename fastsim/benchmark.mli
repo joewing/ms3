@@ -7,6 +7,7 @@ class virtual benchmark :
         val mutable index : int
         val mutable last : bool
         method virtual name : string
+        method get_parameters : string
         method id : int
         method synthetic : bool
         method is_last : bool

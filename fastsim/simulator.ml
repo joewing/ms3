@@ -146,17 +146,35 @@ let reset_simulator sim =
 ;;
 
 let print_scores sim =
+    Printf.printf "{\"kernels\": [\n";
     List.iter (fun m ->
         let (proc, bm) = Hashtbl.find sim.proc_map m#id in
-        Printf.printf "subsystem%d %d %s [" m#id m#score bm#name;
-        List.iter (Printf.printf "%d ") @@ get_trace proc;
-        Printf.printf "]\n"
+        Printf.printf "{\"id\": %d," m#id;
+        Printf.printf "\"score\": %d," m#score;
+        Printf.printf "\"type\": \"%s\"," bm#name;
+        if bm#synthetic then
+            begin
+                Printf.printf "\"data\": [],";
+                Printf.printf "%s" bm#get_parameters
+            end
+        else
+            begin
+                Printf.printf "\"data\": [";
+                List.iteri (fun i value ->
+                    if i = 0 then Printf.printf "%d" value
+                    else Printf.printf ",%d" value
+                ) (get_trace proc);
+                Printf.printf "]\n"
+            end;
+        Printf.printf "}\n"
     ) sim.model.subsystems;
+    Printf.printf "],\n";
     let t = sim.model.mach.time in
     let time_seconds = (float_of_int t) /. sim.model.mach.frequency in
-    Printf.printf "total %d\n" t;
-    Printf.printf "writes %d\n" sim.model.main#writes;
-    Printf.printf "energy %g\n" (sim.model.main#energy time_seconds)
+    Printf.printf "\"total\": %d,\n" t;
+    Printf.printf "\"writes\": %d,\n" sim.model.main#writes;
+    Printf.printf "\"energy\": %g\n" (sim.model.main#energy time_seconds);
+    Printf.printf "}\n"
 ;;
 
 let run_simulator sim =

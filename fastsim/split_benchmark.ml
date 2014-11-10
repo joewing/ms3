@@ -8,8 +8,11 @@ class split_benchmark =
         val mutable out0 : int = -1
         val mutable out1 : int = -1
 
-        method name =
-            Printf.sprintf "split %d %d %d" in_port out0 out1
+        method name = "split"
+
+        method get_parameters =
+            Printf.sprintf "\"in\": %d, \"out0\": %d, \"out1\": %d"
+                           in_port out0 out1
 
         method set name value =
             match name with

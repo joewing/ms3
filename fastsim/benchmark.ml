@@ -11,6 +11,8 @@ class virtual benchmark =
 
         method virtual name : string
 
+        method get_parameters = ""
+
         method synthetic = true
 
         method id = index
