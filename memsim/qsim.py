@@ -172,23 +172,37 @@ def get_score(mod, ml, value, fstats):
     # Determine how many BRAMs we can give to FIFOs.
     remaining = mod.machine.get_max_cost() - ml.get_cost(mod.machine)
 
-    sim_data = fstats.copy()
+    sim_data = dict()
     sim_data['bram_count'] = remaining.cost
     fifo_data = []
     for fifo in ml.all_fifos():
         item = {}
         item['word_size'] = fifo.get_word_size()
+        item['id'] = fifo.index
         fifo_data.append(item)
     sim_data['queues'] = fifo_data
-
+    kernel_data = []
+    for b in mod.benchmarks:
+        index = b.index
+        stats = fstats.get_stats(index)
+        kernel_data.append(stats)
+    sim_data['kernels'] = kernel_data
+        
     args = ['qsim/qsim']
     p = Popen(args, stdin=PIPE, stdout=PIPE)
     result, _ = p.communicate(input=json.dumps(sim_data))
+    print json.dumps(sim_data)
     result = json.loads(result)
 
+    print
     t = result['total']
-    for fifo, d in zip(ml.all_fifos(), result['depths']):
-        fifo.depth = d
+    depths = dict()
+    for queue in result['queues']:
+        depths[queue['id']] = queue['depth']
+        print 'key {}'.format(queue['id'])
+    for fifo in ml.all_fifos():
+        fifo.depth = depths[fifo.index]
+
     return t
 
 if __name__ == '__main__':

@@ -16,19 +16,20 @@ public:
         m_id(id),
         m_word_size(word_size),
         m_observer(nullptr),
-        m_observer_arg(nullptr)
+        m_observer_arg(nullptr),
+        m_max_depth(1)
     {
-        Reset(1);
+        Reset();
     }
 
-    void Reset(const uint32_t depth)
+    void Reset()
     {
-        m_max_depth = depth;
         m_depth = 0;
         m_blocked_time = 0;
         m_blocked_start = 0;
         m_pop_blocked = false;
         m_push_blocked = false;
+        m_observer = nullptr;
     }
 
     bool Push(const uint64_t t)
@@ -40,8 +41,6 @@ public:
         if(m_depth < m_max_depth) {
             m_depth += 1;
             if(m_observer != nullptr) {
-                assert(!m_push_blocked);
-                assert(m_pop_blocked);
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
@@ -63,8 +62,6 @@ public:
         if(m_depth > 0) {
             m_depth -= 1;
             if(m_observer != nullptr) {
-                assert(m_push_blocked);
-                assert(!m_pop_blocked);
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
@@ -90,6 +87,11 @@ public:
     uint32_t GetDepth() const
     {
         return m_max_depth;
+    }
+
+    void SetDepth(uint32_t depth)
+    {
+        m_max_depth = depth;
     }
 
     void RegisterNotification(Observer * const obs,

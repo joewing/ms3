@@ -9,10 +9,7 @@ class FIFOStats(object):
             self.stats = dict()
 
     def __str__(self):
-        if len(self.stats[0]) == 1:
-            return json.dumps(self.stats.values()[0])
-        else:
-            return json.dumps(self.stats)
+        return json.dumps(self.stats)
 
     def get_stats(self, index):
         index = str(index)

@@ -39,16 +39,19 @@ public:
             const uint32_t result = m_dictionary[m_index];
             m_count -= 1;
             m_index = (m_index + 1) % DICT_SIZE;
-            m_eod = m_position >= m_data.size();
+            m_eod = m_count == 0 && m_position >= m_data.size();
             return result;
         }
         const uint32_t result = m_value;
         m_dictionary[m_index] = m_value;
-        m_index = m_data[m_position] >> 16;
-        m_count = m_data[m_position] & 0xFFFF;
-        m_value = m_data[m_position + 1];
-        m_eod = m_count == 0 && m_position >= m_data.size();
-        m_position += 2;
+        if(m_position + 1 < m_data.size()) {
+            m_index = m_data[m_position] >> 16;
+            m_count = m_data[m_position] & 0xFFFF;
+            m_value = m_data[m_position + 1];
+            m_position += 2;
+        } else {
+            m_eod = true;
+        }
         return result;
     }
 

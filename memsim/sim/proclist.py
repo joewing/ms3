@@ -3,6 +3,7 @@ from subprocess import Popen, PIPE
 from os.path import isfile
 import re
 import sys
+import json
 
 from memsim import priorityqueue, util
 from memsim.machine import GoalType

@@ -25,13 +25,13 @@ public:
     {
     }
 
-    virtual void Reset()
+    virtual void Reset() override
     {
         m_is_pending = false;
         m_data.Reset();
     }
 
-    virtual uint64_t Process(uint64_t t)
+    virtual uint64_t Process(uint64_t t) override
     {
         if(!m_is_pending) {
             if(!m_data.HasNext()) {
@@ -58,12 +58,12 @@ public:
         return 0;
     }
 
-    virtual bool IsBlocked() const
+    virtual bool IsBlocked() const override
     {
         return m_is_pending;
     }
 
-    virtual uint32_t GetBlockingChannel(const uint32_t index) const
+    virtual uint32_t GetBlockingChannel(const uint32_t index) const override
     {
         if(index == 0) {
             return m_pending_access.channel;

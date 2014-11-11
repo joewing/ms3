@@ -21,14 +21,14 @@ public:
     {
     }
 
-    virtual void Reset()
+    virtual void Reset() override
     {
         m_last = m_out0;
         m_pending = false;
         m_blocked = false;
     }
 
-    virtual uint64_t Process(uint64_t t)
+    virtual uint64_t Process(uint64_t t) override
     {
 
         // Read a value.
@@ -70,13 +70,13 @@ public:
         }
     }
 
-    virtual bool IsBlocked() const
+    virtual bool IsBlocked() const override
     {
         // The virtual trace never ends.
         return m_blocked;
     }
 
-    uint32_t GetBlockingChannel(uint32_t index) const
+    uint32_t GetBlockingChannel(uint32_t index) const override
     {
         if(!m_pending && index == 0) {
             return m_in;

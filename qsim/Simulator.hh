@@ -20,7 +20,7 @@ public:
     {
     }
 
-    ~Simulator()
+    virtual ~Simulator()
     {
         for(size_t i = 0; i < m_kernels.size(); i++) {
             delete m_kernels[i];
@@ -70,7 +70,8 @@ public:
 
             // Increase the size of the bottleneck queue.
             const uint32_t word_size = m_network.GetWordSize(bottleneck);
-            uint32_t increment = BRAM_BYTES / word_size;
+            const uint32_t increment = std::max(uint32_t(1),
+                                                BRAM_BYTES / word_size);
             const uint32_t old_depth = m_network.GetDepth(bottleneck);
             if(old_depth == 1) {
                 m_network.SetDepth(bottleneck, increment);
@@ -129,8 +130,6 @@ private:
                     m_network.RegisterNotification(channel, this, k);
                     i += 1;
                 }
-            } else {
-                break;
             }
         }
         delete m_pq;

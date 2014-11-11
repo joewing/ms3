@@ -4,6 +4,11 @@
 class Observer
 {
 public:
+
+    virtual ~Observer()
+    {
+    }
+
     virtual void Notify(void *arg) = 0;
 };
 

@@ -27,48 +27,61 @@ public:
     {
         if(m_queues.size() <= id) {
             m_queues.resize(id + 1);
-            m_depths.resize(id + 1);
         }
         m_queues[id] = queue;
-        m_depths[id] = 1;
     }
 
     void RegisterNotification(const uint32_t id,
                               Observer * const obs,
                               void * const arg)
     {
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
         m_queues[id]->RegisterNotification(obs, arg);
     }
 
     bool Push(const uint32_t id, const uint64_t t) const
     {
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
         return m_queues[id]->Push(t);
     }
 
     bool Pop(const uint32_t id, const uint64_t t) const
     {
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
         return m_queues[id]->Pop(t);
     }
 
     uint32_t GetWordSize(const uint32_t id) const
     {
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
         return m_queues[id]->GetWordSize();
     }
 
     uint32_t GetDepth(const uint32_t id) const
     {
-        return m_depths[id];
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
+        return m_queues[id]->GetDepth();
     }
 
     void SetDepth(const uint32_t id, const uint32_t depth)
     {
-        m_depths[id] = depth;
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
+        m_queues[id]->SetDepth(depth);
     }
 
     void ResetDepths()
     {
-        for(size_t i = 0; i < m_depths.size(); i++) {
-            m_depths[i] = 1;
+        for(size_t i = 0; i < m_queues.size(); i++) {
+            Queue * const q = m_queues[i];
+            if(q != nullptr) {
+                q->SetDepth(1);
+            }
         }
     }
 
@@ -77,7 +90,7 @@ public:
         for(size_t i = 0; i < m_queues.size(); i++) {
             Queue * const q = m_queues[i];
             if(q != nullptr) {
-                q->Reset(m_depths[i]);
+                q->Reset();
             }
         }
     }
@@ -116,7 +129,6 @@ public:
 private:
 
     std::vector<Queue*> m_queues;
-    std::vector<uint32_t> m_depths;
 
 };
 

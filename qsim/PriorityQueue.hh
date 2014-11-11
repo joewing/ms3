@@ -5,13 +5,16 @@
 
 #include <cstdint>
 #include <utility>
+#include <cassert>
 
 template<typename K, typename V>
 class PriorityQueue
 {
 public:
 
-    PriorityQueue(const uint32_t max_depth) : m_size(0)
+    PriorityQueue(const uint32_t max_depth) :
+        m_max_depth(max_depth),
+        m_size(0)
     {
         m_data = new std::pair<K, V>[max_depth + 1];
     }
@@ -28,6 +31,7 @@ public:
 
     void Push(const K key, const V value)
     {
+        assert(m_size < m_max_depth);
         m_size += 1;
         m_data[m_size] = std::make_pair(key, value);
         uint32_t i = m_size;
@@ -89,6 +93,7 @@ private:
         return b;
     }
 
+    const uint32_t m_max_depth;
     uint32_t m_size;
     std::pair<K, V> *m_data;
 

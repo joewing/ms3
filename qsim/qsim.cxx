@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <jsoncpp/json/json.h>
+#include <cassert>
 
 #include "Simulator.hh"
 
@@ -59,6 +60,8 @@ static bool ParseInput(Simulator *sim)
         const Json::Value queue = queues[i];
         const uint32_t id = queue["id"].asUInt();
         const uint32_t word_size = queue["word_size"].asUInt();
+        assert(id > 0);
+        assert(word_size > 0);
         sim->AddQueue(id, word_size);
     }
 
