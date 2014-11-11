@@ -11,7 +11,7 @@ public:
                 const uint32_t in_port,
                 const uint32_t out0,
                 const uint32_t out1) :
-        Kernel(network),
+        Kernel(network, false),
         m_in(in_port),
         m_out0(out0),
         m_out1(out1),

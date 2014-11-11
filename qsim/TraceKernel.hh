@@ -17,8 +17,9 @@ class TraceKernel : public Kernel
 public:
 
     TraceKernel(const QueueNetwork * const network,
+                const bool last,
                 const std::vector<uint32_t> &data) :
-        Kernel(network),
+        Kernel(network, last),
         m_data(Decompress(data)),
         m_is_pending(false)
     {
@@ -33,6 +34,13 @@ public:
     virtual uint64_t Process(uint64_t t)
     {
         if(!m_is_pending) {
+            if(!m_data.HasNext()) {
+                if(m_last) {
+                    return 0;
+                } else {
+                    m_data.Reset();
+                }
+            }
             GetNext();
         }
         t += m_pending_access.delay;
@@ -65,11 +73,6 @@ public:
     }
 
 private:
-
-    bool HasNext() const
-    {
-        return m_data.HasNext();
-    }
 
     void GetNext()
     {

@@ -35,13 +35,14 @@ static bool ParseInput(Simulator *sim)
         const Json::Value kernel = kernels[i];
         const std::string t = kernel["type"].asString();
         if(t == "trace") {
+            const bool last = kernel["last"].asString() == "true";
             const Json::Value data = kernel["data"];
             const Json::ArrayIndex dcount = data.size();
             std::vector<uint32_t> values(dcount);
             for(Json::ArrayIndex j = 0; j < dcount; j++) {
                 values[j] = data[j].asUInt();
             }
-            sim->AddTrace(values);
+            sim->AddTrace(values, last);
         } else if(t == "split") {
             const uint32_t in = kernel["in"].asUInt();
             const uint32_t out0 = kernel["out0"].asUInt();

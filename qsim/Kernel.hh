@@ -10,8 +10,9 @@ class Kernel
 {
 public:
 
-    Kernel(const QueueNetwork * const network) :
-        m_network(network)
+    Kernel(const QueueNetwork * const network, const bool last) :
+        m_network(network),
+        m_last(last)
     {
     }
 
@@ -30,6 +31,7 @@ public:
 protected:
 
     const QueueNetwork * const m_network;
+    const bool m_last;
 
 };
 

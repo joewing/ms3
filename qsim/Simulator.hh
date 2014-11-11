@@ -40,9 +40,9 @@ public:
         m_kernels.push_back(k);
     }
 
-    void AddTrace(const std::vector<uint32_t> &data)
+    void AddTrace(const std::vector<uint32_t> &data, const bool last)
     {
-        TraceKernel * const k = new TraceKernel(&m_network, data);
+        TraceKernel * const k = new TraceKernel(&m_network, last, data);
         m_kernels.push_back(k);
     }
 
@@ -130,7 +130,7 @@ private:
                     i += 1;
                 }
             } else {
-                std::cout << "end\n";
+                break;
             }
         }
         delete m_pq;
