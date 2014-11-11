@@ -2,9 +2,10 @@ from __future__ import print_function
 from datetime import datetime, timedelta
 import json
 import sys
+import zlib
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
-                        UniqueConstraint, literal)
+                        Binary, UniqueConstraint, literal)
 from sqlalchemy.sql import select, and_, or_, func, exists
 
 from memsim import cost
@@ -98,7 +99,7 @@ traces_table = Table(
     'traces', metadata,
     Column('id', Integer, primary_key=True),
     Column('trace_hash', String(64), nullable=False, unique=True),
-    Column('data', Text, nullable=False),
+    Column('data', Binary, nullable=False),
     implicit_returning=False,
 )
 
@@ -245,12 +246,13 @@ class SQLDatabase(base.BaseDatabase):
             return row.id
 
         # Attempt to insert a new trace.
+        compressed = zlib.compress(str(trace))
         stmt = traces_table.insert().from_select([
             traces_table.c.trace_hash,
             traces_table.c.data,
         ], select([
             literal(trace_hash),
-            literal(str(trace)),
+            literal(compressed, type_=Binary),
         ]).where(
             ~exists([traces_table.c.id]).where(
                 traces_table.c.trace_hash == trace_hash
@@ -293,7 +295,7 @@ class SQLDatabase(base.BaseDatabase):
         )
         row = self._execute(stmt).first()
         if row:
-            value = row.value, row.data
+            value = row.value, zlib.decompress(row.data)
             self.results[result_hash] = value
             return value
         else:
