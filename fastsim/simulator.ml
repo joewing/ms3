@@ -154,6 +154,8 @@ let print_scores sim =
         Printf.printf "\"id\": %d," m#id;
         Printf.printf "\"score\": %d," m#score;
         Printf.printf "\"type\": \"%s\"," bm#name;
+        if bm#is_last then Printf.printf "\"last\": \"true\","
+        else Printf.printf "\"last\": \"false\",";
         if bm#synthetic then
             begin
                 Printf.printf "\"data\": [],";

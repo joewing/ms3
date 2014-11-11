@@ -47,7 +47,7 @@ class compress =
                     (* Output the run and new value. *)
                     let index = IntSet.choose buffer_starts in
                     let last = buffer_offset - 1 in
-                    assert(last < (1 lsl dict_size_bits));
+                    assert(last < dict_size);
                     let temp1 = (index lsl dict_size_bits) lor last in
                     let new_value = buffer.(last) in
                     output <- new_value :: temp1 :: output;
@@ -77,7 +77,7 @@ class compress =
                             Hashtbl.replace value_map new_value new_set
                         with Not_found ->
                             let new_set = IntSet.singleton updated in
-                            Hashtbl.add value_map new_value new_set
+                            Hashtbl.replace value_map new_value new_set
                     end
 
                 end
@@ -105,7 +105,7 @@ class compress =
                      * we would have had a run in that case.
                      *)
                     let new_set = IntSet.singleton cursor in
-                    Hashtbl.add value_map buffer.(0) new_set;
+                    Hashtbl.replace value_map buffer.(0) new_set;
 
                     (* Update the cursor. *)
                     cursor <- (cursor + 1) mod dict_size
@@ -128,7 +128,7 @@ class compress =
             assert(value < (1 lsl 32));
             if buffer_offset = 0 then
                 self#start_run value
-            else if buffer_offset != dict_size then
+            else if buffer_offset < dict_size - 2 then
                 self#update_run value
             else
                 begin
@@ -137,6 +137,7 @@ class compress =
                 end
 
         method private get_value is_prod chan time =
+            assert(chan > 0);
             assert(chan < 128);
             let delta = time - last_time in
             let max_time = (1 lsl 24) - 1 in
