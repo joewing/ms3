@@ -191,15 +191,12 @@ def get_score(mod, ml, value, fstats):
     args = ['qsim/qsim']
     p = Popen(args, stdin=PIPE, stdout=PIPE)
     result, _ = p.communicate(input=json.dumps(sim_data))
-    print json.dumps(sim_data)
     result = json.loads(result)
 
-    print
     t = result['total']
     depths = dict()
     for queue in result['queues']:
         depths[queue['id']] = queue['depth']
-        print 'key {}'.format(queue['id'])
     for fifo in ml.all_fifos():
         fifo.depth = depths[fifo.index]
 
