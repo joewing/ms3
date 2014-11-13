@@ -43,7 +43,7 @@ public:
             }
             GetNext();
         }
-        t += m_pending_access.delay + 1;
+        t += std::max(uint64_t(1), uint64_t(m_pending_access.delay));
         if(m_pending_access.is_produce) {
             if(m_network->Push(m_pending_access.channel, t)) {
                 m_is_pending = false;
