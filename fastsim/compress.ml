@@ -22,7 +22,9 @@ class compress =
         (* The current input buffer. *)
         val buffer = Array.make dict_size 0
         val mutable buffer_offset = 0
-        val mutable buffer_starts = IntSet.empty
+        val buffer_starts = Array.make dict_size (-1)
+        val mutable buffer_start_count = 0
+        val mutable buffer_start_offset = 0
 
         (* The output.
          * Reprsentation is:
@@ -36,8 +38,15 @@ class compress =
         method private start_run value =
             buffer.(0) <- value;
             buffer_offset <- 1;
+            buffer_start_count <- 0;
+            buffer_start_offset <- 0;
             try
-                buffer_starts <- Hashtbl.find value_map value
+                IntSet.iter (fun i ->
+                    buffer_starts.(buffer_start_count) <- i;
+                    buffer_start_count <- buffer_start_count + 1;
+                ) @@ Hashtbl.find value_map value;
+                if (Hashtbl.length value_map) = 1 then
+                    buffer_start_count <- 1;
             with Not_found -> self#finish_run
 
         method private finish_run =
@@ -45,9 +54,8 @@ class compress =
                 begin
 
                     (* Output the run and new value. *)
-                    let index = IntSet.choose buffer_starts in
+                    let index = buffer_starts.(buffer_start_offset) in
                     let last = buffer_offset - 1 in
-                    assert(last < dict_size);
                     let temp1 = (index lsl dict_size_bits) lor last in
                     let new_value = buffer.(last) in
                     output <- new_value :: temp1 :: output;
@@ -114,18 +122,29 @@ class compress =
             buffer_offset <- 0
 
         method private update_run value =
-            let f pos = 
-                let i = (buffer_offset + pos) mod dict_size in
-                value = dictionary.(i)
-            in
-            let updated = IntSet.filter f buffer_starts in
+            let old_start = buffer_starts.(buffer_start_offset) in
+            let old_pos = (old_start + buffer_offset) mod dict_size in
             buffer.(buffer_offset) <- value;
             buffer_offset <- buffer_offset + 1;
-            if IntSet.is_empty updated then self#finish_run
-            else buffer_starts <- updated
+            if value != dictionary.(old_pos) then
+                begin
+                    let rec check start index =
+                        let pos = (start + index) mod dict_size in
+                        if index = buffer_offset then false
+                        else if buffer.(index) != dictionary.(pos) then true
+                        else check start (index + 1)
+                    in
+                    let new_offset = ref (buffer_start_offset + 1) in
+                    while !new_offset < buffer_start_count
+                        && check buffer_starts.(!new_offset) 1 do
+                        new_offset := !new_offset + 1
+                    done;
+                    if !new_offset = buffer_start_count then self#finish_run
+                    else buffer_start_offset <- !new_offset
+                end
+            else ();
 
         method trace value =
-            assert(value < (1 lsl 32));
             if buffer_offset = 0 then
                 self#start_run value
             else if buffer_offset < dict_size - 2 then
@@ -137,8 +156,6 @@ class compress =
                 end
 
         method private get_value is_prod chan time =
-            assert(chan > 0);
-            assert(chan < 128);
             let delta = time - last_time in
             let max_time = (1 lsl 24) - 1 in
             let t = if delta > max_time then max_time else delta in
