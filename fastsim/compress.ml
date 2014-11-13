@@ -1,6 +1,7 @@
 
 let dict_size_bits = 16;;
 let dict_size = 1 lsl dict_size_bits;;
+let dict_mask = dict_size - 1;;
 
 module Int = struct
     type t = int
@@ -41,12 +42,17 @@ class compress =
             buffer_start_count <- 0;
             buffer_start_offset <- 0;
             try
-                IntSet.iter (fun i ->
-                    buffer_starts.(buffer_start_count) <- i;
-                    buffer_start_count <- buffer_start_count + 1;
-                ) @@ Hashtbl.find value_map value;
+                let starts = Hashtbl.find value_map value in
                 if (Hashtbl.length value_map) = 1 then
-                    buffer_start_count <- 1;
+                    begin
+                        buffer_start_count <- 1;
+                        buffer_starts.(0) <- 0
+                    end
+                else
+                    IntSet.iter (fun i ->
+                        buffer_starts.(buffer_start_count) <- i;
+                        buffer_start_count <- buffer_start_count + 1;
+                    ) starts
             with Not_found -> self#finish_run
 
         method private finish_run =
@@ -61,10 +67,10 @@ class compress =
                     output <- new_value :: temp1 :: output;
 
                     (* Update the dictionary. *)
-                    let updated = (index + last) mod dict_size in
+                    let updated = (index + last) land dict_mask in
                     let old_value = dictionary.(updated) in
                     dictionary.(updated) <- new_value;
-                    cursor <- (updated + 1) mod dict_size;
+                    cursor <- (updated + 1) land dict_mask;
 
                     (* Remove the old value from the map. *)
                     begin
@@ -116,20 +122,20 @@ class compress =
                     Hashtbl.replace value_map buffer.(0) new_set;
 
                     (* Update the cursor. *)
-                    cursor <- (cursor + 1) mod dict_size
+                    cursor <- (cursor + 1) land dict_mask
                 end
             else ();
             buffer_offset <- 0
 
         method private update_run value =
             let old_start = buffer_starts.(buffer_start_offset) in
-            let old_pos = (old_start + buffer_offset) mod dict_size in
+            let old_pos = (old_start + buffer_offset) land dict_mask in
             buffer.(buffer_offset) <- value;
             buffer_offset <- buffer_offset + 1;
             if value != dictionary.(old_pos) then
                 begin
                     let rec check start index =
-                        let pos = (start + index) mod dict_size in
+                        let pos = (start + index) land dict_mask in
                         if index = buffer_offset then false
                         else if buffer.(index) != dictionary.(pos) then true
                         else check start (index + 1)
