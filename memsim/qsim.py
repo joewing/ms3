@@ -185,11 +185,15 @@ def get_score(mod, ml, value, fstats):
     for b in mod.benchmarks:
         index = b.index
         stats = fstats.get_stats(index)
+        stats['last'] = b.last
         kernel_data.append(stats)
     sim_data['kernels'] = kernel_data
         
     args = ['qsim/qsim']
     p = Popen(args, stdin=PIPE, stdout=PIPE)
+    print
+    print json.dumps(sim_data)
+    print
     result, _ = p.communicate(input=json.dumps(sim_data))
     result = json.loads(result)
 

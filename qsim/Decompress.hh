@@ -14,6 +14,8 @@ public:
 
     Decompress(const std::vector<uint32_t> &data) : m_data(data)
     {
+        assert(data.size() > 0);
+        assert((data.size() & 1) == 0);
         m_dictionary = new uint32_t[DICT_SIZE];
         for(size_t i = 0; i < DICT_SIZE; i++) {
             m_dictionary[i] = UINT32_MAX;

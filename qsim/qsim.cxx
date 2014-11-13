@@ -36,7 +36,7 @@ static bool ParseInput(Simulator *sim)
         const Json::Value kernel = kernels[i];
         const std::string t = kernel["type"].asString();
         if(t == "trace") {
-            const bool last = kernel["last"].asString() == "true";
+            const bool last = kernel["last"].asBool();
             const Json::Value data = kernel["data"];
             const Json::ArrayIndex dcount = data.size();
             std::vector<uint32_t> values(dcount);

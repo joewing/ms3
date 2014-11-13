@@ -67,6 +67,7 @@ public:
 
             // Find the bottleneck.
             const size_t bottleneck = m_network.GetBottleneck();
+            assert(bottleneck != 0);
 
             // Increase the size of the bottleneck queue.
             const uint32_t word_size = m_network.GetWordSize(bottleneck);
@@ -130,6 +131,7 @@ private:
                     m_network.RegisterNotification(channel, this, k);
                     i += 1;
                 }
+                assert(i > 0);
             }
         }
         delete m_pq;

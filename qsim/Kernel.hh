@@ -28,6 +28,11 @@ public:
 
     virtual uint32_t GetBlockingChannel(uint32_t index) const = 0;
 
+    bool IsLast() const
+    {
+        return m_last;
+    }
+
 protected:
 
     const QueueNetwork * const m_network;
