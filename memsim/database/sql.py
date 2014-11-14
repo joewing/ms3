@@ -102,6 +102,12 @@ traces_table = Table(
     Column('data', Binary, nullable=False),
     implicit_returning=False,
 )
+scores_table = Table(
+    'scores', metadata,
+    Column('score_hash', String(64), nullable=False, unique=True),
+    Column('score', BigInteger, nullable=False),
+    implicit_returning=False,
+)
 
 
 class SQLDatabase(base.BaseDatabase):
@@ -116,6 +122,7 @@ class SQLDatabase(base.BaseDatabase):
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(8)        # model_hash -> (id, state)
         self.memories = ResultCache(65536)  # memory_hash -> id
+        self.scores = ResultCache(65536)    # score_hash -> score
         self.send_count = 0
 
     def connect(self):
@@ -334,6 +341,47 @@ class SQLDatabase(base.BaseDatabase):
                         results_table.c.memory_id == mem_id,
                         results_table.c.subsystem == subsystem,
                     )
+                )
+            )
+        )
+        self._execute(stmt)
+        return True
+
+    def get_score(self, mod, mem):
+
+        # Check the cache.
+        score_hash = self.get_hash(str(mod) + str(mem))
+        if score_hash in self.scores:
+            return self.scores[score_hash]
+
+        # Check the database.
+        stmt = select([
+            scores_table.c.score,
+        ]).where(
+            scores_table.c.score_hash == score_hash
+        )
+        row = self._execute(stmt).first()
+        if row:
+            return row.score
+        else:
+            return None
+
+    def add_score(self, mod, mem, score):
+
+        # Update the cache.
+        score_hash = self.get_hash(str(mod) + str(mem))
+        self.scores[score_hash] = score
+
+        # Update the database.
+        stmt = scores_table.insert().from_select([
+                scores_table.c.score_hash,
+                scores_table.c.score,
+            ], select([
+                literal(score_hash),
+                literal(score),
+            ]).where(
+                ~exists([scores_table.c.score]).where(
+                    scores_table.c.score_hash == score_hash
                 )
             )
         )

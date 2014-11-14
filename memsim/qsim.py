@@ -2,9 +2,11 @@ import math
 from random import Random
 from subprocess import Popen, PIPE
 import json
+import hashlib
 
 import cost
 from priorityqueue import PriorityQueue
+from resultcache import ResultCache
 
 
 EPSILON = 1e-4

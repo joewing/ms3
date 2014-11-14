@@ -82,13 +82,19 @@ def show_status(key, name, best_value, best_cost, evaluation, status):
         print()
 
 
-def get_total_value(mod, ml, value, fstats):
+def get_total_value(db, mod, ml, value, fstats):
     """Aggregate value for multiple subsystems."""
     if mod.machine.goal == machine.GoalType.ACCESS_TIME:
         if len(value) == 1:
             return value.values()[0]
         else:
-            return qsim.get_score(mod, ml, value, fstats)
+            for f in ml.all_fifos():
+                f.depth = 1
+            score = db.get_score(mod, ml)
+            if score is None:
+                score = qsim.get_score(mod, ml, value, fstats)
+                db.add_score(mod, ml, score)
+            return score
     elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
     elif mod.machine.goal == machine.GoalType.ENERGY:
@@ -161,7 +167,7 @@ def get_initial_memory(db, m, dist, directory):
         print('Initial Memory: {}'.format(m.memory))
     ml = m.memory.clone()
     best_value, fstats = get_subsystem_values(db, m, ml, directory)
-    total = get_total_value(m, ml, best_value, fstats)
+    total = get_total_value(db, m, ml, best_value, fstats)
     db.insert_best(m, str(ml), total, ml.get_cost(m.machine))
     if main_context.verbose:
         print('Memory: {}'.format(ml))
@@ -184,7 +190,7 @@ def optimize(db, mod, iterations, seed, directory):
     last_ml, values, fstats = get_initial_memory(db, mod, dist, directory)
     last_ml.reset(mod.machine)
     best_cost = last_ml.get_cost(mod.machine)
-    best_value = get_total_value(mod, last_ml, values, fstats)
+    best_value = get_total_value(db, mod, last_ml, values, fstats)
     result_count = db.get_result_count(mod)
     assert(best_cost.fits(mod.machine.get_max_cost()))
 
@@ -198,7 +204,7 @@ def optimize(db, mod, iterations, seed, directory):
 
         # Evaluate the current memory subsystem.
         new_values, fstats = get_subsystem_values(db, mod, ml, directory)
-        total = get_total_value(mod, ml, new_values, fstats)
+        total = get_total_value(db, mod, ml, new_values, fstats)
         cost = ml.get_cost(mod.machine)
         assert(cost.fits(mod.machine.get_max_cost()))
 

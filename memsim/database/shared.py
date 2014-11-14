@@ -13,6 +13,7 @@ class SharedDatabase(base.BaseDatabase):
         self.result_cache = ResultCache(8192)
         self.fpga_cache = ResultCache(1024)
         self.cacti_cache = ResultCache(1024)
+        self.score_cache = ResultCache(8192)
 
     def _execute(self, func, needs_response, *args):
         request = (func, needs_response, args)
@@ -47,6 +48,20 @@ class SharedDatabase(base.BaseDatabase):
         self.result_cache[result_hash] = value, str(trace)
         return self._execute('add_result', False, str(mod), mem,
                              subsystem, value, str(trace))
+
+    def get_score(self, mod, mem):
+        score_hash = self.get_hash(str(mod) + str(mem))
+        if score_hash in self.score_cache:
+            return self.score_cache[score_hash]
+        result = self._execute('get_score', True, str(mod), str(mem))
+        if result is not None:
+            self.score_cache[score_hash] = result
+        return result
+
+    def add_score(self, mod, mem, score):
+        score_hash = self.get_hash(str(mod) + str(mem))
+        self.score_cache[score_hash] = score
+        return self._execute('add_score', False, str(mod), str(mem), score)
 
     def insert_best(self, mod, mem, value, cost):
         return self._execute('insert_best', False, str(mod),
