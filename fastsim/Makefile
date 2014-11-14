@@ -1,6 +1,6 @@
 
 sim:
-	ocamlbuild -cflag -g fastsim.native
+	ocamlbuild -lib bigarray -cflag -g fastsim.native
 	cp fastsim.native fastsim
 
 clean:

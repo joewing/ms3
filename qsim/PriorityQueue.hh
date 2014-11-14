@@ -10,13 +10,21 @@
 template<typename K, typename V>
 class PriorityQueue
 {
+private:
+
+    struct Node
+    {
+        K key;
+        V value;
+    };
+
 public:
 
     PriorityQueue(const uint32_t max_depth) :
         m_max_depth(max_depth),
         m_size(0)
     {
-        m_data = new std::pair<K, V>[max_depth + 1];
+        m_data = new Node[max_depth + 1];
     }
 
     ~PriorityQueue()
@@ -33,11 +41,12 @@ public:
     {
         assert(m_size < m_max_depth);
         m_size += 1;
-        m_data[m_size] = std::make_pair(key, value);
+        m_data[m_size].key = key;
+        m_data[m_size].value = value;
         uint32_t i = m_size;
         while(i != 1) {
             const uint32_t ni = i / 2;
-            if(m_data[i].first < m_data[ni].first) {
+            if(m_data[i].key < m_data[ni].key) {
                 i = Swap(i, ni);
             } else {
                 break;
@@ -54,18 +63,18 @@ public:
             const uint32_t left = i * 2;
             const uint32_t right = left + 1;
             if(right <= m_size) {
-                if(m_data[left].first < m_data[right].first) {
-                    if(m_data[i].first > m_data[left].first) {
+                if(m_data[left].key < m_data[right].key) {
+                    if(m_data[i].key > m_data[left].key) {
                         i = Swap(i, left);
                     } else {
                         break;
                     }
-                } else if(m_data[i].first > m_data[right].first) {
+                } else if(m_data[i].key > m_data[right].key) {
                     i = Swap(i, right);
                 } else {
                     break;
                 }
-            } else if(left <= m_size && m_data[i].first > m_data[left].first) {
+            } else if(left <= m_size && m_data[i].key > m_data[left].key) {
                 i = Swap(i, left);
             } else {
                 break;
@@ -75,19 +84,19 @@ public:
 
     K GetKey() const
     {
-        return m_data[1].first;
+        return m_data[1].key;
     }
 
     V GetValue() const
     {
-        return m_data[1].second;
+        return m_data[1].value;
     }
 
 private:
 
     uint32_t Swap(const uint32_t a, const uint32_t b)
     {
-        const std::pair<K, V> temp = m_data[a];
+        const Node temp = m_data[a];
         m_data[a] = m_data[b];
         m_data[b] = temp;
         return b;
@@ -95,7 +104,7 @@ private:
 
     const uint32_t m_max_depth;
     uint32_t m_size;
-    std::pair<K, V> *m_data;
+    Node *m_data;
 
 };
 
