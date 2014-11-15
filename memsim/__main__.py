@@ -88,12 +88,13 @@ def get_total_value(db, mod, ml, value, fstats):
         if len(value) == 1:
             return value.values()[0]
         else:
-            for f in ml.all_fifos():
+            baseline = ml.clone()
+            for f in baseline.all_fifos():
                 f.depth = 1
-            score = db.get_score(mod, ml)
+            score = db.get_score(mod, baseline)
             if score is None:
                 score = qsim.get_score(mod, ml, value, fstats)
-                db.add_score(mod, ml, score)
+                db.add_score(mod, baseline, score)
             return score
     elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
