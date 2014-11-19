@@ -22,9 +22,10 @@ type simulator = {
     heap : process Pq.t;
     subsystem_map : subsystem IntMap.t;
     fifo_map : fifo IntMap.t;
+    trace_queues : bool;
 }
 
-let create_simulator directory model =
+let create_simulator directory model trace_queues =
     let subsystem_count = List.length model.subsystems in
     let fifo_count = List.length model.fifos in
     let subsystem_map = List.fold_left (fun acc s ->
@@ -43,6 +44,7 @@ let create_simulator directory model =
         heap = Pq.create (subsystem_count + fifo_count);
         subsystem_map = subsystem_map;
         fifo_map = fifo_map;
+        trace_queues = trace_queues;
     }
 ;;
 
@@ -119,7 +121,9 @@ let add_benchmark sim b =
     let peek = peek sim in
     let run = b#run in
     let syn = b#synthetic in
-    let proc = create_process produce consume peek run sim.directory mem syn in
+    let dir = sim.directory in
+    let tq = sim.trace_queues in
+    let proc = create_process produce consume peek run dir mem syn tq in
     Hashtbl.add sim.proc_map b#id (proc, b);
     if not b#is_ignored then
         sim.processes <- proc :: sim.processes

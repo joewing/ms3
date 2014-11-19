@@ -134,6 +134,12 @@ private:
                 assert(i > 0);
             }
         }
+        for(size_t i = 0; i < kernel_count; i++) {
+            Kernel * const k = m_kernels[i];
+            if(k->IsLast()) {
+                assert(!k->IsBlocked());
+            }
+        }
         delete m_pq;
         return t;
     }

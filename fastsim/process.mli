@@ -8,8 +8,8 @@ type peeker = process -> int -> int -> int
 
 type runner = string -> Benchmark.access Benchmark.stream
 
-val create_process : producer -> consumer -> peeker -> runner ->
-                     string -> Subsystem.subsystem -> bool -> process
+val create_process : producer -> consumer -> peeker -> runner -> string ->
+                     Subsystem.subsystem -> bool -> bool -> process
 
 val trace_produce : process -> int -> int -> unit
 
