@@ -1,0 +1,42 @@
+(label dijkstra-perf)
+(machine
+    (word_size  4)
+    (addr_bits  32)
+    (target     asic)
+    (frequency  1000000000)
+    (technology 0.045)
+    (max_cost   1000000)
+    (goal       access_time)
+)
+(memory
+    (main (memory
+            (dram
+                (frequency 400000000)
+                (cas_cycles 5)
+                (rcd_cycles 5)
+                (rp_cycles 5)
+                (page_size 1024)
+                (page_count 65536)
+                (width 8)
+                (burst_size 4)
+                (open_page true)
+                (ddr true)
+            )
+      ))
+    (subsystem (id 1)(depth 1073741824)(word_size 4) (memory
+        (cache (line_size 4)(line_count 2048)(associativity 4)
+               (policy plru)(write_back true)(memory
+            (shift (value 27)(bank
+                (xor (value 8388608)(bank
+                    (spm (word_size 4)(size 4096)(memory (join)))
+                    (memory (join)))))
+                (memory
+                    (cache (line_size 4)(line_count 16384)
+                           (associativity 1)(write_back true)(memory
+                        (cache (line_count 2048)(line_size 4)
+                            (associativity 4)(policy lru)
+                            (write_back true)(memory (main)))))))))))
+)
+(benchmarks
+    (trace (id 1)(last true)(name dijkstra))
+)

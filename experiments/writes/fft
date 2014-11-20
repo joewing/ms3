@@ -1,4 +1,4 @@
-(label mm-writes)
+(label fft-writes)
 (machine
     (word_size  4)
     (addr_bits  32)
@@ -28,5 +28,5 @@
     )
 )
 (benchmarks
-    (trace (id 1)(last true)(name mm))
+    (trace (id 1)(last true)(name fft))
 )

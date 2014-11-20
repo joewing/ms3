@@ -1,4 +1,4 @@
-(label mm-writes)
+(label fft-perf)
 (machine
     (word_size  4)
     (addr_bits  32)
@@ -6,7 +6,7 @@
     (frequency  1000000000)
     (technology 0.045)
     (max_cost   1000000)
-    (goal       writes)
+    (goal       access_time)
 )
 (memory
     (main (memory
@@ -28,5 +28,5 @@
     )
 )
 (benchmarks
-    (trace (id 1)(last true)(name mm))
+    (trace (id 1)(last true)(name fft))
 )
