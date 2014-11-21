@@ -188,7 +188,7 @@ class compress =
                 end
 
         method private trace_op is_prod chan time =
-            let delta = ref (time - last_time + 1) in
+            let delta = ref (time - last_time) in
             last_time <- time;
             let max_time = (1 lsl 24) - 1 in
             while !delta > max_time do
