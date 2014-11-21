@@ -26,29 +26,28 @@ public:
         m_pending_channel = 0;
         m_pending_is_produce = false;
         m_data.Reset();
-        GetNext(1);
+        GetNext(0);
     }
 
     virtual uint64_t Process(const uint64_t t) override
     {
 
         // Return the amount of time left to wait, if any.
-        if(m_next > t) {
+        if(t < m_next) {
             return m_next;
         }
 
         // Process the next push/pop.
         if(m_pending_is_produce) {
             if(m_network->Push(m_pending_channel, t)) {
-                GetNext(t);
-                return t;
+                return GetNext(t);
             }
         } else {
             if(m_network->Pop(m_pending_channel, t)) {
-                GetNext(t);
-                return t;
+                return GetNext(t);
             }
         }
+
         return 0;
     }
 
@@ -63,7 +62,7 @@ public:
 
 private:
 
-    void GetNext(const uint64_t t)
+    uint64_t GetNext(const uint64_t t)
     {
         if(!m_data.HasNext()) {
             if(m_last) {
@@ -79,6 +78,7 @@ private:
             m_pending_channel = (value >> 24) & 0x7F;
             m_next += value & 0x00FFFFFF;
         } while(m_pending_channel == 0);
+        return m_next;
     }
 
     Decompress m_data;

@@ -82,7 +82,7 @@ static bool ParseInput(Simulator *sim)
  *      ]
  *  }
  */
-static void OutputResults(const Simulator &sim, const uint32_t t)
+static void OutputResults(const Simulator &sim, const uint64_t t)
 {
     std::cout << "{\"total\": " << t << ",\n";
     std::cout << "\"queues\": [";

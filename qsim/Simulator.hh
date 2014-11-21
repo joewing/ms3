@@ -80,8 +80,7 @@ public:
                 m_network.SetDepth(bottleneck, old_depth + increment);
             }
             const uint64_t t = Simulate();
-            const int64_t delta = int64_t(best_value) - int64_t(t);
-            if(delta <= 0) {
+            if(best_value <= t) {
                 // No improvement.
                 m_network.SetDepth(bottleneck, old_depth);
                 break;
@@ -119,11 +118,9 @@ private:
         m_network.Reset();
         uint64_t t = 1;
         try {
-            for(;;)  {
-                assert(!m_pq->IsEmpty());
+            while(!m_pq->IsEmpty()) {
                 Kernel * const k = m_pq->GetValue();
                 t = std::max(t, m_pq->GetKey());
-if(t % 100000 == 0) printf("%lu\n", t);
                 m_pq->Pop();
                 const uint64_t next_t = k->Process(t);
                 if(next_t != 0) {
