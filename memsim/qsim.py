@@ -3,6 +3,7 @@ from random import Random
 from subprocess import Popen, PIPE
 import json
 import hashlib
+import tempfile
 
 import cost
 from priorityqueue import PriorityQueue
@@ -192,9 +193,14 @@ def get_score(mod, ml, value, fstats):
     sim_data['kernels'] = kernel_data
         
     args = ['qsim/qsim']
-    p = Popen(args, stdin=PIPE, stdout=PIPE)
-    result, _ = p.communicate(input=json.dumps(sim_data))
-    result = json.loads(result)
+    try:
+        p = Popen(args, stdin=PIPE, stdout=PIPE)
+        result, _ = p.communicate(input=json.dumps(sim_data))
+        result = json.loads(result)
+    except:
+        with tempfile.NamedTemporaryFile(prefix='qsimFail-') as f:
+            f.write(json.dumps(sim_data))
+        assert(False)
 
     t = result['total']
     depths = dict()
