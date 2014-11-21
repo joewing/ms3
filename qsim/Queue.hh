@@ -27,14 +27,13 @@ public:
         m_depth = 0;
         m_blocked_time = 0;
         m_blocked_start = 0;
-        m_pop_blocked = false;
-        m_push_blocked = false;
+        m_blocked = false;
         m_observer = nullptr;
     }
 
     bool Push(const uint64_t t)
     {
-        if(m_pop_blocked) {
+        if(m_blocked) {
             m_blocked_time += t - m_blocked_start;
             m_blocked_start = t;
         }
@@ -44,18 +43,18 @@ public:
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
-            m_pop_blocked = false;
+            m_blocked = false;
             return true;
         } else {
             m_blocked_start = t;
-            m_push_blocked = true;
+            m_blocked = true;
             return false;
         }
     }
 
     bool Pop(const uint64_t t)
     {
-        if(m_push_blocked) {
+        if(m_blocked) {
             m_blocked_time += t - m_blocked_start;
             m_blocked_start = t;
         }
@@ -65,11 +64,11 @@ public:
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
-            m_push_blocked = false;
+            m_blocked = false;
             return true;
         } else {
             m_blocked_start = t;
-            m_pop_blocked = true;
+            m_blocked = true;
             return false;
         }
     }
@@ -98,7 +97,7 @@ public:
                               void * const arg)
     {
         assert(m_observer == nullptr || m_observer == obs);
-        assert(m_push_blocked || m_pop_blocked);
+        assert(m_blocked);
         m_observer = obs;
         m_observer_arg = arg;
     }
@@ -111,8 +110,7 @@ private:
     void *m_observer_arg;
     uint64_t m_blocked_time;
     uint64_t m_blocked_start;
-    bool m_push_blocked;
-    bool m_pop_blocked;
+    bool m_blocked;
     uint32_t m_max_depth;
     uint32_t m_depth;
 

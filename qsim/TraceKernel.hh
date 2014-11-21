@@ -5,13 +5,6 @@
 #include "Decompress.hh"
 #include <vector>
 
-struct Access
-{
-    uint32_t delay;
-    uint8_t channel;
-    bool is_produce;
-};
-
 class TraceKernel : public Kernel
 {
 public:
@@ -21,52 +14,48 @@ public:
                 const std::vector<uint32_t> &data) :
         Kernel(network, last),
         m_data(Decompress(data)),
-        m_is_pending(false)
+        m_next(0),
+        m_pending_channel(0),
+        m_pending_is_produce(false)
     {
     }
 
     virtual void Reset() override
     {
-        m_is_pending = false;
+        m_next = 0;
+        m_pending_channel = 0;
+        m_pending_is_produce = false;
         m_data.Reset();
+        GetNext(1);
     }
 
-    virtual uint64_t Process(uint64_t t) override
+    virtual uint64_t Process(const uint64_t t) override
     {
-        if(!m_is_pending) {
-            if(!m_data.HasNext()) {
-                if(m_last) {
-                    return 0;
-                } else {
-                    m_data.Reset();
-                }
-            }
-            GetNext();
+
+        // Return the amount of time left to wait, if any.
+        if(m_next > t) {
+            return m_next;
         }
-        t += std::max(uint64_t(1), uint64_t(m_pending_access.delay));
-        if(m_pending_access.is_produce) {
-            if(m_network->Push(m_pending_access.channel, t)) {
-                m_is_pending = false;
+
+        // Process the next push/pop.
+        if(m_pending_is_produce) {
+            if(m_network->Push(m_pending_channel, t)) {
+                GetNext(t);
                 return t;
             }
         } else {
-            if(m_network->Pop(m_pending_access.channel, t)) {
-                m_is_pending = false;
+            if(m_network->Pop(m_pending_channel, t)) {
+                GetNext(t);
                 return t;
             }
         }
         return 0;
     }
 
-    virtual bool IsBlocked() const override
-    {
-        return m_is_pending;
-    }
-
     virtual uint32_t GetBlockingChannel(const uint32_t index) const override
     {
         if(index == 0) {
-            return m_pending_access.channel;
+            return m_pending_channel;
         } else {
             return 0;
         }
@@ -74,18 +63,28 @@ public:
 
 private:
 
-    void GetNext()
+    void GetNext(const uint64_t t)
     {
-        const uint32_t value = m_data.GetNext();
-        m_pending_access.is_produce = (value >> 31) & 1;
-        m_pending_access.channel = (value >> 24) & 0x7F;
-        m_pending_access.delay = value & 0x00FFFFFF;
-        m_is_pending = true;
+        if(!m_data.HasNext()) {
+            if(m_last) {
+                throw EndSimulation(t);
+            }
+            m_data.Reset();
+        }
+        m_next = t;
+        do {
+            assert(m_data.HasNext());
+            const uint32_t value = m_data.GetNext();
+            m_pending_is_produce = (value >> 31) & 1;
+            m_pending_channel = (value >> 24) & 0x7F;
+            m_next += value & 0x00FFFFFF;
+        } while(m_pending_channel == 0);
     }
 
     Decompress m_data;
-    Access m_pending_access;
-    bool m_is_pending;
+    uint64_t m_next;
+    uint8_t m_pending_channel;
+    bool m_pending_is_produce;
 
 };
 

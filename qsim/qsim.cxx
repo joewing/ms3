@@ -30,6 +30,7 @@ static bool ParseInput(Simulator *sim)
     const uint32_t bram_count = root["bram_count"].asUInt();
     sim->SetBRAMCount(bram_count);
 
+    uint32_t last_count = 0;
     const Json::Value kernels = root["kernels"];
     const Json::ArrayIndex kernel_count = kernels.size();
     for(Json::ArrayIndex i = 0; i < kernel_count; i++) {
@@ -43,6 +44,9 @@ static bool ParseInput(Simulator *sim)
             for(Json::ArrayIndex j = 0; j < dcount; j++) {
                 values[j] = data[j].asUInt();
             }
+            if(last) {
+                last_count += 1;
+            }
             sim->AddTrace(values, last);
         } else if(t == "split") {
             const uint32_t in = kernel["in"].asUInt();
@@ -54,6 +58,7 @@ static bool ParseInput(Simulator *sim)
             return false;
         }
     }
+    assert(last_count == 1);
     const Json::Value queues = root["queues"];
     const Json::ArrayIndex queue_count = queues.size();
     for(Json::ArrayIndex i = 0; i < queue_count; i++) {

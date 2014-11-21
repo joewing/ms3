@@ -6,6 +6,25 @@
 
 #include <cstdint>
 
+class EndSimulation
+{
+public:
+
+    EndSimulation(const uint64_t t) : m_time(t)
+    {
+    }
+
+    uint64_t GetTime() const
+    {
+        return m_time;
+    }
+
+private:
+
+    const uint64_t m_time;
+
+};
+
 class Kernel
 {
 public:
@@ -23,8 +42,6 @@ public:
     virtual void Reset() = 0;
 
     virtual uint64_t Process(uint64_t t) = 0;
-
-    virtual bool IsBlocked() const = 0;
 
     virtual uint32_t GetBlockingChannel(uint32_t index) const = 0;
 

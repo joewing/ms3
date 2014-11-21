@@ -117,28 +117,28 @@ private:
             m_pq->Push(0, k);
         }
         m_network.Reset();
-        uint64_t t = 0;
-        while(likely(!m_pq->IsEmpty())) {
-            Kernel * const k = m_pq->GetValue();
-            t = std::max(t, m_pq->GetKey());
-            m_pq->Pop();
-            const uint64_t next_t = k->Process(t);
-            if(next_t != 0) {
-                m_pq->Push(next_t, k);
-            } else if(k->IsBlocked()) {
-                uint32_t i = 0;
-                while(const uint32_t channel = k->GetBlockingChannel(i)) {
-                    m_network.RegisterNotification(channel, this, k);
-                    i += 1;
+        uint64_t t = 1;
+        try {
+            for(;;)  {
+                assert(!m_pq->IsEmpty());
+                Kernel * const k = m_pq->GetValue();
+                t = std::max(t, m_pq->GetKey());
+if(t % 100000 == 0) printf("%lu\n", t);
+                m_pq->Pop();
+                const uint64_t next_t = k->Process(t);
+                if(next_t != 0) {
+                    m_pq->Push(next_t, k);
+                } else {
+                    uint32_t i = 0;
+                    while(const uint32_t channel = k->GetBlockingChannel(i)) {
+                        m_network.RegisterNotification(channel, this, k);
+                        i += 1;
+                    }
+                    assert(i > 0);
                 }
-                assert(i > 0);
             }
-        }
-        for(size_t i = 0; i < kernel_count; i++) {
-            Kernel * const k = m_kernels[i];
-            if(k->IsLast()) {
-                assert(!k->IsBlocked());
-            }
+        } catch(const EndSimulation &end) {
+            t = end.GetTime();
         }
         delete m_pq;
         return t;

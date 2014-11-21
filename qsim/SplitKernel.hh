@@ -70,12 +70,6 @@ public:
         }
     }
 
-    virtual bool IsBlocked() const override
-    {
-        // The virtual trace never ends.
-        return m_blocked;
-    }
-
     uint32_t GetBlockingChannel(uint32_t index) const override
     {
         if(!m_pending && index == 0) {
