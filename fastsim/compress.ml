@@ -187,19 +187,24 @@ class compress =
                     self#start_run value
                 end
 
-        method private get_value is_prod chan time =
-            let delta = time - last_time in
-            let max_time = (1 lsl 24) - 1 in
-            let t = if delta > max_time then max_time else delta in
+        method private trace_op is_prod chan time =
+            let delta = ref (time - last_time + 1) in
             last_time <- time;
-            if is_prod then (1 lsl 31) lor (chan lsl 24) lor t
-            else (chan lsl 24) lor t
+            let max_time = (1 lsl 24) - 1 in
+            while !delta > max_time do
+                self#trace max_time;
+                delta := !delta - max_time
+            done;
+            let value = if is_prod then
+                    ((1 lsl 31) lor (chan lsl 24) lor !delta)
+                else ((chan lsl 24) lor !delta)
+            in self#trace value
 
         method trace_produce chan time =
-            self#trace (self#get_value true chan time)
+            self#trace_op true chan time
 
         method trace_consume chan time =
-            self#trace (self#get_value false chan time)
+            self#trace_op false chan time
 
         method get_output =
             self#finish_run;
