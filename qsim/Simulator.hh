@@ -51,46 +51,48 @@ public:
         Queue * const q = new Queue(id, word_size);
         m_network.AddQueue(id, q);
         m_network.SetDepth(id, 1);
+        m_queues.push_back(id);
     }
 
     uint64_t Run()
     {
+
         uint32_t bram_count = m_bram_count;
 
-        // Start all queues with a depth of 1.
-        m_network.ResetDepths();
+        // Start with all queues set to 1 deep.
+        ResetQueueDepths();
+        uint64_t best_time = Simulate();
 
-        // Increase the size of the bottleneck queue until
-        // performance no longer improves.
-        uint64_t best_value = Simulate();
+        // While there are BRAMs available, assign them to
+        // the queue that provides greatest benefit.
         while(bram_count > 0) {
 
-            // Find the bottleneck.
-            const size_t bottleneck = m_network.GetBottleneck();
-            assert(bottleneck != 0);
-
-            // Increase the size of the bottleneck queue.
-            const uint32_t word_size = m_network.GetWordSize(bottleneck);
-            const uint32_t increment = std::max(uint32_t(1),
-                                                BRAM_BYTES / word_size);
-            const uint32_t old_depth = m_network.GetDepth(bottleneck);
-            if(old_depth == 1) {
-                m_network.SetDepth(bottleneck, increment);
-            } else {
-                m_network.SetDepth(bottleneck, old_depth + increment);
+            // Get the bottleneck.
+            uint32_t bottleneck = 0;
+            uint64_t most_blocked_time = 0;
+            for(size_t i = 0; i < m_queues.size(); i++) {
+                const uint32_t qid = m_queues[i];
+                const uint64_t blocked_time = m_network.GetBlockedTime(qid);
+                if(blocked_time > most_blocked_time) {
+                    most_blocked_time = blocked_time;
+                    bottleneck = qid;
+                }
             }
+
+            // Increase the size of the bottleneck queue
+            // and simulate again.
+            bram_count -= IncreaseQueueDepth(bottleneck, bram_count);
             const uint64_t t = Simulate();
-            if(best_value <= t) {
-                // No improvement.
-                m_network.SetDepth(bottleneck, old_depth);
+
+            // Exit if there was no improvement.
+            if(t >= best_time) {
                 break;
             }
-            best_value = t;
-            bram_count -= 1;
+            best_time = t;
 
         }
 
-        return best_value;
+        return best_time;
 
     }
 
@@ -105,6 +107,34 @@ public:
     }
 
 private:
+
+    void ResetQueueDepths()
+    {
+        for(size_t i = 0; i < m_queues.size(); i++) {
+            const uint32_t qid = m_queues[i];
+            m_network.SetDepth(qid, 1);
+        }
+    }
+
+    uint32_t IncreaseQueueDepth(const uint32_t qid,
+                                const uint32_t bram_count)
+    {
+        const uint32_t word_size = m_network.GetWordSize(qid);
+        const uint32_t old_depth = m_network.GetDepth(qid);
+        const uint32_t base_depth = std::max(uint32_t(2),
+                                             BRAM_BYTES / word_size);
+        const uint32_t max_inc = (bram_count * BRAM_BYTES) / word_size;
+        const uint32_t max_depth = old_depth + max_inc;
+        if(old_depth == 1) {
+            m_network.SetDepth(qid, base_depth);
+            return 1;
+        } else {
+            const uint32_t new_depth = std::min(old_depth * 2, max_depth);
+            const uint32_t inc = new_depth - old_depth;
+            m_network.SetDepth(qid, new_depth);
+            return (inc + base_depth - 1) / base_depth;
+        }
+    }
 
     uint64_t Simulate()
     {
@@ -143,6 +173,7 @@ private:
 
     QueueNetwork m_network;
     std::vector<Kernel*> m_kernels;
+    std::vector<uint32_t> m_queues;
     PriorityQueue<uint64_t, Kernel*> *m_pq;
     uint32_t m_bram_count;
 

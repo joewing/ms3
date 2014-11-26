@@ -75,14 +75,11 @@ public:
         m_queues[id]->SetDepth(depth);
     }
 
-    void ResetDepths()
+    uint32_t GetBlockedTime(const uint32_t id) const
     {
-        for(size_t i = 0; i < m_queues.size(); i++) {
-            Queue * const q = m_queues[i];
-            if(q != nullptr) {
-                q->SetDepth(1);
-            }
-        }
+        assert(id < m_queues.size());
+        assert(m_queues[id] != nullptr);
+        return m_queues[id]->GetBlockedTime();
     }
 
     void Reset()
@@ -94,23 +91,6 @@ public:
             }
         }
     }
-
-    uint32_t GetBottleneck() const
-    {
-        uint32_t bottleneck = 0;
-        uint64_t blocked = 0;
-        for(uint32_t i = 0; i < m_queues.size(); i++) {
-            const Queue * const q = m_queues[i];
-            if(q != nullptr) {
-                if(q->GetBlockedTime() > blocked) {
-                    blocked = q->GetBlockedTime();
-                    bottleneck = i;
-                }
-            }
-        }
-        return bottleneck;
-    }
-
 
     std::vector<std::pair<uint32_t, uint32_t> > GetDepths() const
     {
