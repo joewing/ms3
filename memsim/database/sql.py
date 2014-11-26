@@ -104,6 +104,7 @@ traces_table = Table(
 )
 scores_table = Table(
     'scores', metadata,
+    Column('model_id', Integer, nullable=False),
     Column('score_hash', String(64), nullable=False, unique=True),
     Column('score', BigInteger, nullable=False),
     implicit_returning=False,
@@ -117,7 +118,7 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(65536)
+        self.results = ResultCache(8192)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(8)        # model_hash -> (id, state)
@@ -373,10 +374,13 @@ class SQLDatabase(base.BaseDatabase):
         self.scores[score_hash] = score
 
         # Update the database.
+        mod_id = self._get_model_id(mod)
         stmt = scores_table.insert().from_select([
+                scores_table.c.model_id,
                 scores_table.c.score_hash,
                 scores_table.c.score,
             ], select([
+                literal(mod_id),
                 literal(score_hash),
                 literal(score),
             ]).where(
