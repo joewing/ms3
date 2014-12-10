@@ -6,7 +6,7 @@ class fifo =
         inherit subsystem as super
 
         val mutable min_depth : int = 1
-        val mutable bram : bool = false
+        val mutable bram : bool = true
         val mutable read_ptr : int = 0
         val mutable write_ptr : int = 0
         val mutable used : int = 0
