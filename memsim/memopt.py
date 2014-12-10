@@ -29,12 +29,13 @@ class MemoryOptimizer(Optimizer):
         xor.random_xor,
     ]
 
-    def __init__(self, mod, value, seed, dist, directory):
+    def __init__(self, mod, value, seed, dist, directory, full):
         Optimizer.__init__(self, value)
         self.rand = random.Random(seed)
         self.model = mod
         self.dist = dist
         self.directory = directory
+        self.full = full
 
     def create_memory(self, dist, nxt, in_bank):
 
@@ -187,7 +188,7 @@ class MemoryOptimizer(Optimizer):
             # Distribution.is_empty.
             current = last.clone()
             while True:
-                mem = current.choice(self.rand, mach)
+                mem = current.choice(self.rand, mach, self.full)
                 dist = self.dist.get_distribution(mem)
                 if not dist.is_empty():
                     break
@@ -198,7 +199,7 @@ class MemoryOptimizer(Optimizer):
             # Select an action to perform.
             action = self.rand.randint(0, 1 + parameter_count + count)
             updated = False
-            if action == 0:             # Insert
+            if action == 0 and not mem.is_fifo():  # Insert
                 before = str(mem)
                 index = self.rand.randint(0, count - 1)
                 temp = self.insert(dist, mem, index)

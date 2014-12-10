@@ -118,12 +118,12 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(8192)
+        self.results = ResultCache(16)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(8)        # model_hash -> (id, state)
-        self.memories = ResultCache(65536)  # memory_hash -> id
-        self.scores = ResultCache(65536)    # score_hash -> score
+        self.memories = ResultCache(1024)   # memory_hash -> id
+        self.scores = ResultCache(8192)     # score_hash -> score
         self.send_count = 0
 
     def connect(self):
@@ -348,10 +348,13 @@ class SQLDatabase(base.BaseDatabase):
         self._execute(stmt)
         return True
 
-    def get_score(self, mod, mem):
+    def get_score(self, mod, mem, full):
 
         # Check the cache.
-        score_hash = self.get_hash(str(mod) + str(mem))
+        s = str(mod) + str(mem)
+        if full:
+            s += ':full'
+        score_hash = self.get_hash(s)
         if score_hash in self.scores:
             return self.scores[score_hash]
 
@@ -367,10 +370,13 @@ class SQLDatabase(base.BaseDatabase):
         else:
             return None
 
-    def add_score(self, mod, mem, score):
+    def add_score(self, mod, mem, full, score):
 
         # Update the cache.
-        score_hash = self.get_hash(str(mod) + str(mem))
+        s = str(mod) + str(mem)
+        if full:
+            s += ':full'
+        score_hash = self.get_hash(s)
         self.scores[score_hash] = score
 
         # Update the database.

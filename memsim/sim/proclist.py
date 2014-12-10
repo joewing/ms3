@@ -66,7 +66,10 @@ class ProcessList(object):
         mod.memory = ml
         mod.machine = self.machine
         mod.benchmarks = [p.benchmark for p in self.processes]
-        args = [cmd, '-q', '-d', self.directory, '-s', str(subsystem)]
+        if subsystem < 0:
+            args = [cmd, '-d', self.directory]
+        else:
+            args = [cmd, '-q', '-d', self.directory, '-s', str(subsystem)]
         p = Popen(args, stdin=PIPE, stdout=PIPE)
         result, _ = p.communicate(input=str(mod))
 

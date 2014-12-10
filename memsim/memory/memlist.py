@@ -35,13 +35,21 @@ class MemoryList(object):
         assert(lst[index] is None)
         lst[index] = value
 
-    def choice(self, rand, mach):
-        weights = [_get_weight(m, mach) for m in self.active_subsystems()]
+    def choice(self, rand, mach, full):
+        if full:
+            active = []
+            for m in self.active_memories():
+                active.append(m)
+            for m in self.active_fifos():
+                active.append(m)
+        else:
+            active = list(self.active_subsystems())
+        weights = [_get_weight(m, mach) for m in active]
         total_weight = sum(weights)
         if total_weight == 0:
-            return rand.choice(list(self.active_subsystems()))
+            return rand.choice(list(active))
         draw = rand.randint(0, total_weight - 1)
-        for weight, mem in zip(weights, self.active_subsystems()):
+        for weight, mem in zip(weights, active):
             if weight > draw:
                 return mem
             draw -= weight

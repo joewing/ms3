@@ -10,7 +10,7 @@ class SharedDatabase(base.BaseDatabase):
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue
-        self.result_cache = ResultCache(256)
+        self.result_cache = ResultCache(8)
         self.fpga_cache = ResultCache(1024)
         self.cacti_cache = ResultCache(1024)
         self.score_cache = ResultCache(8192)
@@ -49,19 +49,26 @@ class SharedDatabase(base.BaseDatabase):
         return self._execute('add_result', False, str(mod), mem,
                              subsystem, value, str(trace))
 
-    def get_score(self, mod, mem):
-        score_hash = self.get_hash(str(mod) + str(mem))
+    def get_score(self, mod, mem, full):
+        s = str(mod) + str(mem)
+        if full:
+            s += ':full'
+        score_hash = self.get_hash(s)
         if score_hash in self.score_cache:
             return self.score_cache[score_hash]
-        result = self._execute('get_score', True, str(mod), str(mem))
+        result = self._execute('get_score', True, str(mod), str(mem), full)
         if result is not None:
             self.score_cache[score_hash] = result
         return result
 
-    def add_score(self, mod, mem, score):
-        score_hash = self.get_hash(str(mod) + str(mem))
+    def add_score(self, mod, mem, full, score):
+        s = str(mod) + str(mem)
+        if full:
+            s += ':full'
+        score_hash = self.get_hash(s)
         self.score_cache[score_hash] = score
-        return self._execute('add_score', False, str(mod), str(mem), score)
+        return self._execute('add_score', False, str(mod), str(mem),
+                             full, score)
 
     def insert_best(self, mod, mem, value, cost):
         return self._execute('insert_best', False, str(mod),

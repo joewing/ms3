@@ -42,6 +42,10 @@ parser.add_option('-v', '--verbose', dest='verbose', default=False,
                   action='store_true', help='be verbose')
 
 
+class SwitchToFull(Exception):
+    pass
+
+
 class MainContext(object):
     experiments = []
     directory = '.'
@@ -91,10 +95,10 @@ def get_total_value(db, mod, ml, value, fstats):
             baseline = ml.clone()
             for f in baseline.all_fifos():
                 f.depth = 1
-            score = db.get_score(mod, baseline)
+            score = db.get_score(mod, baseline, False)
             if score is None:
                 score = qsim.get_score(mod, ml, value, fstats)
-                db.add_score(mod, baseline, score)
+                db.add_score(mod, baseline, False, score)
             return score
     elif mod.machine.goal == machine.GoalType.WRITES:
         return sum(value.values())
@@ -104,30 +108,38 @@ def get_total_value(db, mod, ml, value, fstats):
         assert(False)
 
 
-def get_subsystem_values(db, m, ml, directory):
+def get_subsystem_values(db, m, ml, directory, full):
     pl = sim.ProcessList(m.machine, directory)
     for b in m.benchmarks:
         pl.add_benchmark(b)
     result = dict()
     fifo_stats = FIFOStats()
-    for b in m.benchmarks:
-        subsystem = b.index
-        mem = ml.get_subsystem(subsystem)
-        mem_name = mem.get_name(True)
-        value, fs_str = db.get_result(m, mem_name, subsystem)
-        if value is None:
-            value, fstats = pl.run(ml, subsystem)
-            db.add_result(m, mem_name, subsystem, value, fstats)
-        else:
-            fstats = FIFOStats(fs_str)
-        if value < 0:
-            raise PendingException()
-        result[subsystem] = value
-        fifo_stats.combine(fstats)
+    if full:
+        score = db.get_score(m, ml, True)
+        if score is None:
+            score, fstats = pl.run(ml, -1)
+            db.add_score(m, ml, True, score)
+        result[0] = score
+        return result, fifo_stats
+    else:
+        for b in m.benchmarks:
+            subsystem = b.index
+            mem = ml.get_subsystem(subsystem)
+            mem_name = mem.get_name(True)
+            value, fs_str = db.get_result(m, mem_name, subsystem)
+            if value is None:
+                value, fstats = pl.run(ml, subsystem)
+                db.add_result(m, mem_name, subsystem, value, fstats)
+            else:
+                fstats = FIFOStats(fs_str)
+            if value < 0:
+                raise PendingException()
+            result[subsystem] = value
+            fifo_stats.combine(fstats)
     return result, fifo_stats
 
 
-def get_initial_memory(db, m, dist, directory):
+def get_initial_memory(db, m, dist, directory, full):
     """Get the initial subsystem and its total access time.
 
     This runs from a process in the process pool.
@@ -160,24 +172,38 @@ def get_initial_memory(db, m, dist, directory):
         ml = memory.parse_memory_list(lexer)
 
         # Load the values for each subsystem.
-        values, fstats = get_subsystem_values(db, m, ml, directory)
+        values, fstats = get_subsystem_values(db, m, ml, directory, full)
         return ml, values, fstats
 
     # Get the current value.
     if main_context.verbose:
         print('Initial Memory: {}'.format(m.memory))
     ml = m.memory.clone()
-    best_value, fstats = get_subsystem_values(db, m, ml, directory)
+    best_value, fstats = get_subsystem_values(db, m, ml, directory, full)
     total = get_total_value(db, m, ml, best_value, fstats)
+
+    if not full:
+        full_values, full_stats = get_subsystem_values(db, m, ml,
+                                                       directory, True)
+        full_result = get_total_value(db, m, ml,
+                                      full_values, full_stats)
+        num = float(abs(full_result - total))
+        denom = float(min(full_result, total))
+        diff = num / denom
+        if diff >= 0.01:
+            print('Switching to full simulation (difference ' +
+                  str(diff) + ')')
+            raise SwitchToFull()
+
     db.insert_best(m, str(ml), total, ml.get_cost(m.machine))
     if main_context.verbose:
         print('Memory: {}'.format(ml))
         print('Value:  {}'.format(total))
         print('Cost:   {}'.format(ml.get_cost(m.machine)))
-    return get_initial_memory(db, m, dist, directory)
+    return get_initial_memory(db, m, dist, directory, full)
 
 
-def optimize(db, mod, iterations, seed, directory):
+def optimize(db, mod, iterations, seed, directory, full):
 
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
@@ -188,15 +214,31 @@ def optimize(db, mod, iterations, seed, directory):
 
     # Load the first memory to use.
     # This will gather statistics if necessary.
-    last_ml, values, fstats = get_initial_memory(db, mod, dist, directory)
+    last_ml, values, fstats = get_initial_memory(db, mod, dist,
+                                                 directory, full)
     last_ml.reset(mod.machine)
     best_cost = last_ml.get_cost(mod.machine)
     best_value = get_total_value(db, mod, last_ml, values, fstats)
     result_count = db.get_result_count(mod)
     assert(best_cost.fits(mod.machine.get_max_cost()))
 
+    # Run full simulation (if we're not already) to ensure the
+    # model is accurate enough.
+    if not full:
+        full_values, full_stats = get_subsystem_values(db, mod, last_ml,
+                                                       directory, True)
+        full_result = get_total_value(db, mod, last_ml,
+                                      full_values, full_stats)
+        num = float(abs(full_result - best_value))
+        denom = float(min(full_result, best_value))
+        diff = num / denom
+        if diff >= 0.01:
+            print('Switching to full simulation (difference ' +
+                  str(diff) + ')')
+            raise SwitchToFull()
+
     # Perform the optimization.
-    o = MemoryOptimizer(mod, best_value, seed, dist, directory)
+    o = MemoryOptimizer(mod, best_value, seed, dist, directory, full)
     db.update_status(best_value, best_cost, result_count, str(o))
     while True:
 
@@ -204,7 +246,8 @@ def optimize(db, mod, iterations, seed, directory):
         ml, subsystem = o.get_next(last_ml)
 
         # Evaluate the current memory subsystem.
-        new_values, fstats = get_subsystem_values(db, mod, ml, directory)
+        new_values, fstats = get_subsystem_values(db, mod, ml,
+                                                  directory, full)
         total = get_total_value(db, mod, ml, new_values, fstats)
         cost = ml.get_cost(mod.machine)
         assert(cost.fits(mod.machine.get_max_cost()))
@@ -242,11 +285,16 @@ def run_experiment(db, mod, iterations, seed, directory):
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
+        full = False
         while True:
             try:
-                optimize(db, mod, iterations, seed, directory)
+                optimize(db, mod, iterations, seed, directory, full)
             except PendingException:
-                pass
+                if full:
+                    print('Reverting to model')
+                full = False
+            except SwitchToFull:
+                full = True
     except KeyboardInterrupt:
         return -1
     except:

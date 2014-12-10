@@ -113,16 +113,13 @@ class FIFO(subsystem.Subsystem):
         return name
 
     def permute(self, rand):
-        action_count = 3
+        action_count = 2
         action = rand.randint(0, action_count - 1)
         for i in xrange(action_count):
-            if action == 0 and self.machine.target == TargetType.FPGA:
-                self.bram = not self.bram
-                return True
-            elif action == 1:
+            if action == 0:
                 self.depth *= 2
                 return True
-            elif action == 2 and self.depth // 2 >= self.min_depth:
+            elif action == 1 and self.depth // 2 >= self.min_depth:
                 self.depth //= 2
                 return True
             action = (action + 1) % action_count
