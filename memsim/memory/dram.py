@@ -17,7 +17,8 @@ class DRAM(main.MainMemory):
                  burst_size,    # Size of a burst in transfers
                  extra_cycles,  # Extra cycles per access
                  open_page,     # True for open-page, False for closed-page
-                 ddr):          # True for DDR, False for SDR.
+                 ddr,           # True for DDR, False for SDR.
+                 multiplier):   # Total cycle multiplier.
         main.MainMemory.__init__(self)
         self.frequency = frequency
         self.cas_cycles = cas_cycles
@@ -31,6 +32,7 @@ class DRAM(main.MainMemory):
         self.extra_cycles = extra_cycles
         self.open_page = open_page
         self.ddr = ddr
+        self.multiplier = multiplier
 
     def get_name(self, full):
         if not full:
@@ -55,6 +57,8 @@ class DRAM(main.MainMemory):
             result += '(ddr false)'
         if self.extra_cycles != 1.0:
             result += '(extra ' + str(self.extra_cycles) + ')'
+        if self.multiplier != 1.0:
+            result += '(multiplier ' + str(self.multiplier) + ')'
         result += ')'
         return result
 
@@ -75,6 +79,7 @@ def _create_dram(lexer, args):
     extra_cycles = parser.get_argument(lexer, args, 'extra', 1.0)
     open_page = parser.get_argument(lexer, args, 'open_page', True)
     ddr = parser.get_argument(lexer, args, 'ddr', True)
+    multiplier = parser.get_argument(lexer, args, 'multiplier', 1.0)
     return DRAM(frequency=frequency,
                 cas_cycles=cas_cycles,
                 rcd_cycles=rcd_cycles,
@@ -86,5 +91,6 @@ def _create_dram(lexer, args):
                 burst_size=burst_size,
                 extra_cycles=extra_cycles,
                 open_page=open_page,
-                ddr=ddr)
+                ddr=ddr,
+                multiplier=multiplier)
 base.constructors['dram'] = _create_dram

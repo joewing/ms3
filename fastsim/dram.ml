@@ -22,6 +22,7 @@ class dram =
         val mutable open_page = true
         val mutable ddr = true
         val mutable extra_cycles = 1.0
+        val mutable extra_mult = 1.0
         val mutable last_time = 0
         val mutable banks : dram_bank array = Array.make 0 {
             page = -1; dirty = false; time = 0.0
@@ -65,6 +66,7 @@ class dram =
             | "open_page" -> open_page <- value = "true"
             | "ddr" -> ddr <- value = "true"
             | "extra" -> extra_cycles <- float_of_string value
+            | "multiplier" -> extra_mult <- float_of_string value
             | _ -> super#set name value
 
         method word_size = width * burst_size
@@ -121,6 +123,8 @@ class dram =
                 else write;
 
             (* Return the result. *)
+            let delta = cycles -. start in
+            let cycles = start +. extra_mult *. delta in
             let result = (mult *. cycles +. extra_cycles)
                        |> ceil |> int_of_float in
             last_time <- mach.time + result;
