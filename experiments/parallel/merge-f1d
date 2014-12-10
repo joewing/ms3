@@ -21,6 +21,7 @@
         (burst_size 8)
         (open_page false)
         (ddr true)
+        (multiplier 1)
     )
   ))
     (subsystem (id 1)(depth 0)(word_size 4)
