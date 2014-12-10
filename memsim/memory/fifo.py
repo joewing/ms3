@@ -1,5 +1,5 @@
-from memsim import parser
-from memsim.memory import subsystem, base, xilinx
+from memsim import parser, cost
+from memsim.memory import subsystem, base, xilinx, cacti
 from memsim.machine import TargetType
 
 
@@ -52,7 +52,16 @@ class FIFO(subsystem.Subsystem):
         return self.depth * self.word_size
 
     def get_cost(self):
-        return self.machine.get_zero_cost()
+        if self.depth == 1:
+            return self.machine.get_zero_cost()
+        elif self.machine.target == TargetType.SIMPLE:
+            return cost.Cost(self.depth * self.word_size)
+        elif self.machine.target == TargetType.ASIC:
+            return cost.Cost(cacti.get_area(self.machine, self))
+        elif self.machine.target == TargetType.FPGA:
+            return xilinx.get_cost(self.machine, self)
+        else:
+            assert(False)
 
     def reset(self, machine):
         subsystem.Subsystem.reset(self, machine)
