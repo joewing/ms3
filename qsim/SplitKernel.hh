@@ -59,11 +59,11 @@ public:
         if(m_network->Push(a, t)) {
             m_pending = false;
             m_blocked = false;
-            return t;
+            return t + 1;
         } else if(m_network->Push(b, t)) {
             m_pending = false;
             m_blocked = false;
-            return t;
+            return t + 1;
         } else {
             m_blocked = true;
             return -1;
