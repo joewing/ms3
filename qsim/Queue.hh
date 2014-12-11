@@ -107,7 +107,6 @@ public:
     void RegisterNotification(Observer * const obs,
                               void * const arg)
     {
-        assert(m_observer == nullptr || m_observer == obs);
         m_observer = obs;
         m_observer_arg = arg;
     }

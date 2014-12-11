@@ -191,7 +191,7 @@ def get_score(mod, ml, value, fstats):
         stats['last'] = b.last
         kernel_data.append(stats)
     sim_data['kernels'] = kernel_data
-        
+
     args = ['qsim/qsim']
     try:
         p = Popen(args, stdin=PIPE, stdout=PIPE)

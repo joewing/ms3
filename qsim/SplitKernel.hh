@@ -28,7 +28,7 @@ public:
         m_blocked = false;
     }
 
-    virtual uint64_t Process(uint64_t t) override
+    virtual int64_t Process(uint64_t t) override
     {
 
         // Read a value.
@@ -36,10 +36,10 @@ public:
             if(m_network->Pop(m_in, t)) {
                 m_pending = true;
                 m_blocked = false;
-                return t + 1;
+                return t;
             } else {
                 m_blocked = true;
-                return 0;
+                return -1;
             }
         }
 
@@ -59,14 +59,14 @@ public:
         if(m_network->Push(a, t)) {
             m_pending = false;
             m_blocked = false;
-            return t + 1;
+            return t;
         } else if(m_network->Push(b, t)) {
             m_pending = false;
             m_blocked = false;
-            return t + 1;
+            return t;
         } else {
             m_blocked = true;
-            return 0;
+            return -1;
         }
     }
 

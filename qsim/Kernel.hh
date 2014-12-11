@@ -41,7 +41,7 @@ public:
 
     virtual void Reset() = 0;
 
-    virtual uint64_t Process(uint64_t t) = 0;
+    virtual int64_t Process(uint64_t t) = 0;
 
     virtual uint32_t GetBlockingChannel(uint32_t index) const = 0;
 

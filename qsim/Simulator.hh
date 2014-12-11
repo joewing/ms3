@@ -148,12 +148,12 @@ private:
         m_network.Reset();
         uint64_t t = 1;
         try {
-            while(!m_pq->IsEmpty()) {
+            for(;;) {
                 Kernel * const k = m_pq->GetValue();
                 t = std::max(t, m_pq->GetKey());
                 m_pq->Pop();
-                const uint64_t next_t = k->Process(t);
-                if(next_t != 0) {
+                const int64_t next_t = k->Process(t);
+                if(next_t >= 0) {
                     m_pq->Push(next_t, k);
                 } else {
                     uint32_t i = 0;

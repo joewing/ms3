@@ -29,7 +29,7 @@ public:
         GetNext(0);
     }
 
-    virtual uint64_t Process(const uint64_t t) override
+    virtual int64_t Process(const uint64_t t) override
     {
 
         // Return the amount of time left to wait, if any.
@@ -48,7 +48,7 @@ public:
             }
         }
 
-        return 0;
+        return -1;
     }
 
     virtual uint32_t GetBlockingChannel(const uint32_t index) const override

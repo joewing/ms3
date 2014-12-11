@@ -139,6 +139,20 @@ def get_subsystem_values(db, m, ml, directory, full):
     return result, fifo_stats
 
 
+def verify_model(db, m, ml, directory, result):
+    print('Validating model')
+    full_values, full_stats = get_subsystem_values(db, m, ml,
+                                                   directory, True)
+    full_result = get_total_value(db, m, ml,
+                                  full_values, full_stats)
+    num = float(abs(full_result - result))
+    diff = float(abs(full_result - result)) / float(result)
+    if diff >= 0.10:
+        print('Switching to full simulation (difference ' + str(diff) + ')')
+        raise SwitchToFull()
+    print('Model validated (difference ' + str(diff) + ')')
+
+
 def get_initial_memory(db, m, dist, directory, full):
     """Get the initial subsystem and its total access time.
 
@@ -183,17 +197,7 @@ def get_initial_memory(db, m, dist, directory, full):
     total = get_total_value(db, m, ml, best_value, fstats)
 
     if not full:
-        full_values, full_stats = get_subsystem_values(db, m, ml,
-                                                       directory, True)
-        full_result = get_total_value(db, m, ml,
-                                      full_values, full_stats)
-        num = float(abs(full_result - total))
-        denom = float(min(full_result, total))
-        diff = num / denom
-        if diff >= 0.01:
-            print('Switching to full simulation (difference ' +
-                  str(diff) + ')')
-            raise SwitchToFull()
+        verify_model(db, m, ml, directory, total)
 
     db.insert_best(m, str(ml), total, ml.get_cost(m.machine))
     if main_context.verbose:
@@ -224,22 +228,13 @@ def optimize(db, mod, iterations, seed, directory, full):
 
     # Run full simulation (if we're not already) to ensure the
     # model is accurate enough.
-    if not full:
-        full_values, full_stats = get_subsystem_values(db, mod, last_ml,
-                                                       directory, True)
-        full_result = get_total_value(db, mod, last_ml,
-                                      full_values, full_stats)
-        num = float(abs(full_result - best_value))
-        denom = float(min(full_result, best_value))
-        diff = num / denom
-        if diff >= 0.01:
-            print('Switching to full simulation (difference ' +
-                  str(diff) + ')')
-            raise SwitchToFull()
+    verify_model(db, mod, last_ml, directory, best_value)
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, best_value, seed, dist, directory, full)
     db.update_status(best_value, best_cost, result_count, str(o))
+    max_iter = 1
+    count = max_iter
     while True:
 
         # Get the next subsystem to try.
@@ -251,6 +246,14 @@ def optimize(db, mod, iterations, seed, directory, full):
         total = get_total_value(db, mod, ml, new_values, fstats)
         cost = ml.get_cost(mod.machine)
         assert(cost.fits(mod.machine.get_max_cost()))
+
+        # Verify the model every MAX_ITER iterations.
+        count -= 1
+        if count == 0:
+            if full:
+                verify_model(db, mod, ml, directory, total)
+            count = max_iter
+            max_iter *= 2
 
         # Update the best.
         updated = False
