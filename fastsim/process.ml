@@ -85,15 +85,19 @@ let process_modify proc addr size =
 let process_input proc addr size =
     let result = proc.consume proc addr in
     let result = if result < 0 then proc.consume proc size else result in
-    proc.pending_access <- None;
-    max 0 result
+    proc.pending_access <-
+        if result < 0 then Some ('A', addr, size)
+        else None;
+    result
 ;;
 
 let process_output proc addr size =
     let result = proc.produce proc addr in
     let result = if result < 0 then proc.produce proc size else result in
-    proc.pending_access <- None;
-    max 0 result
+    proc.pending_access <-
+        if result < 0 then Some ('O', addr, size)
+        else None;
+    result
 ;;
 
 let process_access proc t addr size =

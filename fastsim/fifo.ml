@@ -35,10 +35,8 @@ class fifo =
         method is_empty = used = 0
 
         method private process start write addr size =
-            if bram || depth = 1 then
-                start + 1
-            else
-                super#process start write addr size
+            if bram || depth = 1 then start + 1
+            else super#process start write addr size
 
         method produce =
             if used = depth then

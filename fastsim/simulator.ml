@@ -80,6 +80,7 @@ let produce sim proc (index : int) =
             try
                 trace_produce proc index sim.model.mach.time;
                 let obs = Hashtbl.find sim.observers index in
+                Hashtbl.remove sim.observers index;
                 Pq.push sim.heap 0 obs;
             with Not_found -> ()
     end; rc
@@ -95,7 +96,8 @@ let consume sim proc (index : int) =
             try
                 trace_consume proc index sim.model.mach.time;
                 let obs = Hashtbl.find sim.observers index in
-                Pq.push sim.heap (sim.model.mach.time + 1) obs;
+                Hashtbl.remove sim.observers index;
+                Pq.push sim.heap 0 obs;
             with Not_found -> ()
     end; rc
 ;;
