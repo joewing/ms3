@@ -147,7 +147,7 @@ def verify_model(db, m, ml, directory, result):
                                   full_values, full_stats)
     num = float(abs(full_result - result))
     diff = float(abs(full_result - result)) / float(result)
-    if diff >= 0.10:
+    if diff >= 0.01:
         print('Switching to full simulation (difference ' + str(diff) + ')')
         raise SwitchToFull()
     print('Model validated (difference ' + str(diff) + ')')
