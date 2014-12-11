@@ -17,8 +17,7 @@ type simulator = {
     directory : string;
     mutable processes : process list;
     proc_map : (int, process * Benchmark.benchmark) Hashtbl.t;
-    consumers : (int, process) Hashtbl.t;
-    producers : (int, process) Hashtbl.t;
+    observers : (int, process) Hashtbl.t;
     heap : process Pq.t;
     subsystem_map : subsystem IntMap.t;
     fifo_map : fifo IntMap.t;
@@ -38,8 +37,7 @@ let create_simulator directory model trace_queues =
         model = model;
         directory = directory;
         processes = [];
-        consumers = Hashtbl.create subsystem_count;
-        producers = Hashtbl.create subsystem_count;
+        observers = Hashtbl.create fifo_count;
         proc_map = Hashtbl.create subsystem_count;
         heap = Pq.create (subsystem_count + fifo_count);
         subsystem_map = subsystem_map;
@@ -77,14 +75,12 @@ let produce sim proc (index : int) =
     let rc = fifo#produce in
     begin
         if rc < 0 then
-            Hashtbl.replace sim.producers index proc
+            Hashtbl.replace sim.observers index proc
         else
             try
                 trace_produce proc index sim.model.mach.time;
-                let c = Hashtbl.find sim.consumers index in
-                let t = fifo#consume_time in
-                Pq.push sim.heap t c;
-                Hashtbl.remove sim.consumers index
+                let obs = Hashtbl.find sim.observers index in
+                Pq.push sim.heap 0 obs;
             with Not_found -> ()
     end; rc
 ;;
@@ -94,14 +90,12 @@ let consume sim proc (index : int) =
     let rc = fifo#consume in
     begin
         if rc < 0 then
-            Hashtbl.replace sim.consumers index proc
+            Hashtbl.replace sim.observers index proc
         else
             try
                 trace_consume proc index sim.model.mach.time;
-                let p = Hashtbl.find sim.producers index in
-                let t = fifo#produce_time in
-                Pq.push sim.heap t p;
-                Hashtbl.remove sim.producers index
+                let obs = Hashtbl.find sim.observers index in
+                Pq.push sim.heap (sim.model.mach.time + 1) obs;
             with Not_found -> ()
     end; rc
 ;;
@@ -110,7 +104,7 @@ let peek sim proc (index : int) (offset : int) =
     let fifo = get_fifo sim index in
     let rc = fifo#peek offset in
     if rc < 0 then
-        Hashtbl.add sim.consumers index proc
+        Hashtbl.replace sim.observers index proc
     else (); rc
 ;;
 
@@ -133,8 +127,7 @@ let add_benchmark sim b =
 let reset_simulator sim =
     reset_machine sim.model.mach;
     sim.processes <- [];
-    Hashtbl.clear sim.producers;
-    Hashtbl.clear sim.consumers;
+    Hashtbl.clear sim.observers;
     List.iter (add_benchmark sim) sim.model.benchmarks;
     let offset = ref 0 in
     List.iter (fun m ->
