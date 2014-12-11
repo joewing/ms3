@@ -228,7 +228,8 @@ def optimize(db, mod, iterations, seed, directory, full):
 
     # Run full simulation (if we're not already) to ensure the
     # model is accurate enough.
-    verify_model(db, mod, last_ml, directory, best_value)
+    if not full:
+        verify_model(db, mod, last_ml, directory, best_value)
 
     # Perform the optimization.
     o = MemoryOptimizer(mod, best_value, seed, dist, directory, full)
@@ -250,7 +251,7 @@ def optimize(db, mod, iterations, seed, directory, full):
         # Verify the model every MAX_ITER iterations.
         count -= 1
         if count == 0:
-            if full:
+            if not full:
                 verify_model(db, mod, ml, directory, total)
             count = max_iter
             max_iter *= 2
