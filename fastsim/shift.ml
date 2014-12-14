@@ -17,6 +17,7 @@ class shift =
             let word_bits = (log2 word_size) - 1 in
             let word_mask = word_size - 1 in
             let bits = mach.addr_bits - word_bits in
+            let count = count mod bits in
             let mask = (1 lsl bits) - 1 in
             let addr = value lsr word_bits in
             let word = value land word_mask in
