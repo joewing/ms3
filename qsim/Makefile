@@ -10,7 +10,7 @@ OBJECTS = qsim.o
 all: qsim
 
 qsim: $(OBJECTS)
-	$(CXX) $(LDFLAGS) -o qsim $(OBJECTS) /usr/lib/libjsoncpp.a
+	$(CXX) $(LDFLAGS) -o qsim $(OBJECTS)
 
 .cxx.o: $<
 	$(CXX) -c $(CXXFLAGS) $<
