@@ -10,6 +10,7 @@ import time
 import traceback
 import signal
 import threading
+import random
 
 from memsim import (
     database,
@@ -115,10 +116,13 @@ def get_subsystem_values(db, m, ml, directory, full):
     result = dict()
     fifo_stats = FIFOStats()
     if full:
-        score = db.get_score(m, ml, True)
+        baseline = ml.clone()
+        for f in baseline.all_fifos():
+            f.depth = 1
+        score = db.get_score(m, baseline, True)
         if score is None:
             score, fstats = pl.run(ml, -1)
-            db.add_score(m, ml, True, score)
+            db.add_score(m, baseline, True, score)
         result[0] = score
         return result, fifo_stats
     else:
@@ -172,20 +176,29 @@ def get_initial_memory(db, m, dist, directory, full):
             dist.save(state)
             db.save(m, state)
 
-    # Attempt to load the best subsystem from the database.
-    # If not found, we need to evaluate it.
-    best_name, _, _ = db.get_best(m)
-    if best_name:
+    # Determine if we should use the best or the initial
+    # memory as a starting point.
+    if random.randint(0, 1) == 0:
+        # Attempt to load the best subsystem from the database.
+        # If not found, we need to evaluate it.
+        best_name, _, _ = db.get_best(m)
+        if best_name:
 
-        # Load statistics from the database.
+            # Load statistics from the database.
+            state = db.load(m)
+            dist.load(state, m)
+
+            # Create the initial memory subsystem.
+            lexer = lex.Lexer(StringIO(best_name))
+            ml = memory.parse_memory_list(lexer)
+
+            # Load the values for each subsystem.
+            values, fstats = get_subsystem_values(db, m, ml, directory, full)
+            return ml, values, fstats
+    else:
         state = db.load(m)
         dist.load(state, m)
-
-        # Create the initial memory subsystem.
-        lexer = lex.Lexer(StringIO(best_name))
-        ml = memory.parse_memory_list(lexer)
-
-        # Load the values for each subsystem.
+        ml = m.memory.clone()
         values, fstats = get_subsystem_values(db, m, ml, directory, full)
         return ml, values, fstats
 
@@ -199,11 +212,11 @@ def get_initial_memory(db, m, dist, directory, full):
     if not full:
         verify_model(db, m, ml, directory, total)
 
-    db.insert_best(m, str(ml), total, ml.get_cost(m.machine))
+    db.insert_best(m, str(ml), total, ml.get_cost(m.machine, full))
     if main_context.verbose:
         print('Memory: {}'.format(ml))
         print('Value:  {}'.format(total))
-        print('Cost:   {}'.format(ml.get_cost(m.machine)))
+        print('Cost:   {}'.format(ml.get_cost(m.machine, full)))
     return get_initial_memory(db, m, dist, directory, full)
 
 
@@ -221,7 +234,7 @@ def optimize(db, mod, iterations, seed, directory, full):
     last_ml, values, fstats = get_initial_memory(db, mod, dist,
                                                  directory, full)
     last_ml.reset(mod.machine)
-    best_cost = last_ml.get_cost(mod.machine)
+    best_cost = last_ml.get_cost(mod.machine, full)
     best_value = get_total_value(db, mod, last_ml, values, fstats)
     result_count = db.get_result_count(mod)
     assert(best_cost.fits(mod.machine.get_max_cost()))
@@ -234,7 +247,7 @@ def optimize(db, mod, iterations, seed, directory, full):
     # Perform the optimization.
     o = MemoryOptimizer(mod, best_value, seed, dist, directory, full)
     db.update_status(best_value, best_cost, result_count, str(o))
-    max_iter = 1
+    max_iter = 100
     count = max_iter
     while True:
 
@@ -245,7 +258,7 @@ def optimize(db, mod, iterations, seed, directory, full):
         new_values, fstats = get_subsystem_values(db, mod, ml,
                                                   directory, full)
         total = get_total_value(db, mod, ml, new_values, fstats)
-        cost = ml.get_cost(mod.machine)
+        cost = ml.get_cost(mod.machine, full)
         assert(cost.fits(mod.machine.get_max_cost()))
 
         # Verify the model every MAX_ITER iterations.
@@ -254,7 +267,7 @@ def optimize(db, mod, iterations, seed, directory, full):
             if not full:
                 verify_model(db, mod, ml, directory, total)
             count = max_iter
-            max_iter *= 2
+            max_iter *= 10
 
         # Update the best.
         updated = False

@@ -11,9 +11,12 @@ class Optimizer(object):
 
     def __init__(self, value):
         self.last_value = value
-        self.threshold = 1 + value // 8
-        self.delta = random.randint(1, 4)
-        while self.delta < 1024 and random.randint(0, 1) == 0:
+        self.threshold = 1 + value
+        max_threshold = self.threshold * 10
+        while self.threshold < max_threshold and random.randint(0, 1) == 0:
+            self.threshold += value
+        self.delta = random.randint(1, 8)
+        while self.delta < 8192 and random.randint(0, 1) == 0:
             self.delta += 1
 
     def __str__(self):

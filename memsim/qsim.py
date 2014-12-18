@@ -173,7 +173,7 @@ def get_score(mod, ml, value, fstats):
         fifo.depth = 1
 
     # Determine how many BRAMs we can give to FIFOs.
-    remaining = mod.machine.get_max_cost() - ml.get_cost(mod.machine)
+    remaining = mod.machine.get_max_cost() - ml.get_cost(mod.machine, False)
 
     sim_data = dict()
     sim_data['bram_count'] = remaining.cost

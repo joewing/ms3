@@ -179,7 +179,7 @@ class MemoryOptimizer(Optimizer):
         mach = self.model.machine
         max_path = mach.max_path_length
         max_cost = mach.get_max_cost()
-        assert(last.get_cost(mach).fits(max_cost))
+        assert(last.get_cost(mach, self.full).fits(max_cost))
         while True:
 
             # Select a memory to modify.
@@ -216,7 +216,7 @@ class MemoryOptimizer(Optimizer):
             else:                       # Permute
                 index = self.rand.randint(0, count - 1)
                 updated = self.permute(dist, mem, index)
-            if updated and current.get_cost(mach).fits(max_cost):
+            if updated and current.get_cost(mach, self.full).fits(max_cost):
                 if current.get_max_path_length() > max_path:
                     continue
                 return current, subsystem

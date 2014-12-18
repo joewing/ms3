@@ -115,11 +115,15 @@ class MemoryList(object):
         else:
             self._insert(self.subsystems, index, mem)
 
-    def get_cost(self, mach):
+    def get_cost(self, mach, include_fifos):
         self.reset(mach)
         result = self.main_memory.machine.get_zero_cost()
-        for m in self.all_memories():
-            result += m.get_total_cost()
+        if include_fifos:
+            for m in self.all_memories():
+                result += m.get_total_cost()
+        else:
+            for m in self.all_subsystems():
+                result += m.get_total_cost()
         return result
 
     def get_max_path_length(self):
