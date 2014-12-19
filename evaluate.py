@@ -76,11 +76,11 @@ def simulate(experiment, mem, baseline, replace, directory, fast):
     mod = model.parse_model_file(experiment)
     db = database.get_instance()
     ml = get_memory_list(db, mem, mod, baseline, replace)
-    time = db.get_result(mod, ml)
+    time = db.get_score(mod, ml, True)
     if time is None:
-        time, cost = evaluate(mod, ml, directory, fast)
-        db.add_result(mod, ml, time, cost)
-    print(get_experiment_name(experiment) + ',' + str(time))
+        result, cost = evaluate(mod, ml, directory, fast)
+        value, stats = result
+    print(get_experiment_name(experiment) + ',' + str(value))
 
 
 def get_stats(experiments, mem, baseline, replace, directory):

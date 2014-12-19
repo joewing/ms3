@@ -44,7 +44,7 @@ class cache =
             | "cycle_time" -> cycle_time <- int_of_string value
             | _ -> super#set name value
 
-        method word_size = line_size
+        method word_size = 4
 
         method private set_size = line_count / associativity
 

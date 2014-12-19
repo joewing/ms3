@@ -10,6 +10,7 @@ import time
 import traceback
 import signal
 import threading
+import random
 
 from memsim import (
     database,
@@ -104,6 +105,12 @@ def get_total_value(db, mod, ml, value, fstats):
         return sum(value.values())
     elif mod.machine.goal == machine.GoalType.ENERGY:
         return sum(value.values())
+    elif mod.machine.goal == machine.GoalType.MIX25:
+        return value.values()[0]
+    elif mod.machine.goal == machine.GoalType.MIX50:
+        return value.values()[0]
+    elif mod.machine.goal == machine.GoalType.MIX75:
+        return value.values()[0]
     else:
         assert(False)
 
@@ -140,6 +147,7 @@ def get_subsystem_values(db, m, ml, directory, full):
 
 
 def verify_model(db, m, ml, directory, result):
+    return
     print('Validating model')
     full_values, full_stats = get_subsystem_values(db, m, ml,
                                                    directory, True)
@@ -172,20 +180,29 @@ def get_initial_memory(db, m, dist, directory, full):
             dist.save(state)
             db.save(m, state)
 
-    # Attempt to load the best subsystem from the database.
-    # If not found, we need to evaluate it.
-    best_name, _, _ = db.get_best(m)
-    if best_name:
+    # Determine if we should use the best or the initial
+    # memory as a starting point.
+    if random.randint(0, 7) < 7:
+        # Attempt to load the best subsystem from the database.
+        # If not found, we need to evaluate it.
+        best_name, _, _ = db.get_best(m)
+        if best_name:
 
-        # Load statistics from the database.
+            # Load statistics from the database.
+            state = db.load(m)
+            dist.load(state, m)
+
+            # Create the initial memory subsystem.
+            lexer = lex.Lexer(StringIO(best_name))
+            ml = memory.parse_memory_list(lexer)
+
+            # Load the values for each subsystem.
+            values, fstats = get_subsystem_values(db, m, ml, directory, full)
+            return ml, values, fstats
+    else:
         state = db.load(m)
         dist.load(state, m)
-
-        # Create the initial memory subsystem.
-        lexer = lex.Lexer(StringIO(best_name))
-        ml = memory.parse_memory_list(lexer)
-
-        # Load the values for each subsystem.
+        ml = m.memory.clone()
         values, fstats = get_subsystem_values(db, m, ml, directory, full)
         return ml, values, fstats
 

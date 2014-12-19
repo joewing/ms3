@@ -98,6 +98,12 @@ class ProcessList(object):
             return writes, fifo_stats
         elif self.machine.goal == GoalType.ENERGY:
             return energy, fifo_stats
+        elif self.machine.goal == GoalType.MIX25:
+            return int(float(total) * 0.25 + float(writes) * 0.75), fifo_stats
+        elif self.machine.goal == GoalType.MIX50:
+            return int(float(total) * 0.5 + float(writes) * 0.5), fifo_stats
+        elif self.machine.goal == GoalType.MIX75:
+            return int(float(total) * 0.75 + float(writes) * 0.25), fifo_stats
         else:
             assert(False)
 

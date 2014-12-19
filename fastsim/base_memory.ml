@@ -25,7 +25,7 @@ class virtual base_memory =
 
         method send_request (base : int) (start : int) (write : bool)
                             (addr : int) (size : int) : int =
-            let word_size = self#word_size in
+            let word_size = 4 in
             let word_mask = word_size - 1 in
             let addr_mask = mach.addr_mask in
             let offset = addr land word_mask in

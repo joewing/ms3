@@ -6,4 +6,4 @@ def evaluate(mod, ml, directory, fast):
     pl = ProcessList(mod.machine, directory)
     for b in mod.benchmarks:
         pl.add_benchmark(b)
-    return pl.run(ml, fast), ml.get_cost()
+    return pl.run(ml, -1), ml.get_cost(mod.machine)

@@ -7,7 +7,7 @@ MIN_SPM_WORDS = 512
 
 
 def random_spm(machine, nxt, rand):
-    word_size = nxt.get_word_size()
+    word_size = 4 #nxt.get_word_size()
     size = MIN_SPM_WORDS * word_size
     size = word_size * MIN_SPM_WORDS * (2 ** rand.randint(0, 5))
     spm = SPM(nxt, word_size, size)
@@ -105,7 +105,7 @@ class SPM(container.Container):
             assert(False)
 
     def permute(self, rand):
-        temp = rand.randint(0, 3)
+        temp = rand.randint(0, 1)
         min_size = self.word_size * MIN_SPM_WORDS
         if temp == 0 and self.size > min_size:
             self.size //= 2
