@@ -192,30 +192,33 @@ class MemoryOptimizer(Optimizer):
                 dist = self.dist.get_distribution(mem)
                 if not dist.is_empty():
                     break
-            count = mem.count()
-            parameter_count = mem.get_parameter_count() * 8
             subsystem = mem.index
 
-            # Select an action to perform.
-            action = self.rand.randint(0, 1 + parameter_count + count)
             updated = False
-            if action == 0 and not mem.is_fifo():  # Insert
-                before = str(mem)
-                index = self.rand.randint(0, count - 1)
-                temp = self.insert(dist, mem, index)
-                if temp is not None and str(temp) != before:
-                    current.update(temp)
-                    updated = True
-            elif action <= count:       # Remove
-                before = str(mem)
-                index = self.rand.randint(0, count - 1)
-                temp = self.remove(dist, mem, index)
-                if temp is not None and str(temp) != before:
-                    current.update(temp)
-                    updated = True
-            else:                       # Permute
-                index = self.rand.randint(0, count - 1)
-                updated = self.permute(dist, mem, index)
+            for i in xrange(0, self.rand.randint(1, 2)):
+                count = mem.count()
+                parameter_count = mem.get_parameter_count() * 8
+                # Select an action to perform.
+                action = self.rand.randint(0, 1 + parameter_count + count)
+                if action == 0 and not mem.is_fifo():  # Insert
+                    before = str(mem)
+                    index = self.rand.randint(0, count - 1)
+                    temp = self.insert(dist, mem, index)
+                    if temp is not None and str(temp) != before:
+                        current.update(temp)
+                        updated = True
+                elif action <= count:       # Remove
+                    before = str(mem)
+                    index = self.rand.randint(0, count - 1)
+                    temp = self.remove(dist, mem, index)
+                    if temp is not None and str(temp) != before:
+                        current.update(temp)
+                        updated = True
+                else:                       # Permute
+                    index = self.rand.randint(0, count - 1)
+                    if self.permute(dist, mem, index):
+                        updated = True
+
             if updated and current.get_cost(mach, self.full).fits(max_cost):
                 if current.get_max_path_length() > max_path:
                     continue

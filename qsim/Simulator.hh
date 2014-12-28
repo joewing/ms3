@@ -78,6 +78,9 @@ public:
                     bottleneck = qid;
                 }
             }
+            if(bottleneck == 0) {
+                break;
+            }
 
             // Increase the size of the bottleneck queue
             // and simulate again.

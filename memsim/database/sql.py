@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import json
 import sys
 import zlib
+import random
 from sqlalchemy import (create_engine, Table, Column, Integer, String,
                         ForeignKey, MetaData, Text, Float, BigInteger,
                         Binary, UniqueConstraint, literal)
@@ -118,12 +119,12 @@ class SQLDatabase(base.BaseDatabase):
         base.BaseDatabase.__init__(self)
         self.engine = None
         self.url = url
-        self.results = ResultCache(16)
+        self.results = ResultCache(128)
         self.cacti_results = ResultCache(512)
         self.fpga_results = ResultCache(1024)
         self.models = ResultCache(8)        # model_hash -> (id, state)
         self.memories = ResultCache(1024)   # memory_hash -> id
-        self.scores = ResultCache(8192)     # score_hash -> score
+        self.scores = ResultCache(65536)    # score_hash -> score
         self.send_count = 0
 
     def connect(self):
@@ -491,6 +492,31 @@ class SQLDatabase(base.BaseDatabase):
             return row.name, row.value, c
         else:
             return None, 0, cost.Cost()
+
+    def get_random(self, mod, subsystem):
+        """Get a random memory for the specified model and subsystem."""
+        mod_id = self._get_model_id(mod)
+        full_query = select([
+            memories_table.c.name,
+        ]).where(
+            and_(
+                results_table.c.memory_id == memories_table.c.id,
+                results_table.c.model_id == mod_id,
+                results_table.c.subsystem == subsystem,
+            )
+        ).alias()
+        count_query = select([func.count(full_query.c.name)])
+        row = self._execute(count_query).first()
+        count = row[0]
+        if count == 0:
+            return None
+        r = random.randint(0, count - 1)
+        query = select([full_query.c.name]).offset(r).limit(1)
+        row = self._execute(query).first()
+        if row:
+            return row.name
+        else:
+            return None
 
     def get_result_count(self, mod):
         """Get the total number of results for the specified model."""

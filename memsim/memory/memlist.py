@@ -6,6 +6,7 @@ from memsim.memory.main import MainMemory
 
 
 def _get_weight(m, mach):
+    return 1
     m.reset(mach)
     cost = m.get_cost()
     return (cost.cost + 1) * (m.score + 1)
@@ -44,10 +45,11 @@ class MemoryList(object):
                 active.append(m)
         else:
             active = list(self.active_subsystems())
+        return rand.choice(active)
         weights = [_get_weight(m, mach) for m in active]
         total_weight = sum(weights)
         if total_weight == 0:
-            return rand.choice(list(active))
+            return rand.choice(active)
         draw = rand.randint(0, total_weight - 1)
         for weight, mem in zip(weights, active):
             if weight > draw:

@@ -11,17 +11,17 @@ class Optimizer(object):
 
     def __init__(self, value):
         self.last_value = value
-        self.threshold = 1 + value
-        max_threshold = self.threshold * 10
+        self.threshold = 1 + (value // 4)
+        max_threshold = self.threshold * 4
         while self.threshold < max_threshold and random.randint(0, 1) == 0:
-            self.threshold += value
+            self.threshold += value // 8
         self.delta = random.randint(1, 8)
         while self.delta < 8192 and random.randint(0, 1) == 0:
             self.delta += 1
 
     def __str__(self):
         """Get a string to represent the current status."""
-        return '{}'.format(self.threshold)
+        return '{}'.format(self.last_value)
 
     def modify(self, current):
         """Modify the current state."""

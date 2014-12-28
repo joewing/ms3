@@ -18,9 +18,10 @@ public:
         m_observer(nullptr),
         m_observer_arg(nullptr),
         m_max_depth(1),
-        m_push_time(0),
-        m_pop_time(0),
-        m_block_start(0),
+        m_empty_time(0),
+        m_empty_start(0),
+        m_full_start(0),
+        m_blocked_time(0),
         m_push_blocked(false),
         m_pop_blocked(false)
     {
@@ -33,28 +34,27 @@ public:
         m_observer = nullptr;
         m_pop_blocked = false;
         m_push_blocked = false;
-        m_block_start = 0;
-        m_push_time = 0;
-        m_pop_time = 0;
+        m_empty_start = 0;
+        m_empty_time = 0;
+        m_full_start = 0;
+        m_blocked_time = 0;
     }
 
     bool Push(const uint64_t t)
     {
         if(m_depth < m_max_depth) {
-            m_depth += 1;
             if(m_pop_blocked) {
-                m_pop_time += t - m_block_start;
                 m_pop_blocked = false;
             }
+            m_depth += 1;
             if(m_observer != nullptr) {
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
             return true;
         } else {
-            assert(!m_pop_blocked);
             if(!m_push_blocked) {
-                m_block_start = t;
+                m_full_start = t;
                 m_push_blocked = true;
             }
             return false;
@@ -64,20 +64,19 @@ public:
     bool Pop(const uint64_t t)
     {
         if(m_depth > 0) {
-            m_depth -= 1;
             if(m_push_blocked) {
-                m_push_time += t - m_block_start;
+                m_blocked_time = std::max(m_blocked_time, t - m_full_start);
                 m_push_blocked = false;
             }
+            m_depth -= 1;
             if(m_observer != nullptr) {
                 m_observer->Notify(m_observer_arg);
                 m_observer = nullptr;
             }
             return true;
         } else {
-            assert(!m_push_blocked);
             if(!m_pop_blocked) {
-                m_block_start = t;
+                m_empty_start = t;
                 m_pop_blocked = true;
             }
             return false;
@@ -86,7 +85,7 @@ public:
 
     uint64_t GetBlockedTime() const
     {
-        return std::min(m_push_time, m_pop_time);
+        return m_blocked_time;
     }
 
     uint32_t GetWordSize() const
@@ -119,9 +118,10 @@ private:
     void *m_observer_arg;
     uint32_t m_max_depth;
     uint32_t m_depth;
-    uint64_t m_push_time;
-    uint64_t m_pop_time;
-    uint64_t m_block_start;
+    uint64_t m_empty_time;
+    uint64_t m_empty_start;
+    uint64_t m_full_start;
+    uint64_t m_blocked_time;
     bool m_push_blocked;
     bool m_pop_blocked;
 

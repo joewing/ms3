@@ -41,6 +41,8 @@ parser.add_option('-t', '--threads', dest='threads', default=1,
                   help='number of threads')
 parser.add_option('-v', '--verbose', dest='verbose', default=False,
                   action='store_true', help='be verbose')
+parser.add_option('-f', '--full', dest='full', default=False,
+                  action='store_true', help='full simulation')
 
 
 class SwitchToFull(Exception):
@@ -59,6 +61,7 @@ class MainContext(object):
     verbose = False
     stop = False
     lock = threading.Lock()
+    full = False
 
 
 main_context = MainContext()
@@ -117,12 +120,13 @@ def get_subsystem_values(db, m, ml, directory, full):
     fifo_stats = FIFOStats()
     if full:
         baseline = ml.clone()
-        for f in baseline.all_fifos():
-            f.depth = 1
+#        for f in baseline.all_fifos():
+#            f.depth = 1
         score = db.get_score(m, baseline, True)
         if score is None:
             score, fstats = pl.run(ml, -1)
             db.add_score(m, baseline, True, score)
+            db.add_result(m, str(ml), -1, score, fstats)
         result[0] = score
         return result, fifo_stats
     else:
@@ -178,7 +182,7 @@ def get_initial_memory(db, m, dist, directory, full):
 
     # Determine if we should use the best or the initial
     # memory as a starting point.
-    if random.randint(0, 1) == 0:
+    if random.randint(0, 7) < 7:
         # Attempt to load the best subsystem from the database.
         # If not found, we need to evaluate it.
         best_name, _, _ = db.get_best(m)
@@ -196,9 +200,19 @@ def get_initial_memory(db, m, dist, directory, full):
             values, fstats = get_subsystem_values(db, m, ml, directory, full)
             return ml, values, fstats
     else:
+        # Start from a random location.
+        while True:     # Loop until we get a valid subsystem.
+            ml = m.memory.clone()
+            for b in m.benchmarks:
+                name = db.get_random(m, b.index)
+                if name:
+                    lexer = lex.Lexer(StringIO(name))
+                    ml.update(memory.parse_memory(lexer))
+            cost = ml.get_cost(m.machine, full)
+            if cost.fits(m.machine.get_max_cost()):
+                break
         state = db.load(m)
         dist.load(state, m)
-        ml = m.memory.clone()
         values, fstats = get_subsystem_values(db, m, ml, directory, full)
         return ml, values, fstats
 
@@ -221,6 +235,8 @@ def get_initial_memory(db, m, dist, directory, full):
 
 
 def optimize(db, mod, iterations, seed, directory, full):
+
+    random.seed(seed)
 
     # Create the random number distributions to use for modifying
     # the memory subsystems and create the benchmark processes.
@@ -247,7 +263,7 @@ def optimize(db, mod, iterations, seed, directory, full):
     # Perform the optimization.
     o = MemoryOptimizer(mod, best_value, seed, dist, directory, full)
     db.update_status(best_value, best_cost, result_count, str(o))
-    max_iter = 100
+    max_iter = 1000
     count = max_iter
     while True:
 
@@ -302,14 +318,14 @@ def run_experiment(db, mod, iterations, seed, directory):
     # if something bad happens (most likely missing cacti or xst).
     try:
         database.set_instance(db)
-        full = False
+        full = main_context.full
         while True:
             try:
                 optimize(db, mod, iterations, seed, directory, full)
             except PendingException:
-                if full:
+                if full and not main_context.full:
                     print('Reverting to model')
-                full = False
+                full = main_context.full
             except SwitchToFull:
                 full = True
     except KeyboardInterrupt:
@@ -402,6 +418,7 @@ def main():
     main_context.seed = int(options.seed) if options.seed else int(time.time())
     main_context.iterations = int(options.iterations)
     main_context.verbose = options.verbose
+    main_context.full = options.full
     db = database.get_instance(options.url)
 
     # Create the database server.

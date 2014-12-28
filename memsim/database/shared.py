@@ -10,7 +10,7 @@ class SharedDatabase(base.BaseDatabase):
         self.name = name
         self.request_queue = request_queue
         self.response_queue = response_queue
-        self.result_cache = ResultCache(8)
+        self.result_cache = ResultCache(16)
         self.fpga_cache = ResultCache(1024)
         self.cacti_cache = ResultCache(1024)
         self.score_cache = ResultCache(8192)
@@ -80,6 +80,9 @@ class SharedDatabase(base.BaseDatabase):
 
     def get_best(self, mod):
         return self._execute('get_best', True, str(mod))
+
+    def get_random(self, mod, subsystem):
+        return self._execute('get_random', True, str(mod), subsystem)
 
     def get_result_count(self, mod):
         return self._execute('get_result_count', True, str(mod))
