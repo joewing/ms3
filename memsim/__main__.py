@@ -111,6 +111,10 @@ def get_total_value(db, mod, ml, value, fstats):
         return value.values()[0]
     elif mod.machine.goal == machine.GoalType.MIX75:
         return value.values()[0]
+    elif mod.machine.goal == machine.GoalType.MIX10:
+        return value.values()[0]
+    elif mod.machine.goal == machine.GoalType.MIX90:
+        return value.values()[0]
     else:
         assert(False)
 

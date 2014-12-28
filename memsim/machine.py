@@ -14,6 +14,8 @@ class GoalType(object):
     MIX25 = 3
     MIX50 = 4
     MIX75 = 5
+    MIX10 = 6
+    MIX90 = 7
 
 
 goals = [
@@ -23,6 +25,8 @@ goals = [
     ('mix25', GoalType.MIX25),
     ('mix50', GoalType.MIX50),
     ('mix75', GoalType.MIX75),
+    ('mix10', GoalType.MIX10),
+    ('mix90', GoalType.MIX90),
 ]
 
 
